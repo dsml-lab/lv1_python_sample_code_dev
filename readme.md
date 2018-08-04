@@ -36,3 +36,11 @@ LV1_UserDefinedClassifier は自由に設計して頂きたく思いますが，
  - sklearn
  - pillow
 
+
+# 実行方法
+
+```
+python my_clone.py lv1_targets/classifier_01.png output/out01_cross.png
+```
+
+
