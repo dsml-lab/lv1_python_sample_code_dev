@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 
 
-def exe_my_clone(target, save_path, evaluator, n):
+def exe_my_clone(target, save_path, n):
     # ターゲット認識器への入力として用いる二次元特徴量を用意
     # このサンプルコードではひとまず100サンプルを用意することにする
     features = LV1_user_function_sampling_meshgrid(n_samples=n)
@@ -31,6 +31,7 @@ def exe_my_clone(target, save_path, evaluator, n):
     # print("\nA clone recognizer was trained.")
 
     # 学習したクローン認識器を可視化し，精度を評価
+    evaluator = LV1_Evaluator()
     evaluator.visualize(model, save_path)
     # print("\nThe clone recognizer was visualized and saved to {0} .".format(save_path))
     accuracy = evaluator.calc_accuracy(target, model)
@@ -40,7 +41,7 @@ def exe_my_clone(target, save_path, evaluator, n):
 
 
 def exe_my_clone_all(target_path, max_n, now_str):
-    save_dir = 'output/' + now_str + '/'
+    save_dir = 'output/' + now_str + '/images/'
 
     n_list = []
     acc_list = []
@@ -50,12 +51,10 @@ def exe_my_clone_all(target_path, max_n, now_str):
     target.load(target_path)  # 第一引数で指定された画像をターゲット認識器としてロード
     print("\nA target recognizer was loaded from {0} .".format(target_path))
 
-    evaluator = LV1_Evaluator()
-
     os.makedirs(save_dir)
 
     for n in range(4, max_n):
-        acc = exe_my_clone(target=target, evaluator=evaluator, save_path=save_dir + 'n' + str(n) + '.png', n=n)
+        acc = exe_my_clone(target=target, save_path=save_dir + 'n' + str(n) + '.png', n=n)
         n_list.append(n)
         acc_list.append(acc)
 
@@ -63,11 +62,25 @@ def exe_my_clone_all(target_path, max_n, now_str):
 
 
 def show_graph():
-    now_str = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+    now_str = datetime.now().strftime('%Y%m%d%H%M%S')
     target_path = 'lv1_targets/classifier_01.png'
-    n_list, acc_list = exe_my_clone_all(target_path=target_path, now_str=now_str, max_n=100)
+    n_list, acc_list = exe_my_clone_all(target_path=target_path, now_str=now_str, max_n=6)
+
+    n_dict = {
+        'n': n_list,
+        'accuracy': acc_list
+    }
 
     # n_list, acc_listをcsvで保存する処理
+    # n_accuracy_df = pd.read_csv('output/' + now_str + "/n_accuracy.csv")
+    df = pd.DataFrame.from_dict(n_dict)
+    print(df)
+    df_dir = 'output/' + now_str + '/csv/'
+    os.makedirs(df_dir)
+    df.to_csv(df_dir + "n_accuracy.csv")
+
+    graph_dir = 'output/' + now_str + '/graph/'
+    os.makedirs(graph_dir)
 
     left = np.array(n_list)
     height = np.array(acc_list)
@@ -75,8 +88,8 @@ def show_graph():
     plt.xlabel("n sample count")
     plt.ylabel("Accuracy")
     plt.grid(True)
+    plt.savefig(graph_dir + 'n_accuracy.png')
     plt.show()
-    plt.savefig('graph/' + now_str + '.png')
 
 
 if __name__ == '__main__':
