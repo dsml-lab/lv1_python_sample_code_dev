@@ -32,7 +32,7 @@ def calc_area(n_list, acc_list):
     return sum_value
 
 
-def exe_my_clone(target, save_path, n):
+def exe_my_clone(target, img_save_path, missing_img_save_path, n):
     # ターゲット認識器への入力として用いる二次元特徴量を用意
     # このサンプルコードではひとまず100サンプルを用意することにする
     features = LV1_user_function_sampling_meshgrid(n_samples=n)
@@ -54,8 +54,9 @@ def exe_my_clone(target, save_path, n):
 
     # 学習したクローン認識器を可視化し，精度を評価
     evaluator = LV1_Evaluator()
-    evaluator.visualize(model, save_path)
-    print("\nThe clone recognizer was visualized and saved to {0} .".format(save_path))
+    evaluator.visualize(model, img_save_path)
+    evaluator.visualize_missing(model=model, target=target, filename=missing_img_save_path)
+    print("\nThe clone recognizer was visualized and saved to {0} .".format(img_save_path))
     accuracy = evaluator.calc_accuracy(target, model)
     print("\naccuracy: {0}".format(accuracy))
 
@@ -63,7 +64,8 @@ def exe_my_clone(target, save_path, n):
 
 
 def exe_my_clone_all(target_path, max_n, now_str):
-    save_dir = 'output/' + now_str + '/images/'
+    img_save_dir = 'output/' + now_str + '/images/'
+    missing_img_save_dir = 'output/' + now_str + '/missing_images/'
 
     n_list = []
     acc_list = []
@@ -73,21 +75,24 @@ def exe_my_clone_all(target_path, max_n, now_str):
     target.load(target_path)  # 第一引数で指定された画像をターゲット認識器としてロード
     print("\nA target recognizer was loaded from {0} .".format(target_path))
 
-    os.makedirs(save_dir)
+    os.makedirs(img_save_dir)
+    os.makedirs(missing_img_save_dir)
 
-    for n in range(4, max_n):
-        acc = exe_my_clone(target=target, save_path=save_dir + 'n' + str(n) + '.png', n=n)
+    n_list.append(0)
+    acc_list.append(0.0)
+
+    for n in range(10, max_n, 100):
+        acc = exe_my_clone(target=target,
+                           img_save_path=img_save_dir + 'n' + str(n) + '.png',
+                           missing_img_save_path=missing_img_save_dir + 'n' + str(n) + '.png',
+                           n=n)
         n_list.append(n)
         acc_list.append(acc)
 
     return n_list, acc_list
 
 
-def show_graph():
-    now_str = datetime.now().strftime('%Y%m%d%H%M%S')
-    target_path = 'lv1_targets/classifier_01.png'
-    n_list, acc_list = exe_my_clone_all(target_path=target_path, now_str=now_str, max_n=10)
-
+def save_csv(now_str, n_list, acc_list):
     n_dict = {
         'n': n_list,
         'accuracy': acc_list
@@ -101,22 +106,34 @@ def show_graph():
     os.makedirs(df_dir)
     df.to_csv(df_dir + "n_accuracy.csv")
 
+
+def save_and_show_graph(now_str, n_list, acc_list):
     graph_dir = 'output/' + now_str + '/graph/'
     os.makedirs(graph_dir)
 
     left = np.array(n_list)
     height = np.array(acc_list)
-    plt.bar(left, height)
-    plt.xlabel("n sample count")
+    plt.plot(left, height)
+    plt.xlabel("n samples")
     plt.ylabel("Accuracy")
     plt.grid(True)
     plt.ylim(0, 1)
     plt.savefig(graph_dir + 'n_accuracy.png')
     plt.show()
 
+
+def create_output():
+    now_str = datetime.now().strftime('%Y%m%d%H%M%S')
+    target_path = 'lv1_targets/classifier_01.png'
+    n_list, acc_list = exe_my_clone_all(target_path=target_path, now_str=now_str, max_n=10000)
+
+    save_csv(now_str=now_str, n_list=n_list, acc_list=acc_list)
+
+    save_and_show_graph(now_str=now_str, n_list=n_list, acc_list=acc_list)
+
     area = calc_area(n_list, acc_list)
-    print(area)
+    print('横軸nと縦軸Accuracyの面積: ' + str(area))
 
 
 if __name__ == '__main__':
-    show_graph()
+    create_output()
