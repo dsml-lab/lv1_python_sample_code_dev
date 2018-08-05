@@ -9,6 +9,7 @@ from labels import COLOR2ID
 from evaluation import IMAGE_SIZE
 from evaluation import LV1_Evaluator
 
+
 # ターゲット認識器を表現するクラス
 # ターゲット認識器は2次元パターン（512x512の画像）で与えられるものとする
 class LV1_TargetClassifier:
@@ -32,6 +33,7 @@ class LV1_TargetClassifier:
             labels[i] = self.predict_once(features[i][0], features[i][1])
         return np.int32(labels)
 
+
 # クローン認識器を表現するクラス
 # このサンプルコードでは単純な 1-nearest neighbor 認識器とする（sklearnを使用）
 # 下記と同型の fit メソッドと predict メソッドが必要
@@ -52,9 +54,10 @@ class LV1_UserDefinedClassifier:
         labels = self.clf.predict(features)
         return np.int32(labels)
 
+
 # ターゲット認識器に入力する二次元特徴量をサンプリングする関数
 #   n_samples: サンプリングする特徴量の数
-def LV1_user_function_sampling(n_samples=1):
+def LV1_user_function_sampling(n_samples):
     features = np.zeros((n_samples, 2))
     for i in range(0, n_samples):
         # このサンプルコードでは[-1, 1]の区間をランダムサンプリングするものとする
@@ -65,12 +68,12 @@ def LV1_user_function_sampling(n_samples=1):
 
 # ターゲット認識器に入力する二次元特徴量をサンプリングする関数(格子上)
 #   n_samples: サンプリングする特徴量の数
-def LV1_user_function_sampling_meshgrid(n_samples=1):
+def LV1_user_function_sampling_meshgrid(n_samples):
     features = np.zeros((n_samples, 2))
     # n_samples=10 なら 3
     # n_samples=100 なら 10
     n_samples_sqrt = int(np.sqrt(n_samples))
-    n_samples_sq = n_samples_sqrt*n_samples_sqrt
+    n_samples_sq = n_samples_sqrt * n_samples_sqrt
     # 格子ひとつ分の幅
     fragment_size = 2 / (n_samples_sqrt + 1)
 
@@ -84,19 +87,49 @@ def LV1_user_function_sampling_meshgrid(n_samples=1):
 
     # 残りはランダムに
     for i in range(n_samples_sq, n_samples):
-         features[i][0] = 2 * np.random.rand() - 1
-         features[i][1] = 2 * np.random.rand() - 1
-    return np.float32(features)
-
-# ターゲット認識器に入力する二次元特徴量をサンプリングする関数
-#   n_samples: サンプリングする特徴量の数
-def LV1_user_function_sampling_cross(n_samples=1):
-    features = np.zeros((n_samples, 2))
-    for i in range(0, n_samples):
-        # このサンプルコードでは[-1, 1]の区間をランダムサンプリングするものとする
         features[i][0] = 2 * np.random.rand() - 1
         features[i][1] = 2 * np.random.rand() - 1
     return np.float32(features)
+
+
+# ターゲット認識器に入力する二次元特徴量をサンプリングする関数(格子・長方形)
+#   n_samples: サンプリングする特徴量の数
+def LV1_user_function_sampling_meshgrid_rectangular(n_samples):
+    features = np.zeros((n_samples, 2))
+
+    x_samples = 0
+    y_samples = 0
+
+    # 格子点の個数がもっとも多くなる
+    # y_sizeとy_sizeの差がなるべく小さくなる
+
+    for i in range(2, n_samples):
+        for j in range(2, n_samples):
+            if n_samples >= i * j > x_samples * y_samples and abs(i-j) < 5:  # nよりも小さくi*jが
+                x_samples = i
+                y_samples = j
+
+    print('x_samples:' + str(x_samples))
+    print('y_samples:' + str(y_samples))
+
+    # 格子ひとつ分の幅
+    x_size = 2 / (x_samples + 1)
+    y_size = 2 / (y_samples + 1)
+
+    # 格子状に値を入れる
+    count = 0
+    for j in range(1, x_samples + 1):
+        for k in range(1, y_samples + 1):
+            features[count][0] = j * x_size - 1
+            features[count][1] = k * y_size - 1
+            count = count + 1
+
+    # 残りはランダムに
+    for i in range(x_samples*y_samples, n_samples):
+        features[i][0] = 2 * np.random.rand() - 1
+        features[i][1] = 2 * np.random.rand() - 1
+    return np.float32(features)
+
 
 # クローン処理の実行
 # 第一引数でターゲット認識器を表す画像ファイルのパスを，
@@ -110,7 +143,7 @@ if __name__ == '__main__':
 
     # ターゲット認識器を用意
     target = LV1_TargetClassifier()
-    target.load(sys.argv[1]) # 第一引数で指定された画像をターゲット認識器としてロード
+    target.load(sys.argv[1])  # 第一引数で指定された画像をターゲット認識器としてロード
     print("\nA target recognizer was loaded from {0} .".format(sys.argv[1]))
 
     # ターゲット認識器への入力として用いる二次元特徴量を用意

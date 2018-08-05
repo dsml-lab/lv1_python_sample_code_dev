@@ -2,12 +2,18 @@ import os
 
 from datetime import datetime
 
+# from clone import LV1_user_function_sampling, LV1_UserDefinedClassifier, LV1_TargetClassifier
 from evaluation import LV1_Evaluator
-from my_clone import LV1_TargetClassifier
-from my_clone import LV1_user_function_sampling_meshgrid, LV1_UserDefinedClassifier
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+
+from my_clone import LV1_user_function_sampling_meshgrid, LV1_UserDefinedClassifier, LV1_TargetClassifier, \
+    LV1_user_function_sampling_meshgrid_rectangular, LV1_user_function_sampling
+
+RANDAM_SAMPLING = 'LV1_user_function_sampling'
+MESHGRID = 'LV1_user_function_sampling_meshgrid'
+MESHGRID_RECTANGULAR = 'LV1_user_function_sampling_meshgrid_rectangular'
 
 
 def calc_diff_area(start_n, end_n, start_height, end_height):
@@ -32,10 +38,20 @@ def calc_area(n_list, acc_list):
     return sum_value
 
 
-def exe_my_clone(target, img_save_path, missing_img_save_path, n):
+def get_features(n, method_name):
+    if method_name == RANDAM_SAMPLING:
+        return LV1_user_function_sampling(n_samples=n)
+
+    if method_name == MESHGRID:
+        return LV1_user_function_sampling_meshgrid(n_samples=n)
+
+    if method_name == MESHGRID_RECTANGULAR:
+        return LV1_user_function_sampling_meshgrid_rectangular(n_samples=n)
+
+
+def exe_my_clone(target, img_save_path, missing_img_save_path, n, method_name):
     # ターゲット認識器への入力として用いる二次元特徴量を用意
-    # このサンプルコードではひとまず100サンプルを用意することにする
-    features = LV1_user_function_sampling_meshgrid(n_samples=n)
+    features = get_features(n, method_name)
     print(features)
 
     print(features.shape)
@@ -63,7 +79,7 @@ def exe_my_clone(target, img_save_path, missing_img_save_path, n):
     return accuracy
 
 
-def exe_my_clone_all(target_path, max_n, now_str):
+def exe_my_clone_all(target_path, max_n, increment_value, now_str, method_name):
     img_save_dir = 'output/' + now_str + '/images/'
     missing_img_save_dir = 'output/' + now_str + '/missing_images/'
 
@@ -81,33 +97,48 @@ def exe_my_clone_all(target_path, max_n, now_str):
     n_list.append(0)
     acc_list.append(0.0)
 
-    for n in range(10, max_n, 100):
+    for n in range(10, max_n, increment_value):
         acc = exe_my_clone(target=target,
                            img_save_path=img_save_dir + 'n' + str(n) + '.png',
                            missing_img_save_path=missing_img_save_dir + 'n' + str(n) + '.png',
-                           n=n)
+                           n=n, method_name=method_name)
         n_list.append(n)
         acc_list.append(acc)
 
     return n_list, acc_list
 
 
-def save_csv(now_str, n_list, acc_list):
+def save_csv(now_str, n_list, acc_list, area, sampling_method_name):
+    df_dir = 'output/' + now_str + '/csv/'
+    os.makedirs(df_dir)
+
+    save_n_accuracy_csv(n_list=n_list, acc_list=acc_list, df_dir=df_dir)
+    save_log_csv(area=area, sampling_method_name=sampling_method_name, df_dir=df_dir)
+
+
+def save_n_accuracy_csv(n_list, acc_list, df_dir):
     n_dict = {
         'n': n_list,
         'accuracy': acc_list
     }
 
-    # n_list, acc_listをcsvで保存する処理
-    # n_accuracy_df = pd.read_csv('output/' + now_str + "/n_accuracy.csv")
     df = pd.DataFrame.from_dict(n_dict)
     print(df)
-    df_dir = 'output/' + now_str + '/csv/'
-    os.makedirs(df_dir)
     df.to_csv(df_dir + "n_accuracy.csv")
 
 
-def save_and_show_graph(now_str, n_list, acc_list):
+def save_log_csv(area, sampling_method_name, df_dir):
+    log_dict = {
+        'area': [area],
+        'sampling_method_name': [sampling_method_name]
+    }
+
+    df = pd.DataFrame.from_dict(log_dict)
+    print(df)
+    df.to_csv(df_dir + "log.csv")
+
+
+def save_and_show_graph(now_str, n_list, acc_list, area):
     graph_dir = 'output/' + now_str + '/graph/'
     os.makedirs(graph_dir)
 
@@ -118,6 +149,7 @@ def save_and_show_graph(now_str, n_list, acc_list):
     plt.ylabel("Accuracy")
     plt.grid(True)
     plt.ylim(0, 1)
+    plt.title("area: " + str(area))
     plt.savefig(graph_dir + 'n_accuracy.png')
     plt.show()
 
@@ -125,14 +157,15 @@ def save_and_show_graph(now_str, n_list, acc_list):
 def create_output():
     now_str = datetime.now().strftime('%Y%m%d%H%M%S')
     target_path = 'lv1_targets/classifier_01.png'
-    n_list, acc_list = exe_my_clone_all(target_path=target_path, now_str=now_str, max_n=10000)
-
-    save_csv(now_str=now_str, n_list=n_list, acc_list=acc_list)
-
-    save_and_show_graph(now_str=now_str, n_list=n_list, acc_list=acc_list)
+    method_name = MESHGRID_RECTANGULAR
+    n_list, acc_list = exe_my_clone_all(target_path=target_path, now_str=now_str, max_n=100, increment_value=10,
+                                        method_name=method_name)
 
     area = calc_area(n_list, acc_list)
     print('横軸nと縦軸Accuracyの面積: ' + str(area))
+
+    save_and_show_graph(now_str=now_str, n_list=n_list, acc_list=acc_list, area=area)
+    save_csv(now_str=now_str, n_list=n_list, acc_list=acc_list, area=area, sampling_method_name=method_name)
 
 
 if __name__ == '__main__':
