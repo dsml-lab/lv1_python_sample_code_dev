@@ -71,7 +71,7 @@ def exe_my_clone(target, img_save_path, missing_img_save_path, n, method_name):
     # 学習したクローン認識器を可視化し，精度を評価
     evaluator = LV1_Evaluator()
     evaluator.visualize(model, img_save_path)
-    evaluator.visualize_missing(model=model, target=target, filename=missing_img_save_path)
+    evaluator.visualize_missing(model=model, target=target, filename=missing_img_save_path, features=features)
     print("\nThe clone recognizer was visualized and saved to {0} .".format(img_save_path))
     accuracy = evaluator.calc_accuracy(target, model)
     print("\naccuracy: {0}".format(accuracy))
@@ -158,7 +158,7 @@ def create_output():
     now_str = datetime.now().strftime('%Y%m%d%H%M%S')
     target_path = 'lv1_targets/classifier_01.png'
     method_name = MESHGRID_RECTANGULAR
-    n_list, acc_list = exe_my_clone_all(target_path=target_path, now_str=now_str, max_n=100, increment_value=10,
+    n_list, acc_list = exe_my_clone_all(target_path=target_path, now_str=now_str, max_n=100, increment_value=30,
                                         method_name=method_name)
 
     area = calc_area(n_list, acc_list)
