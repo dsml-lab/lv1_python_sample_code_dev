@@ -138,7 +138,7 @@ def save_log_csv(area, sampling_method_name, df_dir):
     df.to_csv(df_dir + "log.csv")
 
 
-def save_and_show_graph(now_str, n_list, acc_list, area):
+def save_and_show_graph(now_str, n_list, acc_list, area, method_name):
     graph_dir = 'output/' + now_str + '/graph/'
     os.makedirs(graph_dir)
 
@@ -149,7 +149,7 @@ def save_and_show_graph(now_str, n_list, acc_list, area):
     plt.ylabel("Accuracy")
     plt.grid(True)
     plt.ylim(0, 1)
-    plt.title("area: " + str(area))
+    plt.title("area: " + str(area) + "\n" + method_name)
     plt.savefig(graph_dir + 'n_accuracy.png')
     plt.show()
 
@@ -164,7 +164,7 @@ def create_output():
     area = calc_area(n_list, acc_list)
     print('横軸nと縦軸Accuracyの面積: ' + str(area))
 
-    save_and_show_graph(now_str=now_str, n_list=n_list, acc_list=acc_list, area=area)
+    save_and_show_graph(now_str=now_str, n_list=n_list, acc_list=acc_list, area=area, method_name=method_name)
     save_csv(now_str=now_str, n_list=n_list, acc_list=acc_list, area=area, sampling_method_name=method_name)
 
 

@@ -105,7 +105,7 @@ def LV1_user_function_sampling_meshgrid_rectangular(n_samples):
 
     for i in range(2, n_samples):
         for j in range(2, n_samples):
-            if n_samples >= i * j > x_samples * y_samples and abs(i-j) < 5:  # nよりも小さくi*jが
+            if n_samples >= i * j > x_samples * y_samples and abs(i - j) < 5:  # nよりも小さくi*jが
                 x_samples = i
                 y_samples = j
 
@@ -125,18 +125,22 @@ def LV1_user_function_sampling_meshgrid_rectangular(n_samples):
             count = count + 1
 
     # 残りはランダムに
-    for i in range(x_samples*y_samples, n_samples):
+    for i in range(x_samples * y_samples, n_samples):
         features[i][0] = 2 * np.random.rand() - 1
         features[i][1] = 2 * np.random.rand() - 1
     return np.float32(features)
 
 
-# クローン処理の実行
-# 第一引数でターゲット認識器を表す画像ファイルのパスを，
-# 第二引数でクローン認識器の可視化結果を保存する画像ファイルのパスを，
-# それぞれ指定するものとする
-if __name__ == '__main__':
+# ターゲット認識器に入力する二次元特徴量をサンプリングする関数(適応的)
+#   n_samples: サンプリングする特徴量の数
+def LV1_user_function_sampling_adaptive_behavior(n_samples, target):
 
+
+
+    target.predict_once()
+
+
+def main():
     if len(sys.argv) < 3:
         print("usage: clone.py /target/classifier/image/path /output/image/path")
         exit(0)
@@ -171,3 +175,11 @@ if __name__ == '__main__':
     evaluator.visualize(model, sys.argv[2])
     print("\nThe clone recognizer was visualized and saved to {0} .".format(sys.argv[2]))
     print("\naccuracy: {0}".format(evaluator.calc_accuracy(target, model)))
+
+
+# クローン処理の実行
+# 第一引数でターゲット認識器を表す画像ファイルのパスを，
+# 第二引数でクローン認識器の可視化結果を保存する画像ファイルのパスを，
+# それぞれ指定するものとする
+if __name__ == '__main__':
+    main()

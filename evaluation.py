@@ -46,7 +46,7 @@ class LV1_Evaluator:
     # クローン認識器の誤り部分を可視化する（可視化結果を画像として保存する）
     #   model: クローン認識器
     #   filename: 可視化結果の保存先画像のファイルパス
-    def visualize_missing(self, target, model, filename):
+    def visualize_missing(self, target, model, filename, features):
         self.target_labels = target.predict(self.samples)
         self.clone_labels = model.predict(self.samples)
         img = Image.new('RGB', (IMAGE_SIZE, IMAGE_SIZE))
