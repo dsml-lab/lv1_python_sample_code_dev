@@ -131,14 +131,43 @@ def LV1_user_function_sampling_meshgrid_rectangular(n_samples):
     return np.float32(features)
 
 
-# ターゲット認識器に入力する二次元特徴量をサンプリングする関数(適応的)
+# ターゲット認識器に入力する二次元特徴量をサンプリングする関数(エッジ)
 #   n_samples: サンプリングする特徴量の数
-def LV1_user_function_sampling_adaptive_behavior(n_samples, target):
+def LV1_user_function_sampling_edge(n_samples, clone_model):
+    evaluator = LV1_Evaluator()
+    xy_list = evaluator.calc_edge(clone_model)
+
+    features = np.zeros((n_samples, 2))
+    for i in range(0, n_samples):
+        print(xy_list)
+        if len(xy_list) > i:
+            x, y = xy_list[i]
+            features[i][0] = (x / (IMAGE_SIZE - 1)) * 2 - 1
+            features[i][1] = (y / (IMAGE_SIZE - 1)) * 2 - 1
+        else:
+            features[i][0] = 2 * np.random.rand() - 1
+            features[i][1] = 2 * np.random.rand() - 1
+
+    return np.float32(features)
 
 
+# ターゲット認識器に入力する二次元特徴量をサンプリングする関数(格子とエッジ)
+#   n_samples: サンプリングする特徴量の数
+def LV1_user_function_sampling_grid_and_edge(n_samples, target):
+    grid_samples = 25
 
-    target.predict_once()
+    if n_samples < grid_samples:
+        return LV1_user_function_sampling_meshgrid_rectangular(grid_samples)
+    else:
+        features = LV1_user_function_sampling_meshgrid_rectangular(grid_samples)
+        edge_samples = n_samples - grid_samples
 
+        labels = target.predict(features=features)
+
+        model = LV1_UserDefinedClassifier()
+        model.fit(features, labels)
+
+        return np.r_(LV1_user_function_sampling_edge(n_samples=edge_samples, clone_model=model), features)
 
 def main():
     if len(sys.argv) < 3:

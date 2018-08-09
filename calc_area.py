@@ -9,11 +9,13 @@ import pandas as pd
 import numpy as np
 
 from my_clone import LV1_user_function_sampling_meshgrid, LV1_UserDefinedClassifier, LV1_TargetClassifier, \
-    LV1_user_function_sampling_meshgrid_rectangular, LV1_user_function_sampling
+    LV1_user_function_sampling_meshgrid_rectangular, LV1_user_function_sampling, \
+    LV1_user_function_sampling_grid_and_edge
 
 RANDAM_SAMPLING = 'LV1_user_function_sampling'
 MESHGRID = 'LV1_user_function_sampling_meshgrid'
 MESHGRID_RECTANGULAR = 'LV1_user_function_sampling_meshgrid_rectangular'
+GRID_AND_EDGE = 'lv1_user_function_sampling_grid_and_edge'
 
 
 def calc_diff_area(start_n, end_n, start_height, end_height):
@@ -38,35 +40,70 @@ def calc_area(n_list, acc_list):
     return sum_value
 
 
-def get_features(n, method_name):
+def get_clone_model(n, method_name, target):
     if method_name == RANDAM_SAMPLING:
-        return LV1_user_function_sampling(n_samples=n)
+        features = LV1_user_function_sampling(n_samples=n)
+        print("\n{0} features were sampled.".format(n))
 
+        # ターゲット認識器に用意した入力特徴量を入力し，各々に対応するクラスラベルIDを取得
+        labels = target.predict(features)
+        print("\nThe sampled features were recognized by the target recognizer.")
+
+        # クローン認識器を学習
+        model = LV1_UserDefinedClassifier()
+        model.fit(features, labels)
+        print("\nA clone recognizer was trained.")
+
+        return model, features
     if method_name == MESHGRID:
-        return LV1_user_function_sampling_meshgrid(n_samples=n)
+        features = LV1_user_function_sampling_meshgrid(n_samples=n)
+        print("\n{0} features were sampled.".format(n))
+
+        # ターゲット認識器に用意した入力特徴量を入力し，各々に対応するクラスラベルIDを取得
+        labels = target.predict(features)
+        print("\nThe sampled features were recognized by the target recognizer.")
+
+        # クローン認識器を学習
+        model = LV1_UserDefinedClassifier()
+        model.fit(features, labels)
+        print("\nA clone recognizer was trained.")
+
+        return model, features
 
     if method_name == MESHGRID_RECTANGULAR:
-        return LV1_user_function_sampling_meshgrid_rectangular(n_samples=n)
+        features = LV1_user_function_sampling_meshgrid_rectangular(n_samples=n)
+        print("\n{0} features were sampled.".format(n))
+
+        # ターゲット認識器に用意した入力特徴量を入力し，各々に対応するクラスラベルIDを取得
+        labels = target.predict(features)
+        print("\nThe sampled features were recognized by the target recognizer.")
+
+        # クローン認識器を学習
+        model = LV1_UserDefinedClassifier()
+        model.fit(features, labels)
+        print("\nA clone recognizer was trained.")
+
+        return model, features
+
+    if method_name == GRID_AND_EDGE:
+        features = LV1_user_function_sampling_grid_and_edge(n_samples=n, target=target)
+        print("\n{0} features were sampled.".format(n))
+
+        # ターゲット認識器に用意した入力特徴量を入力し，各々に対応するクラスラベルIDを取得
+        labels = target.predict(features)
+        print("\nThe sampled features were recognized by the target recognizer.")
+
+        # クローン認識器を学習
+        model = LV1_UserDefinedClassifier()
+        model.fit(features, labels)
+        print("\nA clone recognizer was trained.")
+
+        return model, features
 
 
 def exe_my_clone(target, img_save_path, missing_img_save_path, n, method_name):
     # ターゲット認識器への入力として用いる二次元特徴量を用意
-    features = get_features(n, method_name)
-    print(features)
-
-    print(features.shape)
-    print(features[0])
-    #
-    print("\n{0} features were sampled.".format(n))
-
-    # ターゲット認識器に用意した入力特徴量を入力し，各々に対応するクラスラベルIDを取得
-    labels = target.predict(features)
-    print("\nThe sampled features were recognized by the target recognizer.")
-
-    # クローン認識器を学習
-    model = LV1_UserDefinedClassifier()
-    model.fit(features, labels)
-    print("\nA clone recognizer was trained.")
+    model, features = get_clone_model(n, method_name, target)
 
     # 学習したクローン認識器を可視化し，精度を評価
     evaluator = LV1_Evaluator()
@@ -157,7 +194,7 @@ def save_and_show_graph(now_str, n_list, acc_list, area, method_name):
 def create_output():
     now_str = datetime.now().strftime('%Y%m%d%H%M%S')
     target_path = 'lv1_targets/classifier_01.png'
-    method_name = MESHGRID_RECTANGULAR
+    method_name = GRID_AND_EDGE
     n_list, acc_list = exe_my_clone_all(target_path=target_path, now_str=now_str, max_n=100, increment_value=30,
                                         method_name=method_name)
 

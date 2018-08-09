@@ -34,6 +34,13 @@ def is_sampling_position(x, y, features):
     return False
 
 
+def get_i(x, y):
+    if x < 0 or x >= IMAGE_SIZE or y < 0 or y >= IMAGE_SIZE:
+        return -1
+
+    return y * IMAGE_SIZE + x
+
+
 # 構築したクローン認識器を評価するためのクラス
 class LV1_Evaluator:
 
@@ -89,4 +96,57 @@ class LV1_Evaluator:
                 rgb = map(lambda c: int(c / 2), rgb)
                 rgb = tuple(rgb)
                 img.putpixel((x, y), rgb)
+        img.save(filename)
+
+    # クローン認識器のエッジ座標を計算する
+    #   model: クローン認識器
+    def calc_edge(self, model):
+        clone_labels = model.predict(self.samples)
+        edge_point_list = []
+        for i in range(0, self.size):
+            x = i % IMAGE_SIZE
+            y = i // IMAGE_SIZE
+
+            above_x = x
+            above_y = y - 1
+            above_i = get_i(above_x, above_y)
+
+            below_x = x
+            below_y = y + 1
+            below_i = get_i(below_x, below_y)
+
+            left_x = x - 1
+            left_y = y
+            left_i = get_i(left_x, left_y)
+
+            right_x = x + 1
+            right_y = y
+            right_i = get_i(right_x, right_y)
+
+            near_labels = [clone_labels[i]]
+
+            if above_i is not -1:
+                near_labels.append(clone_labels[above_i])
+            if below_i is not -1:
+                near_labels.append(clone_labels[below_i])
+            if left_i is not -1:
+                near_labels.append(clone_labels[left_i])
+            if right_i is not -1:
+                near_labels.append(clone_labels[right_i])
+
+            # その点がエッジかどうか判定する
+            if len(set(near_labels)) > 1:
+                print('edge')
+                edge_point_list.append((x, y))
+
+        return edge_point_list
+
+    def visualize_on_white(self, draw_xy_list, filename):
+        img = Image.new('RGB', (IMAGE_SIZE, IMAGE_SIZE))
+        for i in range(0, self.size):
+            x = i % IMAGE_SIZE
+            y = i // IMAGE_SIZE
+
+            if (x, y) in draw_xy_list:
+                img.putpixel((x, y), (0, 0, 0))
         img.save(filename)
