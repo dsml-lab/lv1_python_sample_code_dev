@@ -102,7 +102,7 @@ def exe_my_clone_all(target_path, max_n, increment_value, now_str, method_name):
     n_list.append(0)
     acc_list.append(0.0)
 
-    for n in range(10, max_n, increment_value):
+    for n in range(500, max_n, increment_value):
         acc = exe_my_clone(target=target,
                            img_save_path=img_save_dir + 'n' + str(n) + '.png',
                            missing_img_save_path=missing_img_save_dir + 'n' + str(n) + '.png',
@@ -163,7 +163,7 @@ def create_output():
     now_str = datetime.now().strftime('%Y%m%d%H%M%S')
     target_path = 'lv1_targets/classifier_01.png'
     method_name = LV1_USER_FUNCTION_SAMPLING_AND_PREDICT_MESHGRID_RECTANGULAR_AND_EDGE
-    n_list, acc_list = exe_my_clone_all(target_path=target_path, now_str=now_str, max_n=100, increment_value=30,
+    n_list, acc_list = exe_my_clone_all(target_path=target_path, now_str=now_str, max_n=1000, increment_value=111,
                                         method_name=method_name)
 
     area = calc_area(n_list, acc_list)

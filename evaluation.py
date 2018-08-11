@@ -76,9 +76,9 @@ class LV1_Evaluator:
         for i in range(len(xy_list)):
             x, y = xy_list[i]
             features[i][0] = to_decimal_from_px(x)
-            features[i][1] = to_decimal_from_px(y)
+            features[i][1] = -to_decimal_from_px(y)
 
-        return features
+        return np.float32(features)
 
     # ターゲット認識器とクローン認識器の出力の一致率を求める
     #   target: ターゲット認識器

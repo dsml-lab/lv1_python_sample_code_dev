@@ -148,7 +148,7 @@ def LV1_user_function_sampling_meshgrid_rectangular(n_samples):
 #   n_samples: サンプリングする特徴量の数
 def LV1_user_function_sampling_and_predict_meshgrid_rectangular_and_edge(n_samples, target):
 
-    grid_n_size = 25
+    grid_n_size = 500
 
     if n_samples <= grid_n_size:
         return LV1_user_function_sampling_meshgrid_rectangular(n_samples=n_samples)
@@ -169,7 +169,10 @@ def LV1_user_function_sampling_and_predict_meshgrid_rectangular_and_edge(n_sampl
 
         print('edge_features size: ' + str(len(edge_features)))
 
-        return edge_features
+        print('grid shape' + str(grid_features.shape))
+        print('edge shape' + str(edge_features.shape))
+
+        return np.vstack((grid_features, edge_features))
 
 
 
