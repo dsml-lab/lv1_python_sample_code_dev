@@ -63,7 +63,7 @@ class LV1_Evaluator:
     # クローン認識器を可視化する（可視化結果を画像として保存する）
     #   model: クローン認識器
     #   filename: 可視化結果の保存先画像のファイルパス
-    def edge_img_to_edge_features(self, edge_img):
+    def edge_img_to_edge_features(self, edge_img, edge_distance):
 
         xy_list = []
         for i in range(0, self.size):
@@ -82,24 +82,24 @@ class LV1_Evaluator:
         for i in range(len(xy_list)):
             x, y = xy_list[i]
             features_gap_up[i][0] = to_decimal_from_px(x)
-            features_gap_up[i][1] = max(-to_decimal_from_px(y) - 0.05, -1)
+            features_gap_up[i][1] = max(-to_decimal_from_px(y) - edge_distance, -1)
 
         features_gap_down = np.zeros((len(xy_list), 2))
         for i in range(len(xy_list)):
             x, y = xy_list[i]
             features_gap_down[i][0] = to_decimal_from_px(x)
-            features_gap_down[i][1] = min(-to_decimal_from_px(y) + 0.05, 1)
+            features_gap_down[i][1] = min(-to_decimal_from_px(y) + edge_distance, 1)
 
         features_gap_left = np.zeros((len(xy_list), 2))
         for i in range(len(xy_list)):
             x, y = xy_list[i]
-            features_gap_left[i][0] = max(to_decimal_from_px(x) - 0.05, -1)
+            features_gap_left[i][0] = max(to_decimal_from_px(x) - edge_distance, -1)
             features_gap_left[i][1] = -to_decimal_from_px(y)
 
         features_gap_right = np.zeros((len(xy_list), 2))
         for i in range(len(xy_list)):
             x, y = xy_list[i]
-            features_gap_right[i][0] = min(to_decimal_from_px(x) + 0.05, 1)
+            features_gap_right[i][0] = min(to_decimal_from_px(x) + edge_distance, 1)
             features_gap_right[i][1] = -to_decimal_from_px(y)
 
         features_gaps_vertical = np.vstack((features_gap_up, features_gap_down))

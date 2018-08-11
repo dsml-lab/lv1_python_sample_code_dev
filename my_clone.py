@@ -146,9 +146,9 @@ def LV1_user_function_sampling_meshgrid_rectangular(n_samples):
 
 # ターゲット認識器に入力する二次元特徴量をサンプリングする関数(適応的)
 #   n_samples: サンプリングする特徴量の数
-def LV1_user_function_sampling_and_predict_meshgrid_rectangular_and_edge(n_samples, target):
+def LV1_user_function_sampling_and_predict_meshgrid_rectangular_and_edge(n_samples, target, grid_n_size, edge_distance):
 
-    grid_n_size = 500
+    # grid_n_size = 500
 
     if n_samples <= grid_n_size:
         return LV1_user_function_sampling_meshgrid_rectangular(n_samples=n_samples)
@@ -165,7 +165,7 @@ def LV1_user_function_sampling_and_predict_meshgrid_rectangular_and_edge(n_sampl
         clone_img = evaluator.visualize_get_img(clone_model)
 
         edge_img = filter_edge(img=clone_img)
-        edge_features = evaluator.edge_img_to_edge_features(edge_img=edge_img)
+        edge_features = evaluator.edge_img_to_edge_features(edge_img=edge_img, edge_distance=edge_distance)
 
         print('edge_features size: ' + str(len(edge_features)))
 

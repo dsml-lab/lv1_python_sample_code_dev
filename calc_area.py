@@ -17,6 +17,7 @@ MESHGRID = 'LV1_user_function_sampling_meshgrid'
 MESHGRID_RECTANGULAR = 'LV1_user_function_sampling_meshgrid_rectangular'
 LV1_USER_FUNCTION_SAMPLING_AND_PREDICT_MESHGRID_RECTANGULAR_AND_EDGE = 'LV1_user_function_sampling_and_predict_meshgrid_rectangular_and_edge'
 
+
 def calc_diff_area(start_n, end_n, start_height, end_height):
     rect_area = (end_n - start_n) * start_height
     triangle_area = ((end_n - start_n) * (end_height - start_height)) / 2
@@ -39,7 +40,7 @@ def calc_area(n_list, acc_list):
     return sum_value
 
 
-def get_features(n, method_name, target):
+def get_features(n, method_name):
     if method_name == RANDAM_SAMPLING:
         return LV1_user_function_sampling(n_samples=n)
 
@@ -49,13 +50,13 @@ def get_features(n, method_name, target):
     if method_name == MESHGRID_RECTANGULAR:
         return LV1_user_function_sampling_meshgrid_rectangular(n_samples=n)
 
-    if method_name == LV1_USER_FUNCTION_SAMPLING_AND_PREDICT_MESHGRID_RECTANGULAR_AND_EDGE:
-        return LV1_user_function_sampling_and_predict_meshgrid_rectangular_and_edge(n_samples=n, target=target)
 
-
-def exe_my_clone(target, img_save_path, missing_img_save_path, n, method_name):
+def exe_my_clone(target, img_save_path, missing_img_save_path, n, method_name, grid_n_size, edge_distance):
     # ターゲット認識器への入力として用いる二次元特徴量を用意
-    features = get_features(n, method_name, target)
+    # features = get_features(n, method_name)
+    features = LV1_user_function_sampling_and_predict_meshgrid_rectangular_and_edge(n_samples=n, target=target,
+                                                                                    grid_n_size=grid_n_size,
+                                                                                    edge_distance=edge_distance)
     print(features)
 
     print(features.shape)
@@ -84,7 +85,7 @@ def exe_my_clone(target, img_save_path, missing_img_save_path, n, method_name):
     return accuracy
 
 
-def exe_my_clone_all(target_path, max_n, increment_value, now_str, method_name):
+def exe_my_clone_all(start, target_path, max_n, increment_value, now_str, method_name, grid_n_size, edge_distance):
     img_save_dir = 'output/' + now_str + '/images/'
     missing_img_save_dir = 'output/' + now_str + '/missing_images/'
 
@@ -102,23 +103,26 @@ def exe_my_clone_all(target_path, max_n, increment_value, now_str, method_name):
     n_list.append(0)
     acc_list.append(0.0)
 
-    for n in range(500, max_n, increment_value):
+    for n in range(start, max_n, increment_value):
         acc = exe_my_clone(target=target,
                            img_save_path=img_save_dir + 'n' + str(n) + '.png',
                            missing_img_save_path=missing_img_save_dir + 'n' + str(n) + '.png',
-                           n=n, method_name=method_name)
+                           n=n, method_name=method_name,
+                           grid_n_size=grid_n_size,
+                           edge_distance=edge_distance
+                           )
         n_list.append(n)
         acc_list.append(acc)
 
     return n_list, acc_list
 
 
-def save_csv(now_str, n_list, acc_list, area, sampling_method_name):
+def save_csv(now_str, n_list, acc_list, log_dict):
     df_dir = 'output/' + now_str + '/csv/'
     os.makedirs(df_dir)
 
     save_n_accuracy_csv(n_list=n_list, acc_list=acc_list, df_dir=df_dir)
-    save_log_csv(area=area, sampling_method_name=sampling_method_name, df_dir=df_dir)
+    save_log_csv(log_dict=log_dict, df_dir=df_dir)
 
 
 def save_n_accuracy_csv(n_list, acc_list, df_dir):
@@ -132,12 +136,7 @@ def save_n_accuracy_csv(n_list, acc_list, df_dir):
     df.to_csv(df_dir + "n_accuracy.csv")
 
 
-def save_log_csv(area, sampling_method_name, df_dir):
-    log_dict = {
-        'area': [area],
-        'sampling_method_name': [sampling_method_name]
-    }
-
+def save_log_csv(log_dict, df_dir):
     df = pd.DataFrame.from_dict(log_dict)
     print(df)
     df.to_csv(df_dir + "log.csv")
@@ -162,15 +161,30 @@ def save_and_show_graph(now_str, n_list, acc_list, area, method_name):
 def create_output():
     now_str = datetime.now().strftime('%Y%m%d%H%M%S')
     target_path = 'lv1_targets/classifier_01.png'
+    grid_n_size = 100
+    edge_distance = 0.1
     method_name = LV1_USER_FUNCTION_SAMPLING_AND_PREDICT_MESHGRID_RECTANGULAR_AND_EDGE
-    n_list, acc_list = exe_my_clone_all(target_path=target_path, now_str=now_str, max_n=1000, increment_value=111,
-                                        method_name=method_name)
+    n_list, acc_list = exe_my_clone_all(start=grid_n_size,
+                                        target_path=target_path, now_str=now_str, max_n=grid_n_size+200, increment_value=111,
+                                        method_name=method_name,
+                                        grid_n_size=grid_n_size,
+                                        edge_distance=edge_distance
+                                        )
 
     area = calc_area(n_list, acc_list)
     print('横軸nと縦軸Accuracyの面積: ' + str(area))
 
+    log_dict = {
+        'nos_str': [now_str],
+        'target_path': [target_path],
+        'area': [area],
+        'sampling_method_name': [method_name],
+        'grid_n_size': [grid_n_size],
+        'edge_distance': [edge_distance]
+    }
+
     save_and_show_graph(now_str=now_str, n_list=n_list, acc_list=acc_list, area=area, method_name=method_name)
-    save_csv(now_str=now_str, n_list=n_list, acc_list=acc_list, area=area, sampling_method_name=method_name)
+    save_csv(now_str=now_str, n_list=n_list, acc_list=acc_list, log_dict=log_dict)
 
 
 if __name__ == '__main__':
