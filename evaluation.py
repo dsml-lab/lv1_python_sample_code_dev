@@ -78,6 +78,35 @@ class LV1_Evaluator:
             features[i][0] = to_decimal_from_px(x)
             features[i][1] = -to_decimal_from_px(y)
 
+        features_gap_up = np.zeros((len(xy_list), 2))
+        for i in range(len(xy_list)):
+            x, y = xy_list[i]
+            features_gap_up[i][0] = to_decimal_from_px(x)
+            features_gap_up[i][1] = max(-to_decimal_from_px(y) - 0.05, -1)
+
+        features_gap_down = np.zeros((len(xy_list), 2))
+        for i in range(len(xy_list)):
+            x, y = xy_list[i]
+            features_gap_down[i][0] = to_decimal_from_px(x)
+            features_gap_down[i][1] = min(-to_decimal_from_px(y) + 0.05, 1)
+
+        features_gap_left = np.zeros((len(xy_list), 2))
+        for i in range(len(xy_list)):
+            x, y = xy_list[i]
+            features_gap_left[i][0] = max(to_decimal_from_px(x) - 0.05, -1)
+            features_gap_left[i][1] = -to_decimal_from_px(y)
+
+        features_gap_right = np.zeros((len(xy_list), 2))
+        for i in range(len(xy_list)):
+            x, y = xy_list[i]
+            features_gap_right[i][0] = min(to_decimal_from_px(x) + 0.05, 1)
+            features_gap_right[i][1] = -to_decimal_from_px(y)
+
+        features_gaps_vertical = np.vstack((features_gap_up, features_gap_down))
+        features_gaps_horizontal = np.vstack((features_gap_left, features_gap_right))
+        features_gaps = np.vstack((features_gaps_vertical, features_gaps_horizontal))
+        features = np.vstack((features, features_gaps))
+
         return np.float32(features)
 
     # ターゲット認識器とクローン認識器の出力の一致率を求める
