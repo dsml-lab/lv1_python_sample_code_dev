@@ -9,12 +9,13 @@ import pandas as pd
 import numpy as np
 
 from my_clone import LV1_user_function_sampling_meshgrid, LV1_UserDefinedClassifier, LV1_TargetClassifier, \
-    LV1_user_function_sampling_meshgrid_rectangular, LV1_user_function_sampling
+    LV1_user_function_sampling_meshgrid_rectangular, LV1_user_function_sampling, \
+    LV1_user_function_sampling_and_predict_meshgrid_rectangular_and_edge
 
 RANDAM_SAMPLING = 'LV1_user_function_sampling'
 MESHGRID = 'LV1_user_function_sampling_meshgrid'
 MESHGRID_RECTANGULAR = 'LV1_user_function_sampling_meshgrid_rectangular'
-
+LV1_USER_FUNCTION_SAMPLING_AND_PREDICT_MESHGRID_RECTANGULAR_AND_EDGE = 'LV1_user_function_sampling_and_predict_meshgrid_rectangular_and_edge'
 
 def calc_diff_area(start_n, end_n, start_height, end_height):
     rect_area = (end_n - start_n) * start_height
@@ -38,7 +39,7 @@ def calc_area(n_list, acc_list):
     return sum_value
 
 
-def get_features(n, method_name):
+def get_features(n, method_name, target):
     if method_name == RANDAM_SAMPLING:
         return LV1_user_function_sampling(n_samples=n)
 
@@ -48,10 +49,13 @@ def get_features(n, method_name):
     if method_name == MESHGRID_RECTANGULAR:
         return LV1_user_function_sampling_meshgrid_rectangular(n_samples=n)
 
+    if method_name == LV1_USER_FUNCTION_SAMPLING_AND_PREDICT_MESHGRID_RECTANGULAR_AND_EDGE:
+        return LV1_user_function_sampling_and_predict_meshgrid_rectangular_and_edge(n_samples=n, target=target)
+
 
 def exe_my_clone(target, img_save_path, missing_img_save_path, n, method_name):
     # ターゲット認識器への入力として用いる二次元特徴量を用意
-    features = get_features(n, method_name)
+    features = get_features(n, method_name, target)
     print(features)
 
     print(features.shape)
@@ -71,6 +75,7 @@ def exe_my_clone(target, img_save_path, missing_img_save_path, n, method_name):
     # 学習したクローン認識器を可視化し，精度を評価
     evaluator = LV1_Evaluator()
     evaluator.visualize(model, img_save_path)
+    print('visualized')
     evaluator.visualize_missing(model=model, target=target, filename=missing_img_save_path, features=features)
     print("\nThe clone recognizer was visualized and saved to {0} .".format(img_save_path))
     accuracy = evaluator.calc_accuracy(target, model)
@@ -157,7 +162,7 @@ def save_and_show_graph(now_str, n_list, acc_list, area, method_name):
 def create_output():
     now_str = datetime.now().strftime('%Y%m%d%H%M%S')
     target_path = 'lv1_targets/classifier_01.png'
-    method_name = MESHGRID_RECTANGULAR
+    method_name = LV1_USER_FUNCTION_SAMPLING_AND_PREDICT_MESHGRID_RECTANGULAR_AND_EDGE
     n_list, acc_list = exe_my_clone_all(target_path=target_path, now_str=now_str, max_n=100, increment_value=30,
                                         method_name=method_name)
 
