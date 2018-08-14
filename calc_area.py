@@ -10,13 +10,13 @@ import numpy as np
 
 from my_clone import LV1_user_function_sampling_meshgrid, LV1_UserDefinedClassifier, LV1_TargetClassifier, \
     LV1_user_function_sampling_meshgrid_rectangular, LV1_user_function_sampling, \
-    LV1_user_function_sampling_and_predict_meshgrid_rectangular_and_edge
+    LV1_user_function_sampling_and_predict_meshgrid_rectangular_and_edge, lv1_user_function_sampling_midpoint
 
 RANDAM_SAMPLING = 'LV1_user_function_sampling'
 MESHGRID = 'LV1_user_function_sampling_meshgrid'
 MESHGRID_RECTANGULAR = 'LV1_user_function_sampling_meshgrid_rectangular'
 LV1_USER_FUNCTION_SAMPLING_AND_PREDICT_MESHGRID_RECTANGULAR_AND_EDGE = 'LV1_user_function_sampling_and_predict_meshgrid_rectangular_and_edge'
-
+LV1_USER_FUNCTION_SAMPLING_MIDPOINT = 'lv1_user_function_sampling_midpoint'
 
 def calc_diff_area(start_n, end_n, start_height, end_height):
     rect_area = (end_n - start_n) * start_height
@@ -54,9 +54,11 @@ def get_features(n, method_name):
 def exe_my_clone(target, img_save_path, missing_img_save_path, n, method_name, grid_n_size, edge_distance):
     # ターゲット認識器への入力として用いる二次元特徴量を用意
     # features = get_features(n, method_name)
-    features = LV1_user_function_sampling_and_predict_meshgrid_rectangular_and_edge(n_samples=n, target=target,
-                                                                                    grid_n_size=grid_n_size,
-                                                                                    edge_distance=edge_distance)
+    # features = LV1_user_function_sampling_and_predict_meshgrid_rectangular_and_edge(n_samples=n, target=target,
+    #                                                                                grid_n_size=grid_n_size,
+    #                                                                                edge_distance=edge_distance)
+    features = lv1_user_function_sampling_midpoint(n_samples=n, target=target)
+
     print(features)
 
     print(features.shape)
@@ -161,8 +163,8 @@ def save_and_show_graph(now_str, n_list, acc_list, area, method_name):
 def create_output():
     now_str = datetime.now().strftime('%Y%m%d%H%M%S')
     target_path = 'lv1_targets/classifier_01.png'
-    grid_n_size = 100
-    edge_distance = 0.1
+    grid_n_size = 20
+    edge_distance = 0.2
     method_name = LV1_USER_FUNCTION_SAMPLING_AND_PREDICT_MESHGRID_RECTANGULAR_AND_EDGE
     n_list, acc_list = exe_my_clone_all(start=grid_n_size,
                                         target_path=target_path, now_str=now_str, max_n=grid_n_size+200, increment_value=111,

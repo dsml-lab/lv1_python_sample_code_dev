@@ -68,17 +68,6 @@ def LV1_user_function_sampling(n_samples):
     return np.float32(features)
 
 
-# ターゲット認識器に入力する二次元特徴量をサンプリングする関数
-#   n_samples: サンプリングする特徴量の数
-def LV1_user_function_sampling_edge_only(n_samples, edge_img):
-    features = np.zeros((n_samples, 2))
-    for i in range(0, n_samples):
-        # このサンプルコードでは[-1, 1]の区間をランダムサンプリングするものとする
-        features[i][0] = 2 * np.random.rand() - 1
-        features[i][1] = 2 * np.random.rand() - 1
-    return np.float32(features)
-
-
 # ターゲット認識器に入力する二次元特徴量をサンプリングする関数(格子上)
 #   n_samples: サンプリングする特徴量の数
 def LV1_user_function_sampling_meshgrid(n_samples):
@@ -147,7 +136,6 @@ def LV1_user_function_sampling_meshgrid_rectangular(n_samples):
 # ターゲット認識器に入力する二次元特徴量をサンプリングする関数(適応的)
 #   n_samples: サンプリングする特徴量の数
 def LV1_user_function_sampling_and_predict_meshgrid_rectangular_and_edge(n_samples, target, grid_n_size, edge_distance):
-
     # grid_n_size = 500
 
     if n_samples <= grid_n_size:
@@ -175,6 +163,48 @@ def LV1_user_function_sampling_and_predict_meshgrid_rectangular_and_edge(n_sampl
         return np.vstack((grid_features, edge_features))
 
 
+# ターゲット認識器に入力する二次元特徴量をサンプリングする関数
+#   n_samples: サンプリングする特徴量の数
+def lv1_user_function_sampling_midpoint(n_samples, target):
+    features = np.zeros((n_samples, 2))
+    labels = np.zeros((n_samples, 1))
+    start_points = 9
+
+    if n_samples > start_points:
+        remaining = n_samples - start_points
+
+        # set start points
+        count = 0
+        for x in range(-1, 2):
+            for y in range(-1, 2):
+                features[count][0] = x
+                features[count][1] = y
+                label = target.predict_once(x1=features[count][0], x2=features[count][1])
+                labels[count][0] = label
+                print('count:' + str(count) + ' ,x:' + str(x) + ' ,y:' + str(y) + ' ,label:' + str(label))
+                count = count + 1
+        remaining = remaining - count
+
+    mid_points = []
+
+    # 色の変化する中点を全て算出
+    for i in range(0, len(labels)):
+        for j in range(0, len(labels)):
+            if labels[i][0] != labels[j][0]:
+                i_x = features[i][0]
+                i_y = features[i][1]
+                j_x = features[j][0]
+                j_y = features[j][1]
+
+                mid_x = (i_x + j_x) / 2
+                mid_y = (i_y + j_y) / 2
+
+                mid_points.append((mid_x, mid_y))
+
+    # その中で全てのサンプリング点からもっとも遠い点
+    # for mid in mid_points:
+
+    return np.float32(features)
 
 
 def main():
