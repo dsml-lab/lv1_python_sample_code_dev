@@ -4,6 +4,7 @@ Mnist Color Map
 import gym
 import numpy as np
 
+from evaluation import LV1_Evaluator
 from my_clone import LV1_TargetClassifier
 
 ZERO = 0
@@ -34,13 +35,16 @@ class NumberColorMapEnv(gym.Env):
         self.remaining = self.points
         self.target = target
 
-    def step(self, action):
+    def _step(self, action):
         y = action // self.image_size
         x = action % self.image_size
 
         observation = self._observe(x, y)
+        evaluator = LV1_Evaluator()
+        # reward = evaluator.calc_accuracy(target=target, model=)
+        # observation, reward, done, info
 
-    def reset(self):
+    def _reset(self):
         self.state = np.full((self.image_size, self.image_size), -1)
         self.remaining = self.points
         return self.state

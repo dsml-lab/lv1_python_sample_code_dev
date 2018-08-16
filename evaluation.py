@@ -118,6 +118,13 @@ class LV1_Evaluator:
         n = np.count_nonzero(self.target_labels - self.clone_labels)
         return (self.size - n) / self.size
 
+    def calc_sampling_accuracy(self, sampling_features, target, model):
+        # サンプリング点に関して、accuracyを求める
+        target_labels = target.predict(sampling_features)
+        clone_labels = model.predict(sampling_features)
+        n = np.count_nonzero(target_labels - clone_labels)
+        return (self.size - n) / self.size
+
     # クローン認識器の誤り部分を可視化する（可視化結果を画像として保存する）
     #   model: クローン認識器
     #   filename: 可視化結果の保存先画像のファイルパス
