@@ -1,10 +1,10 @@
 # ターゲット認識器に入力する二次元特徴量をサンプリングする関数
 #   n_samples: サンプリングする特徴量の数
 import numpy as np
-import sympy.geometry as sg
 
 from edge_filter import filter_edge
 from evaluation import LV1_Evaluator
+
 
 
 def lv1_user_function_sampling(n_samples):
@@ -125,82 +125,3 @@ def lv1_user_function_sampling_and_predict_meshgrid_rectangular_and_edge(n_sampl
         return np.vstack((grid_features, edge_features))
 
 
-#
-def create_region_map(features, target_labels, n, clone_model):
-    # clone識別器を作成しcloneのラベルを取得
-    clone_labels = clone_model.fit(features=features, labels=target_labels)
-
-    # 各色がサンプリング点の中でいくつあったかを記録する配列
-    color_counts = np.zeros(10, dtype=np.int)
-
-    # 全ての点がそれぞれどの色かカウント
-    for i in range(n):
-        target_label = target_labels[i]
-        clone_label = clone_labels[i]
-
-        # ターゲットの識別結果とクローンの識別結果が同じ点のみ
-        if target_label == clone_label:
-            # 各色がサンプリング点の中でいくつあったか
-            color_counts[target_label] = color_counts[target_label] + 1
-
-    # 色の勢力ごとのfeaturesを作成
-    color_features_list = []
-    for i in range(10):
-        color_features_list.append(np.zeros((color_counts[i], 2)))
-
-    # 各々の色の配列に値を代入
-    for num_color in range(10):
-        for i in range(n):
-            count = 0
-            x = features[i][0]
-            y = features[i][1]
-            target_label = target_labels[i]
-            clone_label = clone_labels[i]
-
-            # ターゲットの識別結果とクローンの識別結果が同じ点かつ、対応する色の点のみ
-            if target_label == clone_label == num_color:
-                color_features_list[num_color][count][0] = x
-                color_features_list[num_color][count][1] = y
-
-    seg_set = set()
-
-    # 線分を作る
-    for num_color in range(10):
-        color_features = color_features_list[num_color]
-
-        for fea1 in color_features:
-            for fea2 in color_features:
-                segment = sg.Segment(sg.Point(fea1[0], fea1[1]), sg.Point(fea2[0], fea2[1]))
-                seg_set.add((segment, num_color))
-
-    survival_seg_set = seg_set.copy()
-
-    for seg1, seg_color1 in seg_set:
-        for seg2, seg_color2 in seg_set:
-
-            if seg_color1 != seg_color2:  # 色が違う
-                result = sg.intersection(seg1, seg2)
-                if len(result) != 0:  # 交点あり
-                    # 線分を除外
-                    survival_seg_set.remove(seg1)
-                    survival_seg_set.remove(seg2)
-
-    return
-
-
-def draw_segments(seg_list):
-
-    converted_seg_list = []
-    for seg, label in seg_list:
-        point1, point2 = seg.points
-        x = float(point1.x)
-        y = float(point1.y)
-        converted_seg_list.append((x, y, label))
-
-
-def lv1_user_function_sampling_region(n, features, labels, target):
-
-
-
-    lv1_user_function_sampling_region()
-    return np.float32(features)
