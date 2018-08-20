@@ -5,7 +5,6 @@ import sympy.geometry as sg
 
 from edge_filter import filter_edge
 from evaluation import LV1_Evaluator
-from my_clone import LV1_UserDefinedClassifier
 
 
 def lv1_user_function_sampling(n_samples):
@@ -16,17 +15,20 @@ def lv1_user_function_sampling(n_samples):
         features[i][1] = 2 * np.random.rand() - 1
     return np.float32(features)
 
+
 def lv1_user_function_sampling_recursion(n_samples):
-    lv1_user_function_sampling_recursion(n_samples=n_samples - 1)
+    print('n_samples:' + str(n_samples))
 
-    features = np.zeros((n_samples, 2))
-    for i in range(0, n_samples):
-        # このサンプルコードでは[-1, 1]の区間をランダムサンプリングするものとする
-        features[i][0] = 2 * np.random.rand() - 1
-        features[i][1] = 2 * np.random.rand() - 1
+    new_features = np.zeros((1, 2))
+    new_features[0][0] = 2 * np.random.rand() - 1
+    new_features[0][1] = 2 * np.random.rand() - 1
 
-    return lv1_user_function_sampling_recursion(n_samples=n_samples-1)
-    # return np.float32(features)
+    if n_samples == 1:
+        return new_features
+
+    old_features = lv1_user_function_sampling_recursion(n_samples=n_samples - 1)
+
+    return np.vstack((old_features, new_features))
 
 
 # ターゲット認識器に入力する二次元特徴量をサンプリングする関数(格子上)
@@ -96,7 +98,7 @@ def lv1_user_function_sampling_meshgrid_rectangular(n_samples):
 
 # ターゲット認識器に入力する二次元特徴量をサンプリングする関数(適応的)
 #   n_samples: サンプリングする特徴量の数
-def lv1_user_function_sampling_and_predict_meshgrid_rectangular_and_edge(n_samples, target, grid_n_size, edge_distance):
+def lv1_user_function_sampling_and_predict_meshgrid_rectangular_and_edge(n_samples, target, clone_model, grid_n_size, edge_distance):
     # grid_n_size = 500
 
     if n_samples <= grid_n_size:
@@ -106,7 +108,6 @@ def lv1_user_function_sampling_and_predict_meshgrid_rectangular_and_edge(n_sampl
 
         grid_labels = target.predict(features=grid_features)
 
-        clone_model = LV1_UserDefinedClassifier()
         clone_model.fit(grid_features, grid_labels)
 
         # 学習したクローン認識器を可視化し，精度を評価
@@ -125,9 +126,8 @@ def lv1_user_function_sampling_and_predict_meshgrid_rectangular_and_edge(n_sampl
 
 
 #
-def create_region_map(features, target_labels, n):
+def create_region_map(features, target_labels, n, clone_model):
     # clone識別器を作成しcloneのラベルを取得
-    clone_model = LV1_UserDefinedClassifier()
     clone_labels = clone_model.fit(features=features, labels=target_labels)
 
     # 各色がサンプリング点の中でいくつあったかを記録する配列
