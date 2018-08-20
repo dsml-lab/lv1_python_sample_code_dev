@@ -1,13 +1,16 @@
+import os
+
 from datetime import datetime
 
 import numpy as np
 import sympy.geometry as sg
+from tqdm import tqdm, trange
 import matplotlib.pyplot as plt
 from PIL import Image
 from sklearn import neighbors
 
 from evaluation import LV1_Evaluator
-from labels import COLOR2ID
+from labels import COLOR2ID, ID2COLOR
 
 IMAGE_SIZE = 512
 DIVIDER = '------------------------'
@@ -58,7 +61,7 @@ class LV1UserDefinedClassifier:
         return np.int32(labels)
 
 
-def create_region_map(features, target_labels, n, clone_labels):
+def create_region_map(features, target_labels, n, clone_labels, draw_segments_save_dir):
     print(DIVIDER)
     print('features: ')
     print(features)
@@ -112,7 +115,10 @@ def create_region_map(features, target_labels, n, clone_labels):
     seg_set = set()
 
     # 線分を作る
-    for num_color in range(10):
+    for num_color in trange(10, desc='create Segment'):
+        # print(DIVIDER)
+        # print('create Segment on label ' + str(num_color))
+        # print(DIVIDER)
         color_features = color_features_list[num_color]
 
         for fea1 in color_features:
@@ -122,20 +128,17 @@ def create_region_map(features, target_labels, n, clone_labels):
                     segment = sg.Segment(sg.Point(fea1[0], fea1[1]), sg.Point(fea2[0], fea2[1]))
                     seg_set.add((segment, num_color))
 
-                    print(DIVIDER)
-                    print('fea1')
-                    print(fea1)
-                    print('fea2')
-                    print(fea2)
-                    print(type(segment))
-                    print(segment)
-                    print(DIVIDER)
+                    # print(DIVIDER)
+                    # print(fea1)
+                    # print(fea2)
+                    # print(type(segment))
+                    # print(segment)
+                    # print(DIVIDER)
 
     survival_seg_set = seg_set.copy()
 
-    for seg1, seg_color1 in seg_set:
+    for seg1, seg_color1 in tqdm(seg_set, desc='check intersection'):
         for seg2, seg_color2 in seg_set:
-
             if seg_color1 != seg_color2:  # 色が違う
                 result = sg.intersection(seg1, seg2)
                 if len(result) != 0:  # 交点あり
@@ -143,28 +146,46 @@ def create_region_map(features, target_labels, n, clone_labels):
                     survival_seg_set.remove(seg1)
                     survival_seg_set.remove(seg2)
 
-    draw_segments(list(survival_seg_set))
+                    print(result)
+
+    draw_segments(list(survival_seg_set), draw_segments_save_dir=draw_segments_save_dir)
 
 
-def draw_segments(seg_list):
+def draw_segments(seg_list, draw_segments_save_dir):
     # converted_seg_list = []
     for seg, label in seg_list:
-        print(type(seg))
         point1, point2 = seg.points
         x1 = float(point1.x)
         y1 = float(point1.y)
         x2 = float(point2.x)
         y2 = float(point2.y)
 
-        plt.plot([x1, y1], [x2, y2], 'b-o')
+        print(DIVIDER)
+        print('label: ' + str(label))
+        print('x1: ' + str(x1))
+        print('y1: ' + str(y1))
+        print('x2: ' + str(x2))
+        print('y2: ' + str(y2))
+        print(DIVIDER)
+
+        r, g, b = ID2COLOR[label]
+        r = r / 255
+        g = g / 255
+        b = b / 255
+
+        plt.plot([x1, x2], [y1, y2], color=(r, g, b))
+
         # converted_seg_list.append((x, y, label))
 
-    plt.savefig('draw_segments.png')
+    plt.grid(True)
+    plt.xlim(-1, 1)
+    plt.ylim(-1, 1)
+    plt.savefig(draw_segments_save_dir + 'draw_segments.png')
     plt.show()
     plt.close()
 
 
-def lv1_user_function_sampling_region(n_samples, target_model, clone_model):
+def lv1_user_function_sampling_region(n_samples, target_model, clone_model, draw_segments_save_dir):
     print('n_samples:' + str(n_samples))
 
     new_features = np.zeros((n_samples, 2))
@@ -179,7 +200,8 @@ def lv1_user_function_sampling_region(n_samples, target_model, clone_model):
     clone_model.fit(features=new_features, labels=target_labels)
     clone_labels = clone_model.predict(features=new_features)
 
-    create_region_map(features=new_features, target_labels=target_labels, clone_labels=clone_labels, n=n_samples)
+    create_region_map(features=new_features, target_labels=target_labels, clone_labels=clone_labels, n=n_samples,
+                      draw_segments_save_dir=draw_segments_save_dir)
 
     return np.float32(new_features), target_labels
 
@@ -191,11 +213,12 @@ def lv1_user_function_sampling_region(n_samples, target_model, clone_model):
     return np.vstack((old_features, new_features))
 
 
-def exe_clone(target, img_save_path, missing_img_save_path, n):
+def exe_clone(target, img_save_path, missing_img_save_path, n, draw_segments_save_dir):
     model = LV1UserDefinedClassifier()
 
     # ターゲット認識器への入力として用いる二次元特徴量を用意
-    features, labels = lv1_user_function_sampling_region(n_samples=n, target_model=target, clone_model=model)
+    features, labels = lv1_user_function_sampling_region(n_samples=n, target_model=target, clone_model=model,
+                                                         draw_segments_save_dir=draw_segments_save_dir)
 
     print(features)
 
@@ -221,19 +244,31 @@ def exe_clone(target, img_save_path, missing_img_save_path, n):
 
 
 def exe_clone_one():
-    n = 6
+    n = 14
 
     now_str = datetime.now().strftime('%Y%m%d%H%M%S')
     target_path = 'lv1_targets/classifier_01.png'
+    draw_segments_save_dir = 'output/' + now_str + '/segments_images/'
     img_save_dir = 'output/' + now_str + '/images/'
     missing_img_save_dir = 'output/' + now_str + '/missing_images/'
+
+    create_dir(img_save_dir)
+    create_dir(missing_img_save_dir)
+    create_dir(draw_segments_save_dir)
 
     target = LV1TargetClassifier()
     target.load(target_path)
     exe_clone(target=target,
               img_save_path=img_save_dir + 'n' + str(n) + '.png',
               missing_img_save_path=missing_img_save_dir + 'n' + str(n) + '.png',
-              n=n)
+              n=n,
+              draw_segments_save_dir=draw_segments_save_dir
+              )
+
+
+def create_dir(path):
+    if not os.path.isdir(path):
+        os.makedirs(path)
 
 
 if __name__ == '__main__':

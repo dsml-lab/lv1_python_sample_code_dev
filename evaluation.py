@@ -2,6 +2,8 @@
 
 import numpy as np
 from PIL import Image
+from tqdm import trange
+
 from labels import ID2COLOR
 
 # ターゲット認識器を表現する画像のサイズ
@@ -42,7 +44,7 @@ class LV1_Evaluator:
     def visualize(self, model, filename):
         self.clone_labels = model.predict(self.samples)
         img = Image.new('RGB', (IMAGE_SIZE, IMAGE_SIZE))
-        for i in range(0, self.size):
+        for i in trange(0, self.size, desc='visualize'):
             x = i % IMAGE_SIZE
             y = i // IMAGE_SIZE
             img.putpixel((x, y), ID2COLOR[self.clone_labels[i]])
@@ -132,7 +134,7 @@ class LV1_Evaluator:
         self.target_labels = target.predict(self.samples)
         self.clone_labels = model.predict(self.samples)
         img = Image.new('RGB', (IMAGE_SIZE, IMAGE_SIZE))
-        for i in range(0, self.size):
+        for i in trange(0, self.size, desc='missing visualize'):
             x = i % IMAGE_SIZE
             y = i // IMAGE_SIZE
 
