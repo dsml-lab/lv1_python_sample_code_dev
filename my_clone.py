@@ -11,9 +11,11 @@ from labels import COLOR2ID
 from evaluation import IMAGE_SIZE
 from evaluation import LV1_Evaluator
 
-
 # ターゲット認識器を表現するクラス
 # ターゲット認識器は2次元パターン（512x512の画像）で与えられるものとする
+from sampling import lv1_user_function_sampling_meshgrid
+
+
 class LV1_TargetClassifier:
 
     # ターゲット認識器をロード
@@ -57,126 +59,6 @@ class LV1_UserDefinedClassifier:
         return np.int32(labels)
 
 
-# ターゲット認識器に入力する二次元特徴量をサンプリングする関数
-#   n_samples: サンプリングする特徴量の数
-def LV1_user_function_sampling(n_samples):
-    features = np.zeros((n_samples, 2))
-    for i in range(0, n_samples):
-        # このサンプルコードでは[-1, 1]の区間をランダムサンプリングするものとする
-        features[i][0] = 2 * np.random.rand() - 1
-        features[i][1] = 2 * np.random.rand() - 1
-    return np.float32(features)
-
-
-# ターゲット認識器に入力する二次元特徴量をサンプリングする関数
-#   n_samples: サンプリングする特徴量の数
-def LV1_user_function_sampling_edge_only(n_samples, edge_img):
-    features = np.zeros((n_samples, 2))
-    for i in range(0, n_samples):
-        # このサンプルコードでは[-1, 1]の区間をランダムサンプリングするものとする
-        features[i][0] = 2 * np.random.rand() - 1
-        features[i][1] = 2 * np.random.rand() - 1
-    return np.float32(features)
-
-
-# ターゲット認識器に入力する二次元特徴量をサンプリングする関数(格子上)
-#   n_samples: サンプリングする特徴量の数
-def LV1_user_function_sampling_meshgrid(n_samples):
-    features = np.zeros((n_samples, 2))
-    # n_samples=10 なら 3
-    # n_samples=100 なら 10
-    n_samples_sqrt = int(np.sqrt(n_samples))
-    n_samples_sq = n_samples_sqrt * n_samples_sqrt
-    # 格子ひとつ分の幅
-    fragment_size = 2 / (n_samples_sqrt + 1)
-
-    # 格子状に値を入れる
-    count = 0
-    for j in range(1, n_samples_sqrt + 1):
-        for k in range(1, n_samples_sqrt + 1):
-            features[count][0] = j * fragment_size - 1
-            features[count][1] = k * fragment_size - 1
-            count = count + 1
-
-    # 残りはランダムに
-    for i in range(n_samples_sq, n_samples):
-        features[i][0] = 2 * np.random.rand() - 1
-        features[i][1] = 2 * np.random.rand() - 1
-    return np.float32(features)
-
-
-# ターゲット認識器に入力する二次元特徴量をサンプリングする関数(格子・長方形)
-#   n_samples: サンプリングする特徴量の数
-def LV1_user_function_sampling_meshgrid_rectangular(n_samples):
-    features = np.zeros((n_samples, 2))
-
-    x_samples = 0
-    y_samples = 0
-
-    # 格子点の個数がもっとも多くなる
-    # y_sizeとy_sizeの差がなるべく小さくなる
-
-    for i in range(2, n_samples):
-        for j in range(2, n_samples):
-            if n_samples >= i * j > x_samples * y_samples and abs(i - j) < 5:  # 格子の縦横の差が5より小さい
-                x_samples = i
-                y_samples = j
-
-    print('x_samples:' + str(x_samples))
-    print('y_samples:' + str(y_samples))
-
-    # 格子ひとつ分の幅
-    x_size = 2 / (x_samples + 1)
-    y_size = 2 / (y_samples + 1)
-
-    # 格子状に値を入れる
-    count = 0
-    for j in range(1, x_samples + 1):
-        for k in range(1, y_samples + 1):
-            features[count][0] = j * x_size - 1
-            features[count][1] = k * y_size - 1
-            count = count + 1
-
-    # 残りはランダムに
-    for i in range(x_samples * y_samples, n_samples):
-        features[i][0] = 2 * np.random.rand() - 1
-        features[i][1] = 2 * np.random.rand() - 1
-    return np.float32(features)
-
-
-# ターゲット認識器に入力する二次元特徴量をサンプリングする関数(適応的)
-#   n_samples: サンプリングする特徴量の数
-def LV1_user_function_sampling_and_predict_meshgrid_rectangular_and_edge(n_samples, target, grid_n_size, edge_distance):
-
-    # grid_n_size = 500
-
-    if n_samples <= grid_n_size:
-        return LV1_user_function_sampling_meshgrid_rectangular(n_samples=n_samples)
-    else:
-        grid_features = LV1_user_function_sampling_meshgrid_rectangular(n_samples=grid_n_size)
-
-        grid_labels = target.predict(features=grid_features)
-
-        clone_model = LV1_UserDefinedClassifier()
-        clone_model.fit(grid_features, grid_labels)
-
-        # 学習したクローン認識器を可視化し，精度を評価
-        evaluator = LV1_Evaluator()
-        clone_img = evaluator.visualize_get_img(clone_model)
-
-        edge_img = filter_edge(img=clone_img)
-        edge_features = evaluator.edge_img_to_edge_features(edge_img=edge_img, edge_distance=edge_distance)
-
-        print('edge_features size: ' + str(len(edge_features)))
-
-        print('grid shape' + str(grid_features.shape))
-        print('edge shape' + str(edge_features.shape))
-
-        return np.vstack((grid_features, edge_features))
-
-
-
-
 def main():
     if len(sys.argv) < 3:
         print("usage: clone.py /target/classifier/image/path /output/image/path")
@@ -190,7 +72,7 @@ def main():
     # ターゲット認識器への入力として用いる二次元特徴量を用意
     # このサンプルコードではひとまず100サンプルを用意することにする
     n = 100
-    features = LV1_user_function_sampling_meshgrid(n_samples=n)
+    features = lv1_user_function_sampling_meshgrid(n_samples=n)
     print(features)
 
     print(features.shape)
