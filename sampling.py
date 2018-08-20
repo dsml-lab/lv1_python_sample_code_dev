@@ -16,6 +16,18 @@ def lv1_user_function_sampling(n_samples):
         features[i][1] = 2 * np.random.rand() - 1
     return np.float32(features)
 
+def lv1_user_function_sampling_recursion(n_samples):
+    lv1_user_function_sampling_recursion(n_samples=n_samples - 1)
+
+    features = np.zeros((n_samples, 2))
+    for i in range(0, n_samples):
+        # このサンプルコードでは[-1, 1]の区間をランダムサンプリングするものとする
+        features[i][0] = 2 * np.random.rand() - 1
+        features[i][1] = 2 * np.random.rand() - 1
+
+    return lv1_user_function_sampling_recursion(n_samples=n_samples-1)
+    # return np.float32(features)
+
 
 # ターゲット認識器に入力する二次元特徴量をサンプリングする関数(格子上)
 #   n_samples: サンプリングする特徴量の数
@@ -114,7 +126,6 @@ def lv1_user_function_sampling_and_predict_meshgrid_rectangular_and_edge(n_sampl
 
 #
 def create_region_map(features, target_labels, n):
-
     # clone識別器を作成しcloneのラベルを取得
     clone_model = LV1_UserDefinedClassifier()
     clone_labels = clone_model.fit(features=features, labels=target_labels)
@@ -151,8 +162,7 @@ def create_region_map(features, target_labels, n):
                 color_features_list[num_color][count][0] = x
                 color_features_list[num_color][count][1] = y
 
-    seg_list = []
-    seg_label_list = []
+    seg_set = set()
 
     # 線分を作る
     for num_color in range(10):
@@ -161,31 +171,36 @@ def create_region_map(features, target_labels, n):
         for fea1 in color_features:
             for fea2 in color_features:
                 segment = sg.Segment(sg.Point(fea1[0], fea1[1]), sg.Point(fea2[0], fea2[1]))
-                seg_list.append(segment)
-                seg_label_list.append(num_color)
+                seg_set.add((segment, num_color))
 
-     seg_list.copy()
+    survival_seg_set = seg_set.copy()
 
-    for i in range(len(seg_list)):
-        for j in range(len(seg_list)):
-            seg_list[i]
+    for seg1, seg_color1 in seg_set:
+        for seg2, seg_color2 in seg_set:
 
+            if seg_color1 != seg_color2:  # 色が違う
+                result = sg.intersection(seg1, seg2)
+                if len(result) != 0:  # 交点あり
+                    # 線分を除外
+                    survival_seg_set.remove(seg1)
+                    survival_seg_set.remove(seg2)
 
-
-
-
-
-
-
-
-
-def lv1_user_function_sampling_create_region(max_n, n, features, labels, target):
-    # features = np.zeros((n, 2))
+    return
 
 
+def draw_segments(seg_list):
 
-    for i in range(0, n_samples):
-        # このサンプルコードでは[-1, 1]の区間をランダムサンプリングするものとする
-        features[i][0] = 2 * np.random.rand() - 1
-        features[i][1] = 2 * np.random.rand() - 1
+    converted_seg_list = []
+    for seg, label in seg_list:
+        point1, point2 = seg.points
+        x = float(point1.x)
+        y = float(point1.y)
+        converted_seg_list.append((x, y, label))
+
+
+def lv1_user_function_sampling_region(n, features, labels, target):
+
+
+
+    lv1_user_function_sampling_region()
     return np.float32(features)
