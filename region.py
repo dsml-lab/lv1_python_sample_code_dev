@@ -4,7 +4,7 @@ from datetime import datetime
 import networkx as nx
 import numpy as np
 import sympy.geometry as sg
-from sympy import Polygon
+from sympy.geometry import Polygon, Point
 from tqdm import tqdm, trange
 import matplotlib.pyplot as plt
 from PIL import Image
@@ -150,7 +150,7 @@ def create_region_map(features, target_labels, n, clone_labels, draw_segments_sa
 
                     print(result)
 
-    #seg_set_to_network(segment_set=seg_set)
+    # seg_set_to_network(segment_set=seg_set)
     draw_segments(list(survival_seg_set), draw_segments_save_dir=draw_segments_save_dir)
 
     # 各色の点を集めたセットを数字の個数分作る
@@ -170,9 +170,10 @@ def create_region_map(features, target_labels, n, clone_labels, draw_segments_sa
         points = []
         for p in point_list:
             points.append((float(p.x), float(p.y)))
-        print(points)
-        if len(points) > 0:
-            polygon_list.append(Polygon(*points))
+        if len(points) > 2:
+            polygon = Polygon(*points)
+            print(type(polygon))
+            polygon_list.append(polygon)
 
     return polygon_list
 
@@ -231,49 +232,78 @@ def draw_segments(seg_list, draw_segments_save_dir):
     plt.close()
 
 
-def lv1_user_function_sampling_region(n_samples, target_model, clone_model, draw_segments_save_dir):
+def create_random_xy():
+    x = 2 * np.random.rand() - 1
+    y = 2 * np.random.rand() - 1
+
+    return x, y
+
+
+def lv1_user_function_sampling_region(n_samples, target_model, draw_segments_save_dir):
     print('n_samples:' + str(n_samples))
+    new_features = np.zeros((1, 2))
 
-    new_features = np.zeros((n_samples, 2))
-    for i in range(0, n_samples):
-        # このサンプルコードでは[-1, 1]の区間をランダムサンプリングするものとする
-        new_features[i][0] = 2 * np.random.rand() - 1
-        new_features[i][1] = 2 * np.random.rand() - 1
+    if n_samples < 0:
+        raise ValueError
 
-    # target識別器からtargetのラベルを取得
-    target_labels = target_model.predict(new_features)
-    # clone識別器からcloneのラベルを取得
-    clone_model.fit(features=new_features, labels=target_labels)
-    clone_labels = clone_model.predict(features=new_features)
+    elif n_samples == 0:
+        return np.zeros((0, 2))
 
-    create_region_map(features=new_features, target_labels=target_labels, clone_labels=clone_labels, n=n_samples,
-                      draw_segments_save_dir=draw_segments_save_dir)
-
-    return np.float32(new_features), target_labels
-
-    if n_samples == 1:
+    elif n_samples == 1:
+        x, y = create_random_xy()
+        new_features[0][0] = x
+        new_features[0][1] = y
         return np.float32(new_features)
 
-    # old_features = lv1_user_function_sampling_region(n_samples=n_samples - 1, features=)
+    old_features = lv1_user_function_sampling_region(n_samples=n_samples - 1, target_model=target_model,
+                                                     draw_segments_save_dir=draw_segments_save_dir)
+
+    clone_model = LV1UserDefinedClassifier()
+
+    # target識別器からtargetのラベルを取得
+    target_labels = target_model.predict(old_features)
+    # clone識別器からcloneのラベルを取得
+    clone_model.fit(features=old_features, labels=target_labels)
+    clone_labels = clone_model.predict(features=old_features)
+
+    polygon_list = create_region_map(features=old_features,
+                                     target_labels=target_labels,
+                                     clone_labels=list(clone_labels),
+                                     n=n_samples-1,
+                                     draw_segments_save_dir=draw_segments_save_dir)
+
+    point_undecided = True
+
+    while point_undecided:
+        point_undecided = False
+        x, y = create_random_xy()
+        new_features[0][0] = x
+        new_features[0][1] = y
+
+        for polygon in polygon_list:
+            point = Point(x, y)
+            if polygon.encloses_point(point):  # 多角形の領域外の点なら点を再決定
+                point_undecided = True
 
     return np.vstack((old_features, new_features))
 
 
 def exe_clone(target, img_save_path, missing_img_save_path, n, draw_segments_save_dir):
-    model = LV1UserDefinedClassifier()
 
     # ターゲット認識器への入力として用いる二次元特徴量を用意
-    features, labels = lv1_user_function_sampling_region(n_samples=n, target_model=target, clone_model=model,
+    features = lv1_user_function_sampling_region(n_samples=n, target_model=target,
                                                          draw_segments_save_dir=draw_segments_save_dir)
 
     print(features)
-
     print(features.shape)
     print(features[0])
     #
     print("\n{0} features were sampled.".format(n))
 
     # クローン認識器を学習
+    labels = target.predict(features)
+
+    model = LV1UserDefinedClassifier()
     model.fit(features, labels)
     print("\nA clone recognizer was trained.")
 
@@ -290,7 +320,7 @@ def exe_clone(target, img_save_path, missing_img_save_path, n, draw_segments_sav
 
 
 def exe_clone_one():
-    n = 10
+    n = 30
 
     now_str = datetime.now().strftime('%Y%m%d%H%M%S')
     target_path = 'lv1_targets/classifier_01.png'
