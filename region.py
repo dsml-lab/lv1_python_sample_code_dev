@@ -1,9 +1,10 @@
 import os
 
 from datetime import datetime
-
+import networkx as nx
 import numpy as np
 import sympy.geometry as sg
+from sympy import Polygon
 from tqdm import tqdm, trange
 import matplotlib.pyplot as plt
 from PIL import Image
@@ -13,6 +14,7 @@ from evaluation import LV1_Evaluator
 from labels import COLOR2ID, ID2COLOR
 
 IMAGE_SIZE = 512
+CLASS_SIZE = 10
 DIVIDER = '------------------------'
 
 
@@ -74,7 +76,7 @@ def create_region_map(features, target_labels, n, clone_labels, draw_segments_sa
     print(DIVIDER)
 
     # 各色がサンプリング点の中でいくつあったかを記録する配列
-    color_counts = np.zeros(10, dtype=np.int)
+    color_counts = np.zeros(CLASS_SIZE, dtype=np.int)
 
     # 全ての点がそれぞれどの色かカウント
     for i in range(n):
@@ -88,11 +90,11 @@ def create_region_map(features, target_labels, n, clone_labels, draw_segments_sa
 
     # 色の勢力ごとのfeaturesを作成
     color_features_list = []
-    for i in range(10):
+    for i in range(CLASS_SIZE):
         color_features_list.append(np.zeros((color_counts[i], 2)))
 
     # 各々の色の配列に値を代入
-    for num_color in range(10):
+    for num_color in range(CLASS_SIZE):
         count = 0
         for i in range(n):
             x = features[i][0]
@@ -115,7 +117,7 @@ def create_region_map(features, target_labels, n, clone_labels, draw_segments_sa
     seg_set = set()
 
     # 線分を作る
-    for num_color in trange(10, desc='create Segment'):
+    for num_color in trange(CLASS_SIZE, desc='create Segment'):
         # print(DIVIDER)
         # print('create Segment on label ' + str(num_color))
         # print(DIVIDER)
@@ -148,7 +150,51 @@ def create_region_map(features, target_labels, n, clone_labels, draw_segments_sa
 
                     print(result)
 
+    #seg_set_to_network(segment_set=seg_set)
     draw_segments(list(survival_seg_set), draw_segments_save_dir=draw_segments_save_dir)
+
+    # 各色の点を集めたセットを数字の個数分作る
+    color_point_set_list = []
+    for i in range(CLASS_SIZE):
+        color_point_set_list.append(set())
+
+    # 点を振り分ける
+    for seg, color in survival_seg_set:
+        point1, point2 = seg.points
+        color_point_set_list[color].add(point1)
+        color_point_set_list[color].add(point2)
+
+    polygon_list = []
+    for i in range(CLASS_SIZE):
+        point_list = list(color_point_set_list[i])
+        points = []
+        for p in point_list:
+            points.append((float(p.x), float(p.y)))
+        print(points)
+        if len(points) > 0:
+            polygon_list.append(Polygon(*points))
+
+    return polygon_list
+
+
+# def seg_set_to_network(segment_set):
+#     graph = nx.Graph()
+#
+#     for segment, label in segment_set:
+#         point1, point2 = segment.points
+#         x1 = float(point1.x)
+#         y1 = float(point1.y)
+#         x2 = float(point2.x)
+#         y2 = float(point2.y)
+#
+#         graph.add_node((x1, y1))
+#         graph.add_node((x2, y2))
+#
+#         graph.add_edge((x1, y1), (x2, y2))
+#
+#     nx.draw(graph)
+#     plt.show()
+#     plt.close()
 
 
 def draw_segments(seg_list, draw_segments_save_dir):
@@ -244,7 +290,7 @@ def exe_clone(target, img_save_path, missing_img_save_path, n, draw_segments_sav
 
 
 def exe_clone_one():
-    n = 14
+    n = 10
 
     now_str = datetime.now().strftime('%Y%m%d%H%M%S')
     target_path = 'lv1_targets/classifier_01.png'
