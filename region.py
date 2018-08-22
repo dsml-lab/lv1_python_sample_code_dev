@@ -1,7 +1,6 @@
 import os
 
 from datetime import datetime
-import networkx as nx
 import numpy as np
 import sympy.geometry as sg
 from sympy.geometry import Polygon, Point
@@ -63,7 +62,25 @@ class LV1UserDefinedClassifier:
         return np.int32(labels)
 
 
-def create_region_map(features, target_labels, n, clone_labels, draw_segments_save_dir):
+class SavePathManager:
+
+    def __init__(self, save_root_dir):
+        self.save_root_dir = save_root_dir
+
+    def exe_n_dir(self, exe_n):
+        return os.path.join(self.save_root_dir, 'n_' + str(exe_n))
+
+    def sampling_method_dir(self, exe_n, method_name):
+        return os.path.join(self.exe_n_dir(exe_n), method_name)
+
+    def sampling_history_dir(self, exe_n, method_name):
+        return os.path.join(self.sampling_method_dir(exe_n=exe_n, method_name=method_name), 'history')
+
+    def sampling_history_n_dir(self, exe_n, method_name, sampling_n):
+        return os.path.join(self.sampling_history_dir(exe_n=exe_n, method_name=method_name), 'n_' + str(sampling_n))
+
+
+def create_region_map(features, target_labels, n, clone_labels):
     print(DIVIDER)
     print('features: ')
     print(features)
@@ -150,9 +167,6 @@ def create_region_map(features, target_labels, n, clone_labels, draw_segments_sa
 
                     print(result)
 
-    # seg_set_to_network(segment_set=seg_set)
-    draw_segments(list(survival_seg_set), draw_segments_save_dir=draw_segments_save_dir)
-
     # 各色の点を集めたセットを数字の個数分作る
     color_point_set_list = []
     for i in range(CLASS_SIZE):
@@ -172,34 +186,18 @@ def create_region_map(features, target_labels, n, clone_labels, draw_segments_sa
             points.append((float(p.x), float(p.y)))
         if len(points) > 2:
             polygon = Polygon(*points)
-            print(type(polygon))
             polygon_list.append(polygon)
 
-    return polygon_list
+            print(DIVIDER)
+            print(type(polygon))
+            print(DIVIDER)
 
-
-# def seg_set_to_network(segment_set):
-#     graph = nx.Graph()
-#
-#     for segment, label in segment_set:
-#         point1, point2 = segment.points
-#         x1 = float(point1.x)
-#         y1 = float(point1.y)
-#         x2 = float(point2.x)
-#         y2 = float(point2.y)
-#
-#         graph.add_node((x1, y1))
-#         graph.add_node((x2, y2))
-#
-#         graph.add_edge((x1, y1), (x2, y2))
-#
-#     nx.draw(graph)
-#     plt.show()
-#     plt.close()
+    return polygon_list, list(survival_seg_set)
 
 
 def draw_segments(seg_list, draw_segments_save_dir):
-    # converted_seg_list = []
+    create_dir(draw_segments_save_dir)
+
     for seg, label in seg_list:
         point1, point2 = seg.points
         x1 = float(point1.x)
@@ -222,12 +220,10 @@ def draw_segments(seg_list, draw_segments_save_dir):
 
         plt.plot([x1, x2], [y1, y2], color=(r, g, b))
 
-        # converted_seg_list.append((x, y, label))
-
     plt.grid(True)
     plt.xlim(-1, 1)
     plt.ylim(-1, 1)
-    plt.savefig(draw_segments_save_dir + 'draw_segments.png')
+    plt.savefig(os.path.join(draw_segments_save_dir, 'segments.png'))
     plt.show()
     plt.close()
 
@@ -239,7 +235,7 @@ def create_random_xy():
     return x, y
 
 
-def lv1_user_function_sampling_region(n_samples, target_model, draw_segments_save_dir):
+def lv1_user_function_sampling_region(n_samples, target_model, exe_n, method_name, path_manager: SavePathManager):
     print('n_samples:' + str(n_samples))
     new_features = np.zeros((1, 2))
 
@@ -256,7 +252,9 @@ def lv1_user_function_sampling_region(n_samples, target_model, draw_segments_sav
         return np.float32(new_features)
 
     old_features = lv1_user_function_sampling_region(n_samples=n_samples - 1, target_model=target_model,
-                                                     draw_segments_save_dir=draw_segments_save_dir)
+                                                     exe_n=exe_n,
+                                                     method_name=method_name,
+                                                     path_manager=path_manager)
 
     clone_model = LV1UserDefinedClassifier()
 
@@ -266,11 +264,10 @@ def lv1_user_function_sampling_region(n_samples, target_model, draw_segments_sav
     clone_model.fit(features=old_features, labels=target_labels)
     clone_labels = clone_model.predict(features=old_features)
 
-    polygon_list = create_region_map(features=old_features,
+    polygon_list, seg_list = create_region_map(features=old_features,
                                      target_labels=target_labels,
-                                     clone_labels=list(clone_labels),
-                                     n=n_samples-1,
-                                     draw_segments_save_dir=draw_segments_save_dir)
+                                     clone_labels=clone_labels,
+                                     n=n_samples - 1)
 
     point_undecided = True
 
@@ -285,20 +282,20 @@ def lv1_user_function_sampling_region(n_samples, target_model, draw_segments_sav
             if polygon.encloses_point(point):  # 多角形の領域外の点なら点を再決定
                 point_undecided = True
 
+    draw_segments(seg_list, draw_segments_save_dir=path_manager.sampling_history_n_dir(exe_n=exe_n, method_name=method_name, sampling_n=n_samples-1))
+
     return np.vstack((old_features, new_features))
 
 
-def exe_clone(target, img_save_path, missing_img_save_path, n, draw_segments_save_dir):
-
+def exe_clone(target, exe_n, method_name, path_manager: SavePathManager):
     # ターゲット認識器への入力として用いる二次元特徴量を用意
-    features = lv1_user_function_sampling_region(n_samples=n, target_model=target,
-                                                         draw_segments_save_dir=draw_segments_save_dir)
+    features = lv1_user_function_sampling_region(n_samples=exe_n, target_model=target, exe_n=exe_n, method_name=method_name, path_manager=path_manager)
 
     print(features)
     print(features.shape)
     print(features[0])
     #
-    print("\n{0} features were sampled.".format(n))
+    print("\n{0} features were sampled.".format(exe_n))
 
     # クローン認識器を学習
     labels = target.predict(features)
@@ -309,10 +306,11 @@ def exe_clone(target, img_save_path, missing_img_save_path, n, draw_segments_sav
 
     # 学習したクローン認識器を可視化し，精度を評価
     evaluator = LV1_Evaluator()
-    evaluator.visualize(model, img_save_path)
+    visualize_save_dir = path_manager.sampling_method_dir(exe_n=exe_n, method_name=method_name)
+    evaluator.visualize(model, os.path.join(visualize_save_dir, 'visualize.png'))
     print('visualized')
-    evaluator.visualize_missing(model=model, target=target, filename=missing_img_save_path, features=features)
-    print("\nThe clone recognizer was visualized and saved to {0} .".format(img_save_path))
+    evaluator.visualize_missing(model=model, target=target, filename=os.path.join(visualize_save_dir, 'visualize_miss.png'), features=features)
+    print("\nThe clone recognizer was visualized and saved to {0} .".format(visualize_save_dir))
     accuracy = evaluator.calc_accuracy(target, model)
     print("\naccuracy: {0}".format(accuracy))
 
@@ -320,32 +318,22 @@ def exe_clone(target, img_save_path, missing_img_save_path, n, draw_segments_sav
 
 
 def exe_clone_one():
-    n = 30
+    n = 5
+    method_name = 'lv1_user_function_sampling_region'
 
     now_str = datetime.now().strftime('%Y%m%d%H%M%S')
     target_path = 'lv1_targets/classifier_01.png'
-    draw_segments_save_dir = 'output/' + now_str + '/segments_images/'
-    img_save_dir = 'output/' + now_str + '/images/'
-    missing_img_save_dir = 'output/' + now_str + '/missing_images/'
 
-    create_dir(img_save_dir)
-    create_dir(missing_img_save_dir)
-    create_dir(draw_segments_save_dir)
+    save_path_manager = SavePathManager(save_root_dir='output/' + now_str)
 
     target = LV1TargetClassifier()
     target.load(target_path)
-    exe_clone(target=target,
-              img_save_path=img_save_dir + 'n' + str(n) + '.png',
-              missing_img_save_path=missing_img_save_dir + 'n' + str(n) + '.png',
-              n=n,
-              draw_segments_save_dir=draw_segments_save_dir
-              )
+    exe_clone(target=target, exe_n=n, method_name=method_name, path_manager=save_path_manager)
 
 
 def create_dir(path):
     if not os.path.isdir(path):
         os.makedirs(path)
-
 
 if __name__ == '__main__':
     exe_clone_one()
