@@ -5,7 +5,7 @@ import os
 import numpy as np
 import sympy.geometry as sg
 from sympy.geometry import Polygon, Point
-from tqdm import trange
+from tqdm import trange, tqdm
 import matplotlib.pyplot as plt
 from PIL import Image
 from sklearn import neighbors
@@ -137,31 +137,31 @@ def create_region_map(features, target_labels, n, clone_labels):
         print(fea)
         print(DIVIDER)
 
-    seg_set = set()
-
-    # 線分を作る
-    for num_color in trange(CLASS_SIZE, desc='create Segment'):
-        # print(DIVIDER)
-        # print('create Segment on label ' + str(num_color))
-        # print(DIVIDER)
-        color_features = color_features_list[num_color]
-
-        for fea1 in color_features:
-            for fea2 in color_features:
-
-                if fea1[0] != fea2[0] or fea1[1] != fea2[1]:
-                    segment = sg.Segment(sg.Point(fea1[0], fea1[1]), sg.Point(fea2[0], fea2[1]))
-                    seg_set.add((segment, num_color))
-
-                    # print(DIVIDER)
-                    # print(fea1)
-                    # print(fea2)
-                    # print(type(segment))
-                    # print(segment)
-                    # print(DIVIDER)
+    # seg_set = set()
+    #
+    # # 線分を作る
+    # for num_color in trange(CLASS_SIZE, desc='create Segment'):
+    #     # print(DIVIDER)
+    #     # print('create Segment on label ' + str(num_color))
+    #     # print(DIVIDER)
+    #     color_features = color_features_list[num_color]
+    #
+    #     for fea1 in color_features:
+    #         for fea2 in color_features:
+    #
+    #             if fea1[0] != fea2[0] or fea1[1] != fea2[1]:
+    #                 segment = sg.Segment(sg.Point(fea1[0], fea1[1]), sg.Point(fea2[0], fea2[1]))
+    #                 seg_set.add((segment, num_color))
+    #
+    #                 # print(DIVIDER)
+    #                 # print(fea1)
+    #                 # print(fea2)
+    #                 # print(type(segment))
+    #                 # print(segment)
+    #                 # print(DIVIDER)
 
     # survival_seg_set = seg_set.copy()
-    survival_seg_set = seg_set
+    # survival_seg_set = seg_set
 
     # for seg1, seg_color1 in tqdm(seg_set, desc='check intersection'):
     #     for seg2, seg_color2 in seg_set:
@@ -169,37 +169,51 @@ def create_region_map(features, target_labels, n, clone_labels):
     #             result = sg.intersection(seg1, seg2)
     #             if len(result) != 0:  # 交点あり
     #                 # 線分を除外
-    #                 survival_seg_set.remove(seg1)
-    #                 survival_seg_set.remove(seg2)
+    #                 survival_seg_set.discard(seg1)
+    #                 survival_seg_set.discard(seg2)
     #
     #                 print(result)
 
-    # 各色の点を集めたセットを数字の個数分作る
-    color_point_set_list = []
-    for i in range(CLASS_SIZE):
-        color_point_set_list.append(set())
+    # # 各色の点を集めたセットを数字の個数分作る
+    # color_point_set_list = []
+    # for i in range(CLASS_SIZE):
+    #     color_point_set_list.append(set())
 
-    # 点を振り分ける
-    for seg, color in survival_seg_set:
-        point1, point2 = seg.points
-        color_point_set_list[color].add(point1)
-        color_point_set_list[color].add(point2)
+    # # 点を振り分ける
+    # for seg, color in survival_seg_set:
+    #     point1, point2 = seg.points
+    #     color_point_set_list[color].add(point1)
+    #     color_point_set_list[color].add(point2)
 
-    polygon_list = []
-    for i in range(CLASS_SIZE):
-        point_list = list(color_point_set_list[i])
+    # 多角形作成
+    polygon_set = set()
+    for color in range(CLASS_SIZE):
+        color_features = color_features_list[color]
         points = []
-        for p in point_list:
-            points.append((float(p.x), float(p.y)))
+        for cnt in range(color_counts[color]):
+            points.append((color_features[cnt][0], color_features[cnt][1])) # x,y
+
+        points = set(points)
         if len(points) > 2:
             polygon = Polygon(*points)
-            polygon_list.append(polygon)
+            polygon_set.add((polygon, color))
 
             print(DIVIDER)
             print(type(polygon))
             print(DIVIDER)
 
-    return polygon_list, list(survival_seg_set)
+    polygon_set_copy = polygon_set.copy()
+
+    # 多角形の交点を計算
+    for polygon1, color1 in polygon_set:
+        for polygon2, color2 in polygon_set:
+            if color1 != color2:
+                result = sg.intersection(polygon1, polygon2)
+                if len(result) > 0:
+                    polygon_set_copy.discard((polygon1, color1))
+                    polygon_set_copy.discard((polygon2, color2))
+
+    return list(polygon_set_copy)
 
 
 def draw_segments(seg_label_list, draw_segments_save_dir):
@@ -231,6 +245,24 @@ def draw_segments(seg_label_list, draw_segments_save_dir):
     plt.xlim(-1, 1)
     plt.ylim(-1, 1)
     plt.savefig(os.path.join(draw_segments_save_dir, 'segments.png'))
+    plt.show()
+    plt.close()
+
+
+def draw_polygons(polygon_list, save_dir):
+    create_dir(save_dir)
+
+    for poly, label in polygon_list:
+        vertices = poly.vertices
+        for p in vertices:
+            x = float(point1.x)
+            y = float(point1.y)
+        plt.plot([x1, x2], [y1, y2], color=(r, g, b))
+
+    plt.grid(True)
+    plt.xlim(-1, 1)
+    plt.ylim(-1, 1)
+    plt.savefig(os.path.join(save_dir, 'segments.png'))
     plt.show()
     plt.close()
 
@@ -271,7 +303,7 @@ def lv1_user_function_sampling_region(n_samples, target_model, exe_n, method_nam
     clone_model.fit(features=old_features, labels=target_labels)
     clone_labels = clone_model.predict(features=old_features)
 
-    polygon_list, seg_list = create_region_map(features=old_features,
+    polygon_list = create_region_map(features=old_features,
                                                target_labels=target_labels,
                                                clone_labels=clone_labels,
                                                n=n_samples - 1)
@@ -284,53 +316,53 @@ def lv1_user_function_sampling_region(n_samples, target_model, exe_n, method_nam
         new_features[0][0] = x
         new_features[0][1] = y
 
-        for polygon in polygon_list:
+        for polygon, color in polygon_list:
             point = Point(x, y)
             if polygon.encloses_point(point):  # 多角形の領域外の点なら点を再決定
                 point_undecided = True
 
-    # draw_segments(seg_list,
+    # draw_segments(polygon_list,
     #               draw_segments_save_dir=path_manager.sampling_history_n_dir(exe_n=exe_n, method_name=method_name,
     #                                                                          sampling_n=n_samples - 1))
 
     return np.vstack((old_features, new_features))
 
 
-if __name__ == '__main__':
-    N = 5
-    sampling_method_name = 'lv1_user_function_sampling_region'
-
-    now_str = datetime.now().strftime('%Y%m%d%H%M%S')
-    target_path = 'lv1_targets/classifier_01.png'
-
-    save_path_manager = SavePathManager(save_root_dir='output/' + now_str)
-
-    target = LV1TargetClassifier()
-    target.load(target_path)
-
-    # ターゲット認識器への入力として用いる二次元特徴量を用意
-    features = lv1_user_function_sampling_region(target_model=target, exe_n=N, method_name=sampling_method_name,
-                                                 path_manager=save_path_manager, n_samples=N)
-
-    print(features)
-    print(features.shape)
-    print(features[0])
-    #
-    print("\n{0} features were sampled.".format(N))
-
-    # クローン認識器を学習
-    labels = target.predict(features)
-
-    model = LV1UserDefinedClassifier()
-    model.fit(features, labels)
-    print("\nA clone recognizer was trained.")
-
-    # 学習したクローン認識器を可視化し，精度を評価
-    evaluator = LV1_Evaluator()
-    visualize_save_dir = save_path_manager.sampling_method_dir(exe_n=N, method_name=sampling_method_name)
-    create_dir(visualize_save_dir)
-    evaluator.visualize(model, os.path.join(visualize_save_dir, 'visualize.png'))
-    print('visualized')
-    print("\nThe clone recognizer was visualized and saved to {0} .".format(visualize_save_dir))
-    accuracy = evaluator.calc_accuracy(target, model)
-    print("\naccuracy: {0}".format(accuracy))
+# if __name__ == '__main__':
+#     N = 5
+#     sampling_method_name = 'lv1_user_function_sampling_region'
+#
+#     now_str = datetime.now().strftime('%Y%m%d%H%M%S')
+#     target_path = 'lv1_targets/classifier_01.png'
+#
+#     save_path_manager = SavePathManager(save_root_dir='output/' + now_str)
+#
+#     target = LV1TargetClassifier()
+#     target.load(target_path)
+#
+#     # ターゲット認識器への入力として用いる二次元特徴量を用意
+#     features = lv1_user_function_sampling_region(target_model=target, exe_n=N, method_name=sampling_method_name,
+#                                                  path_manager=save_path_manager, n_samples=N)
+#
+#     print(features)
+#     print(features.shape)
+#     print(features[0])
+#     #
+#     print("\n{0} features were sampled.".format(N))
+#
+#     # クローン認識器を学習
+#     labels = target.predict(features)
+#
+#     model = LV1UserDefinedClassifier()
+#     model.fit(features, labels)
+#     print("\nA clone recognizer was trained.")
+#
+#     # 学習したクローン認識器を可視化し，精度を評価
+#     evaluator = LV1_Evaluator()
+#     visualize_save_dir = save_path_manager.sampling_method_dir(exe_n=N, method_name=sampling_method_name)
+#     create_dir(visualize_save_dir)
+#     evaluator.visualize(model, os.path.join(visualize_save_dir, 'visualize.png'))
+#     print('visualized')
+#     print("\nThe clone recognizer was visualized and saved to {0} .".format(visualize_save_dir))
+#     accuracy = evaluator.calc_accuracy(target, model)
+#     print("\naccuracy: {0}".format(accuracy))

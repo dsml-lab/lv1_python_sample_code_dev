@@ -117,15 +117,15 @@ def save_and_show_graph(graph_dir, n_list, region_acc_list, grid_acc_list, rando
 
 def create_output():
     now_str = datetime.now().strftime('%Y%m%d%H%M%S')
-    target_path = 'lv1_targets/classifier_01.png'
+    target_path = 'lv1_targets/classifier_07.png'
     save_path_manager = SavePathManager(save_root_dir='output/' + now_str)
 
     target = LV1TargetClassifier()
     target.load(target_path)
 
     range_arr = []
-    for i in range(0, 4):
-        range_arr.append(10**i)
+    for i in range(0, 9):
+        range_arr.append(2**i)
 
     print(DIVIDER)
     print('実行間隔')
