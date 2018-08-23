@@ -3,19 +3,25 @@ from datetime import datetime
 import os
 
 import numpy as np
-import sympy.geometry as sg
+from sympy import Circle
 from sympy.geometry import Polygon, Point
-from tqdm import trange, tqdm
 import matplotlib.pyplot as plt
+from sympy.plotting import plot
 from PIL import Image
 from sklearn import neighbors
 
-from evaluation import LV1_Evaluator
+import sys
+
+from sympy.plotting.plot import Plot
+from tqdm import tqdm
+
 from labels import COLOR2ID, ID2COLOR
 
 IMAGE_SIZE = 512
 CLASS_SIZE = 10
 DIVIDER = '------------------------'
+
+sys.setrecursionlimit(10000)
 
 
 class LV1TargetClassifier:
@@ -131,11 +137,11 @@ def create_region_map(features, target_labels, n, clone_labels):
                 color_features_list[num_color][count][1] = y
                 count = count + 1
 
-    for i, fea in enumerate(color_features_list):
-        print(DIVIDER)
-        print('label' + str(i))
-        print(fea)
-        print(DIVIDER)
+    # for i, fea in enumerate(color_features_list):
+    #     print(DIVIDER)
+    #     print('label' + str(i))
+    #     print(fea)
+    #     print(DIVIDER)
 
     # seg_set = set()
     #
@@ -205,13 +211,13 @@ def create_region_map(features, target_labels, n, clone_labels):
     polygon_set_copy = polygon_set.copy()
 
     # 多角形の交点を計算
-    for polygon1, color1 in polygon_set:
-        for polygon2, color2 in polygon_set:
-            if color1 != color2:
-                result = sg.intersection(polygon1, polygon2)
-                if len(result) > 0:
-                    polygon_set_copy.discard((polygon1, color1))
-                    polygon_set_copy.discard((polygon2, color2))
+    # for polygon1, color1 in polygon_set:
+    #     for polygon2, color2 in polygon_set:
+    #         if color1 != color2:
+    #             result = sg.intersection(polygon1, polygon2)
+    #             if len(result) > 0:
+    #                 polygon_set_copy.discard((polygon1, color1))
+    #                 polygon_set_copy.discard((polygon2, color2))
 
     return list(polygon_set_copy)
 
@@ -250,21 +256,9 @@ def draw_segments(seg_label_list, draw_segments_save_dir):
 
 
 def draw_polygons(polygon_list, save_dir):
-    create_dir(save_dir)
-
-    for poly, label in polygon_list:
-        vertices = poly.vertices
-        for p in vertices:
-            x = float(point1.x)
-            y = float(point1.y)
-        plt.plot([x1, x2], [y1, y2], color=(r, g, b))
-
-    plt.grid(True)
-    plt.xlim(-1, 1)
-    plt.ylim(-1, 1)
-    plt.savefig(os.path.join(save_dir, 'segments.png'))
-    plt.show()
-    plt.close()
+    p = Plot(axes='label_axes=True')
+    c = Circle(Point(0, 0), 1)
+    p[0] = c
 
 
 def create_random_xy():
@@ -324,6 +318,10 @@ def lv1_user_function_sampling_region(n_samples, target_model, exe_n, method_nam
     # draw_segments(polygon_list,
     #               draw_segments_save_dir=path_manager.sampling_history_n_dir(exe_n=exe_n, method_name=method_name,
     #                                                                          sampling_n=n_samples - 1))
+
+    draw_polygons(polygon_list,
+                  save_dir=path_manager.sampling_history_n_dir(exe_n=exe_n, method_name=method_name,
+                                                               sampling_n=n_samples))
 
     return np.vstack((old_features, new_features))
 

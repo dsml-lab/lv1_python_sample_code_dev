@@ -124,7 +124,7 @@ def create_output():
     target.load(target_path)
 
     range_arr = []
-    for i in range(0, 9):
+    for i in range(0, 4):
         range_arr.append(2**i)
 
     print(DIVIDER)
