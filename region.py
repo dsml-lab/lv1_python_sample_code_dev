@@ -1,25 +1,21 @@
+from datetime import datetime
+
 import os
 
-from datetime import datetime
 import numpy as np
 import sympy.geometry as sg
 from sympy.geometry import Polygon, Point
-from tqdm import tqdm, trange
+from tqdm import trange
 import matplotlib.pyplot as plt
 from PIL import Image
 from sklearn import neighbors
 
 from evaluation import LV1_Evaluator
 from labels import COLOR2ID, ID2COLOR
-from sampling import lv1_user_function_sampling_meshgrid_rectangular, lv1_user_function_sampling
 
 IMAGE_SIZE = 512
 CLASS_SIZE = 10
 DIVIDER = '------------------------'
-
-METHOD_NAME_REGION = 'lv1_user_function_sampling_region'
-METHOD_NAME_GRID = 'lv1_user_function_sampling_meshgrid_rectangular'
-METHOD_NAME_RANDOM = 'lv1_user_function_sampling'
 
 
 class LV1TargetClassifier:
@@ -164,18 +160,19 @@ def create_region_map(features, target_labels, n, clone_labels):
                     # print(segment)
                     # print(DIVIDER)
 
-    survival_seg_set = seg_set.copy()
+    # survival_seg_set = seg_set.copy()
+    survival_seg_set = seg_set
 
-    for seg1, seg_color1 in tqdm(seg_set, desc='check intersection'):
-        for seg2, seg_color2 in seg_set:
-            if seg_color1 != seg_color2:  # 色が違う
-                result = sg.intersection(seg1, seg2)
-                if len(result) != 0:  # 交点あり
-                    # 線分を除外
-                    survival_seg_set.remove(seg1)
-                    survival_seg_set.remove(seg2)
-
-                    print(result)
+    # for seg1, seg_color1 in tqdm(seg_set, desc='check intersection'):
+    #     for seg2, seg_color2 in seg_set:
+    #         if seg_color1 != seg_color2:  # 色が違う
+    #             result = sg.intersection(seg1, seg2)
+    #             if len(result) != 0:  # 交点あり
+    #                 # 線分を除外
+    #                 survival_seg_set.remove(seg1)
+    #                 survival_seg_set.remove(seg2)
+    #
+    #                 print(result)
 
     # 各色の点を集めたセットを数字の個数分作る
     color_point_set_list = []
@@ -292,36 +289,34 @@ def lv1_user_function_sampling_region(n_samples, target_model, exe_n, method_nam
             if polygon.encloses_point(point):  # 多角形の領域外の点なら点を再決定
                 point_undecided = True
 
-    draw_segments(seg_list,
-                  draw_segments_save_dir=path_manager.sampling_history_n_dir(exe_n=exe_n, method_name=method_name,
-                                                                             sampling_n=n_samples - 1))
+    # draw_segments(seg_list,
+    #               draw_segments_save_dir=path_manager.sampling_history_n_dir(exe_n=exe_n, method_name=method_name,
+    #                                                                          sampling_n=n_samples - 1))
 
     return np.vstack((old_features, new_features))
 
 
-def get_features(target, exe_n,
-                 method_name, path_manager):
+if __name__ == '__main__':
+    N = 5
+    sampling_method_name = 'lv1_user_function_sampling_region'
 
-    if method_name == METHOD_NAME_REGION:
-        return lv1_user_function_sampling_region(n_samples=exe_n, target_model=target, exe_n=exe_n,
-                                                     method_name=method_name, path_manager=path_manager)
+    now_str = datetime.now().strftime('%Y%m%d%H%M%S')
+    target_path = 'lv1_targets/classifier_01.png'
 
-    if method_name == METHOD_NAME_GRID:
-        return lv1_user_function_sampling_meshgrid_rectangular(n_samples=exe_n)
+    save_path_manager = SavePathManager(save_root_dir='output/' + now_str)
 
-    if method_name == METHOD_NAME_RANDOM:
-        return lv1_user_function_sampling(n_samples=exe_n)
+    target = LV1TargetClassifier()
+    target.load(target_path)
 
-
-def exe_clone(target, exe_n, method_name, path_manager: SavePathManager):
     # ターゲット認識器への入力として用いる二次元特徴量を用意
-    features = get_features(target=target, exe_n=exe_n, method_name=method_name, path_manager=path_manager)
+    features = lv1_user_function_sampling_region(target_model=target, exe_n=N, method_name=sampling_method_name,
+                                                 path_manager=save_path_manager, n_samples=N)
 
     print(features)
     print(features.shape)
     print(features[0])
     #
-    print("\n{0} features were sampled.".format(exe_n))
+    print("\n{0} features were sampled.".format(N))
 
     # クローン認識器を学習
     labels = target.predict(features)
@@ -332,109 +327,10 @@ def exe_clone(target, exe_n, method_name, path_manager: SavePathManager):
 
     # 学習したクローン認識器を可視化し，精度を評価
     evaluator = LV1_Evaluator()
-    visualize_save_dir = path_manager.sampling_method_dir(exe_n=exe_n, method_name=method_name)
+    visualize_save_dir = save_path_manager.sampling_method_dir(exe_n=N, method_name=sampling_method_name)
     create_dir(visualize_save_dir)
     evaluator.visualize(model, os.path.join(visualize_save_dir, 'visualize.png'))
     print('visualized')
-    evaluator.visualize_missing(model=model, target=target,
-                                filename=os.path.join(visualize_save_dir, 'visualize_miss.png'), features=features)
     print("\nThe clone recognizer was visualized and saved to {0} .".format(visualize_save_dir))
     accuracy = evaluator.calc_accuracy(target, model)
     print("\naccuracy: {0}".format(accuracy))
-
-    return accuracy
-
-
-def exe_clone_one():
-    n = 10
-    method_name = 'lv1_user_function_sampling_region'
-
-    now_str = datetime.now().strftime('%Y%m%d%H%M%S')
-    target_path = 'lv1_targets/classifier_01.png'
-
-    save_path_manager = SavePathManager(save_root_dir='output/' + now_str)
-
-    target = LV1TargetClassifier()
-    target.load(target_path)
-    exe_clone(target=target, exe_n=n, method_name=method_name, path_manager=save_path_manager)
-
-
-def exe_clone_all(range_arr, target, save_path_manager: SavePathManager, method_name):
-
-    n_list = []
-    acc_list = []
-    n_list.append(0)
-    acc_list.append(0.0)
-
-    for n in range_arr:
-        accuracy = exe_clone(target=target, exe_n=n, method_name=method_name, path_manager=save_path_manager)
-
-        n_list.append(n)
-        acc_list.append(accuracy)
-
-    return n_list, acc_list
-
-
-def save_and_show_graph(graph_dir, n_list, region_acc_list, grid_acc_list, random_acc_list):
-
-    print(DIVIDER)
-    print('n list')
-    print(n_list)
-    print('region_acc_list')
-    print(region_acc_list)
-    print(DIVIDER)
-
-    left = np.array(n_list)
-    region_acc_height = np.array(region_acc_list)
-    grid_acc_height = np.array(grid_acc_list)
-    random_acc_height = np.array(random_acc_list)
-    plt.plot(left, region_acc_height, label='region Accuracy')
-    plt.plot(left, grid_acc_height, label='grid Accuracy')
-    plt.plot(left, random_acc_height, label='random Accuracy')
-    plt.xlabel("n samples")
-    plt.ylabel("Accuracy")
-    plt.grid(True)
-    plt.ylim(0, 1)
-    plt.savefig(os.path.join(graph_dir, 'n_accuracy.png'))
-    plt.legend()
-    plt.show()
-    plt.close()
-
-
-def create_output():
-    now_str = datetime.now().strftime('%Y%m%d%H%M%S')
-    target_path = 'lv1_targets/classifier_01.png'
-    save_path_manager = SavePathManager(save_root_dir='output/' + now_str)
-
-    target = LV1TargetClassifier()
-    target.load(target_path)
-
-    range_arr = []
-    for i in range(0, 10):
-        range_arr.append(2**i)
-
-    print(DIVIDER)
-    print('実行間隔')
-    print(range_arr)
-    print(DIVIDER)
-
-    region_n_list, region_acc_list = exe_clone_all(range_arr=range_arr, target=target,
-                                                          save_path_manager=save_path_manager, method_name=METHOD_NAME_REGION)
-
-    grid_n_list, grid_acc_list = exe_clone_all(range_arr=range_arr, target=target,
-                                                   save_path_manager=save_path_manager, method_name=METHOD_NAME_GRID)
-
-    random_n_list, random_acc_list = exe_clone_all(range_arr=range_arr, target=target,
-                                               save_path_manager=save_path_manager, method_name=METHOD_NAME_RANDOM)
-
-    save_and_show_graph(
-        graph_dir=save_path_manager.save_root_dir,
-        n_list=region_n_list,
-        region_acc_list=region_acc_list,
-        grid_acc_list=grid_acc_list,
-        random_acc_list=random_acc_list
-    )
-
-
-if __name__ == '__main__':
-    create_output()
