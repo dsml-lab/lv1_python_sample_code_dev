@@ -6,10 +6,12 @@ import matplotlib.pyplot as plt
 
 from evaluation import LV1_Evaluator
 from region import lv1_user_function_sampling_region, \
-    SavePathManager, LV1UserDefinedClassifier, create_dir, LV1TargetClassifier, DIVIDER
+    SavePathManager, LV1UserDefinedClassifier, create_dir, LV1TargetClassifier, DIVIDER, \
+    lv1_user_function_sampling_sweeper
 from sampling import lv1_user_function_sampling_meshgrid_rectangular, lv1_user_function_sampling
 
 METHOD_NAME_REGION = 'lv1_user_function_sampling_region'
+METHOD_NAME_SWEEPER = 'lv1_user_function_sampling_sweeper'
 METHOD_NAME_GRID = 'lv1_user_function_sampling_meshgrid_rectangular'
 METHOD_NAME_RANDOM = 'lv1_user_function_sampling'
 
@@ -19,6 +21,11 @@ def get_features(target, exe_n,
     if method_name == METHOD_NAME_REGION:
         return lv1_user_function_sampling_region(n_samples=exe_n, target_model=target, exe_n=exe_n,
                                                      method_name=method_name, path_manager=path_manager)
+
+    if method_name == METHOD_NAME_SWEEPER:
+        features, board = lv1_user_function_sampling_sweeper(n_samples=exe_n, target_model=target, exe_n=exe_n,
+                                                     method_name=method_name, path_manager=path_manager)
+        return features
 
     if method_name == METHOD_NAME_GRID:
         return lv1_user_function_sampling_meshgrid_rectangular(n_samples=exe_n)
@@ -61,7 +68,7 @@ def exe_clone(target, exe_n, method_name, path_manager: SavePathManager):
 
 def exe_clone_one():
     n = 10
-    method_name = 'lv1_user_function_sampling_region'
+    method_name = METHOD_NAME_SWEEPER
 
     now_str = datetime.now().strftime('%Y%m%d%H%M%S')
     target_path = 'lv1_targets/classifier_01.png'
@@ -124,13 +131,16 @@ def create_output():
     target.load(target_path)
 
     range_arr = []
-    for i in range(0, 4):
-        range_arr.append(2**i)
+    for i in range(0, 12):
+        range_arr.append(4**i)
 
     print(DIVIDER)
     print('実行間隔')
     print(range_arr)
     print(DIVIDER)
+
+    sweeper_n_list, sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
+                                                   save_path_manager=save_path_manager, method_name=METHOD_NAME_SWEEPER)
 
     region_n_list, region_acc_list = exe_clone_all(range_arr=range_arr, target=target,
                                                           save_path_manager=save_path_manager, method_name=METHOD_NAME_REGION)

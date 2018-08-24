@@ -16,6 +16,7 @@ from sympy.plotting.plot import Plot
 from tqdm import tqdm
 
 from labels import COLOR2ID, ID2COLOR
+from sweeper import Board
 
 IMAGE_SIZE = 512
 CLASS_SIZE = 10
@@ -211,13 +212,13 @@ def create_region_map(features, target_labels, n, clone_labels):
     polygon_set_copy = polygon_set.copy()
 
     # 多角形の交点を計算
-    # for polygon1, color1 in polygon_set:
-    #     for polygon2, color2 in polygon_set:
-    #         if color1 != color2:
-    #             result = sg.intersection(polygon1, polygon2)
-    #             if len(result) > 0:
-    #                 polygon_set_copy.discard((polygon1, color1))
-    #                 polygon_set_copy.discard((polygon2, color2))
+    for polygon1, color1 in polygon_set:
+        for polygon2, color2 in polygon_set:
+            if color1 != color2:
+                result = sg.intersection(polygon1, polygon2)
+                if len(result) > 0:
+                    polygon_set_copy.discard((polygon1, color1))
+                    polygon_set_copy.discard((polygon2, color2))
 
     return list(polygon_set_copy)
 
@@ -324,3 +325,57 @@ def lv1_user_function_sampling_region(n_samples, target_model, exe_n, method_nam
                                                                sampling_n=n_samples))
 
     return np.vstack((old_features, new_features))
+
+
+def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n, method_name, path_manager: SavePathManager):
+    print('n_samples:' + str(n_samples))
+
+    if n_samples < 0:
+        raise ValueError
+
+    elif n_samples == 0:
+        return np.zeros((0, 2))
+
+    elif n_samples == 1:
+        new_features = np.zeros((1, 2))
+        new_board = Board(board_size=48)
+        new_board.init_open()
+
+        clone_model = LV1UserDefinedClassifier()
+
+        # target識別器からtargetのラベルを取得
+        target_labels = target_model.predict(new_features)
+        # clone識別器からcloneのラベルを取得
+        clone_model.fit(features=new_features, labels=target_labels)
+        clone_labels = clone_model.predict(features=new_features)
+
+        if target_labels[-1] == clone_labels[-1]:
+            new_board.open_once_feature(feature_x=x, feature_y=y, color=clone_labels[-1])
+            feature_x, feature_y = new_board.get_optimal_solution()
+
+
+
+        return np.float32(new_features), new_board
+
+    elif n_samples > 1:
+
+        old_features, old_board = lv1_user_function_sampling_sweeper(n_samples=n_samples - 1, target_model=target_model,
+                                                         exe_n=exe_n,
+                                                         method_name=method_name,
+                                                         path_manager=path_manager)
+
+        clone_model = LV1UserDefinedClassifier()
+
+        # target識別器からtargetのラベルを取得
+        target_labels = target_model.predict(old_features)
+        # clone識別器からcloneのラベルを取得
+        clone_model.fit(features=old_features, labels=target_labels)
+        clone_labels = clone_model.predict(features=old_features)
+
+        # 一致したラベル
+        match_labels = clone_labels[target_labels == clone_labels]
+
+
+
+
+        return np.vstack((old_features, new_features)), old_board
