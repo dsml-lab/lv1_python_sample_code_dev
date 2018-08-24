@@ -337,7 +337,7 @@ def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n, method_na
         return np.zeros((0, 2))
 
     elif n_samples == 1:
-        new_board = Board(board_size=48)
+        new_board = Board(board_size=20)
         new_board.init_open()
 
         new_features = np.zeros((1, 2))

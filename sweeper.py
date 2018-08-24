@@ -8,7 +8,7 @@ score
 
 np.set_printoptions(suppress=True)
 OPENED = 1.
-COLORLESS = 11
+COLORLESS = 10
 LABEL_SIZE = 11
 
 
@@ -31,8 +31,8 @@ class Board:
 
     # px値を少数にマッピング
     def mapping_feature_x_y(self, x, y):
-        feature_x = ((x + 1) / self.board_size)*2 - 1
-        feature_y = ((y + 1) / self.board_size)*2 - 1
+        feature_x = ((x + 0.5) / self.board_size)*2 - 1
+        feature_y = ((y + 0.5) / self.board_size)*2 - 1
 
         return feature_x, feature_y
 
@@ -43,9 +43,6 @@ class Board:
 
     # 点を開示
     def open_once(self, x, y, color=COLORLESS):
-
-        if color == COLORLESS:
-            return
 
         # x, yを1次元上の値に直す
         # position = self.board_size * y + x
