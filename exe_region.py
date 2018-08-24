@@ -116,6 +116,7 @@ def save_and_show_graph(graph_dir, n_list, sweeper_acc_list, grid_acc_list, rand
     plt.ylabel("Accuracy")
     plt.grid(True)
     plt.ylim(0, 1)
+    plt.xscale('log')
     plt.legend()
     plt.savefig(os.path.join(graph_dir, 'n_accuracy.png'))
     plt.show()
@@ -131,8 +132,8 @@ def create_output():
     target.load(target_path)
 
     range_arr = []
-    for i in range(1, 100):
-        range_arr.append(i)
+    for i in range(1, 13):
+        range_arr.append(2**i)
 
     print(DIVIDER)
     print('実行間隔')
