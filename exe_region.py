@@ -96,20 +96,20 @@ def exe_clone_all(range_arr, target, save_path_manager: SavePathManager, method_
     return n_list, acc_list
 
 
-def save_and_show_graph(graph_dir, n_list, region_acc_list, grid_acc_list, random_acc_list):
+def save_and_show_graph(graph_dir, n_list, sweeper_acc_list, grid_acc_list, random_acc_list):
 
     print(DIVIDER)
     print('n list')
     print(n_list)
-    print('region_acc_list')
-    print(region_acc_list)
+    print('sweeper_acc_list')
+    print(sweeper_acc_list)
     print(DIVIDER)
 
     left = np.array(n_list)
-    region_acc_height = np.array(region_acc_list)
+    sweeper_acc_height = np.array(sweeper_acc_list)
     grid_acc_height = np.array(grid_acc_list)
     random_acc_height = np.array(random_acc_list)
-    plt.plot(left, region_acc_height, label='region Accuracy')
+    plt.plot(left, sweeper_acc_height, label='sweeper Accuracy')
     plt.plot(left, grid_acc_height, label='grid Accuracy')
     plt.plot(left, random_acc_height, label='random Accuracy')
     plt.xlabel("n samples")
@@ -131,8 +131,8 @@ def create_output():
     target.load(target_path)
 
     range_arr = []
-    for i in range(0, 12):
-        range_arr.append(4**i)
+    for i in range(1, 100):
+        range_arr.append(i)
 
     print(DIVIDER)
     print('実行間隔')
@@ -142,8 +142,8 @@ def create_output():
     sweeper_n_list, sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
                                                    save_path_manager=save_path_manager, method_name=METHOD_NAME_SWEEPER)
 
-    region_n_list, region_acc_list = exe_clone_all(range_arr=range_arr, target=target,
-                                                          save_path_manager=save_path_manager, method_name=METHOD_NAME_REGION)
+    # region_n_list, region_acc_list = exe_clone_all(range_arr=range_arr, target=target,
+    #                                                       save_path_manager=save_path_manager, method_name=METHOD_NAME_REGION)
 
     grid_n_list, grid_acc_list = exe_clone_all(range_arr=range_arr, target=target,
                                                    save_path_manager=save_path_manager, method_name=METHOD_NAME_GRID)
@@ -153,8 +153,8 @@ def create_output():
 
     save_and_show_graph(
         graph_dir=save_path_manager.save_root_dir,
-        n_list=region_n_list,
-        region_acc_list=region_acc_list,
+        n_list=grid_n_list,
+        sweeper_acc_list=sweeper_acc_list,
         grid_acc_list=grid_acc_list,
         random_acc_list=random_acc_list
     )

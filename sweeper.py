@@ -31,18 +31,18 @@ class Board:
 
     # px値を少数にマッピング
     def mapping_feature_x_y(self, x, y):
-        feature_x = (x + 1) / self.board_size
-        feature_y = (y + 1) / self.board_size
+        feature_x = ((x + 1) / self.board_size)*2 - 1
+        feature_y = ((y + 1) / self.board_size)*2 - 1
 
         return feature_x, feature_y
 
-    def open_once_feature(self, feature_x, feature_y, color):
+    def open_once_feature(self, feature_x, feature_y, color=COLORLESS):
         x, y = self.mapping_x_y(feature_x=feature_x, feature_y=feature_y)
 
         return self.open_once(x=x, y=y, color=color)
 
     # 点を開示
-    def open_once(self, x, y, color):
+    def open_once(self, x, y, color=COLORLESS):
 
         if color == COLORLESS:
             return

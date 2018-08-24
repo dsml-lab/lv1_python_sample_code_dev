@@ -337,23 +337,26 @@ def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n, method_na
         return np.zeros((0, 2))
 
     elif n_samples == 1:
-        new_features = np.zeros((1, 2))
         new_board = Board(board_size=48)
         new_board.init_open()
 
-        clone_model = LV1UserDefinedClassifier()
+        new_features = np.zeros((1, 2))
 
+        feature_x, feature_y = new_board.get_optimal_solution() # 最適解
+        new_features[0][0] = feature_x
+        new_features[0][1] = feature_y
+
+        clone_model = LV1UserDefinedClassifier()
         # target識別器からtargetのラベルを取得
         target_labels = target_model.predict(new_features)
         # clone識別器からcloneのラベルを取得
         clone_model.fit(features=new_features, labels=target_labels)
         clone_labels = clone_model.predict(features=new_features)
 
-        feature_x, feature_y = new_board.get_optimal_solution() # 最適解
-        new_features[0][0] = feature_x
-        new_features[0][1] = feature_y
-
-        new_board.open_once_feature(feature_x=feature_x, feature_y=feature_y, color=clone_labels[COLORLESS]) # 開示
+        if target_labels[-1] == clone_labels[-1]:
+            new_board.open_once_feature(feature_x=feature_x, feature_y=feature_y, color=clone_labels[-1]) # 開示
+        else:
+            new_board.open_once_feature(feature_x=feature_x, feature_y=feature_y) # 開示
 
         return np.float32(new_features), new_board
 
@@ -364,17 +367,22 @@ def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n, method_na
                                                          method_name=method_name,
                                                          path_manager=path_manager)
 
-        clone_model = LV1UserDefinedClassifier()
-
-        # target識別器からtargetのラベルを取得
-        target_labels = target_model.predict(old_features)
-        # clone識別器からcloneのラベルを取得
-        clone_model.fit(features=old_features, labels=target_labels)
-        clone_labels = clone_model.predict(features=old_features)
-
         new_features = np.zeros((1, 2))
 
         feature_x, feature_y = old_board.get_optimal_solution()  # 最適解
-        old_board.open_once_feature(feature_x=feature_x, feature_y=feature_y, color=clone_labels[COLORLESS])  # 開示
+        new_features[0][0] = feature_x
+        new_features[0][1] = feature_y
+
+        clone_model = LV1UserDefinedClassifier()
+        # target識別器からtargetのラベルを取得
+        target_labels = target_model.predict(new_features)
+        # clone識別器からcloneのラベルを取得
+        clone_model.fit(features=new_features, labels=target_labels)
+        clone_labels = clone_model.predict(features=new_features)
+
+        if target_labels[-1] == clone_labels[-1]:
+            old_board.open_once_feature(feature_x=feature_x, feature_y=feature_y, color=clone_labels[-1])  # 開示
+        else:
+            old_board.open_once_feature(feature_x=feature_x, feature_y=feature_y)  # 開示
 
         return np.vstack((old_features, new_features)), old_board
