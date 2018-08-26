@@ -132,7 +132,7 @@ def create_output(target_path, save_path_manager):
     target.load(target_path)
 
     range_arr = []
-    for i in range(1, 13):
+    for i in range(1, 11):
         range_arr.append(2**i)
 
     print(DIVIDER)

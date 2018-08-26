@@ -9,7 +9,7 @@ score
 '''
 
 np.set_printoptions(suppress=True)
-OPENED = 1.
+OPENED = 1000.
 COLORLESS = 10
 LABEL_SIZE = 11
 
@@ -27,7 +27,7 @@ class Board:
     def mapping_x_y(self, feature_x, feature_y):
         h = self.board_size // 2
         x = int(max(0, min(self.board_size - 1, np.round(h * feature_x + h))))
-        y = int(max(0, min(self.board_size - 1, np.round(h - h * feature_y))))
+        y = int(max(0, min(self.board_size - 1, np.round(h * feature_y + h))))
 
         return x, y
 
@@ -46,6 +46,12 @@ class Board:
     # 点を開示
     def open_once(self, x, y, color=COLORLESS):
 
+        print('------------')
+        print('開示')
+        print('x: ' + str(x))
+        print('y: ' + str(y))
+        print('------------')
+
         # x, yを1次元上の値に直す
         # position = self.board_size * y + x
 
@@ -54,6 +60,7 @@ class Board:
         for i in range(0, 5):
             self.positions[color][max(x - i, 0):min(x + i + 1, self.board_size),
             max(y - i, 0):min(y + i + 1, self.board_size)] += 1
+        self.positions[color][x, y] += OPENED
         self.sampling_points[color][x, y] = OPENED
 
     def init_open(self):
@@ -70,15 +77,15 @@ class Board:
         self.open_once(x=self.max_position // 2, y=self.max_position, color=COLORLESS)
 
     def print(self):
-        for c in range(LABEL_SIZE):
-            print('------------')
-            print('分布')
-            print('ラベル' + str(c))
-            print(self.positions[c])
-            print('------------')
-            print('サンプリング点')
-            print(self.sampling_points[c])
-            print('------------')
+        # for c in range(LABEL_SIZE):
+        #     print('------------')
+        #     print('分布')
+        #     print('ラベル' + str(c))
+        #     print(self.positions[c])
+        #     print('------------')
+        #     print('サンプリング点')
+        #     print(self.sampling_points[c])
+        #     print('------------')
 
         print('------------')
         print('総合的な分布')
@@ -109,11 +116,18 @@ class Board:
 
         # print(np.amin(integrate_positions))
 
-        x_arr, y_arr = np.where(self.integrate_positions == np.amin(self.integrate_positions))
+        min_value = np.amin(self.integrate_positions)
+        x_arr, y_arr = np.where(self.integrate_positions == min_value)
         # print(x_arr)
         # print(y_arr)
 
         index = random.randrange(len(x_arr))
+
+        self.print()
+
+        print('x: ' + str(x_arr[index]))
+        print('y: ' + str(y_arr[index]))
+        print('選択した値: ' + str(self.integrate_positions[x_arr[index], y_arr[index]]))
 
         return self.mapping_feature_x_y(x_arr[index], y_arr[index])
 

@@ -338,8 +338,10 @@ def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n, method_na
         return np.zeros((0, 2))
 
     elif n_samples == 1:
-        new_board = Board(board_size=512)
-        new_board.init_open()
+        board_size = exe_n + 1
+        print('board_size: ' + str(board_size))
+        new_board = Board(board_size=board_size)
+        #new_board.init_open()
 
         new_features = np.zeros((1, 2))
 
@@ -371,6 +373,7 @@ def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n, method_na
         new_features = np.zeros((1, 2))
 
         feature_x, feature_y = old_board.get_optimal_solution()  # 最適解
+
         new_features[0][0] = feature_x
         new_features[0][1] = feature_y
 
