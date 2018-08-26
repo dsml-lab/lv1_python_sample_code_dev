@@ -26,8 +26,8 @@ class Board:
 
     # 小数をpx値にマッピング
     def mapping_x_y(self, feature_x, feature_y):
-        x = int(max(0, min(self.board_size - 1, np.round((feature_x + 1) * (self.board_size - 1) / 2))))
-        y = int(max(0, min(self.board_size - 1, np.round((feature_y + 1) * (self.board_size - 1) / 2))))
+        x = int(max(0, min(self.max_position, np.round((feature_x + 1) * self.max_position / 2))))
+        y = int(max(0, min(self.max_position, np.round((feature_y + 1) * self.max_position / 2))))
 
         print('------------')
         print('board_size: ' + str(self.board_size))
@@ -72,7 +72,7 @@ class Board:
         print('------------')
 
         # 近傍の点のx,yからの距離を計算
-        for i in range(0, self.board_size//2):
+        for i in range(0, self.board_size // 2):
             self.positions[color][max(x - i, 0):min(x + i + 1, self.board_size),
             max(y - i, 0):min(y + i + 1, self.board_size)] += 1
         self.positions[color][x, y] += OPENED
@@ -130,26 +130,51 @@ class Board:
 
         self.integrate_positions = np.where(self.sampling_points_all, arr, max_arr)
 
+    def adjust(self, value):
+        return max(0, min(value, self.max_position))
+
     def get_optimal_solution(self):
         self.calc_integrate_positions()
 
-        # print(np.amin(integrate_positions))
-
         min_value = np.amin(self.integrate_positions)
         x_arr, y_arr = np.where(self.integrate_positions == min_value)
-        # print(x_arr)
-        # print(y_arr)
 
-        index = random.randrange(len(x_arr))
+        x_y_arr = list(zip(x_arr, y_arr))
+        random.shuffle(x_y_arr)
+
+        index = random.randrange(len(x_y_arr))
+
+        min_sum = np.amax(self.integrate_positions) * 8
+        for i, (x, y) in enumerate(x_y_arr):
+            sm = 0
+            sm += self.integrate_positions[self.adjust(x), self.adjust(y - 1)]  # top
+            sm += self.integrate_positions[self.adjust(x), self.adjust(y + 1)]  # bottom
+            sm += self.integrate_positions[self.adjust(x + 1), self.adjust(y)]  # right
+            sm += self.integrate_positions[self.adjust(x - 1), self.adjust(y)]  # left
+
+            sm += self.integrate_positions[self.adjust(x - 1), self.adjust(y - 1)]  # top_left
+            sm += self.integrate_positions[self.adjust(x + 1), self.adjust(y - 1)]  # top_right
+            sm += self.integrate_positions[self.adjust(x - 1), self.adjust(y + 1)]  # bottom_left
+            sm += self.integrate_positions[self.adjust(x + 1), self.adjust(y + 1)]  # bottom_right
+
+            print('sum: ' + str(sm))
+
+            if min_sum > sm:
+                print('x:' + str(x))
+                print('y:' + str(y))
+                print('minimum index: ' + str(i))
+                min_sum = sm
+                index = i
 
         self.print()
 
-        print('x: ' + str(x_arr[index]))
-        print('y: ' + str(y_arr[index]))
-        print('選択した値: ' + str(self.integrate_positions[x_arr[index], y_arr[index]]))
+        select_x, select_y = x_y_arr[index]
 
-        return self.mapping_feature_x_y(x_arr[index], y_arr[index])
+        print('x: ' + str(select_x))
+        print('y: ' + str(select_y))
+        print('選択した値: ' + str(self.integrate_positions[select_x, select_y]))
 
+        return self.mapping_feature_x_y(select_x, select_y)
 
 # def main():
 #     board_size = 512
