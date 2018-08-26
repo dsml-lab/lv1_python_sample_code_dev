@@ -7,12 +7,13 @@ from sklearn import neighbors
 from labels import COLOR2ID
 from evaluation import IMAGE_SIZE
 from evaluation import LV1_Evaluator
-#面積を計算するためにグラフを用いるモジュールをimport
+# 面積を計算するためにグラフを用いるモジュールをimport
 import matplotlib.pyplot as plt
 from labels import ID2COLOR
 import time
 import os
-from statistics import mean, median,variance,stdev
+from statistics import mean, median, variance, stdev
+
 
 # ターゲット認識器を表現するクラス
 # ターゲット認識器は2次元パターン（512x512の画像）で与えられるものとする
@@ -37,6 +38,7 @@ class LV1_TargetClassifier:
             labels[i] = self.predict_once(features[i][0], features[i][1])
         return np.int32(labels)
 
+
 # クローン認識器を表現するクラス
 # このサンプルコードでは単純な 1-nearest neighbor 認識器とする（sklearnを使用）
 # 下記と同型の fit メソッドと predict メソッドが必要
@@ -56,6 +58,7 @@ class LV1_UserDefinedClassifier:
         labels = self.clf.predict(features)
         return np.int32(labels)
 
+
 # ターゲット認識器に入力する二次元特徴量をサンプリングする関数
 #   n_samples: サンプリングする特徴量の数
 def LV1_user_function_sampling(n_samples=1):
@@ -66,36 +69,39 @@ def LV1_user_function_sampling(n_samples=1):
         features[i][1] = 2 * np.random.rand() - 1
     return np.float32(features)
 
+
 # 面積のグラフ化
-def LV1_user_accuracy_plot(accuracy_list,n,path):
+def LV1_user_accuracy_plot(accuracy_list, n, path):
     label = [i / 255 for i in ID2COLOR[0]]
-    plt.plot(n,accuracy_list,linewidth=1,color=label)
-    plt.fill_between(np.array(n),np.array(accuracy_list),facecolor=label)
+    plt.plot(n, accuracy_list, linewidth=1, color=label)
+    plt.fill_between(np.array(n), np.array(accuracy_list), facecolor=label)
     plt.title('Accuracy_data')
     plt.xlabel('n_samples')
     plt.ylabel('Accuracy')
-    plt.ylim(0,1)
-    plt.xlim(n[0],n[-1])
+    plt.ylim(0, 1)
+    plt.xlim(n[0], n[-1])
     plt.xscale('log')
     plt.savefig(path)
     plt.close()
 
-def LV1_user_plot_cut(path,save_path):
+
+def LV1_user_plot_cut(path, save_path):
     im = Image.open(path)
     cm = im
-    im_crop = im.crop((81,59,576,427))
-    #見える
-    cm_crop = cm.crop((80,58,577,428))
-    im_crop.save(save_path,quality=100)
-    cm_crop.save(save_path.replace('.png','_line.png'),quality=100)
+    im_crop = im.crop((81, 59, 576, 427))
+    # 見える
+    cm_crop = cm.crop((80, 58, 577, 428))
+    im_crop.save(save_path, quality=100)
+    cm_crop.save(save_path.replace('.png', '_line.png'), quality=100)
 
-#cutした画像から指定したpixel数をが数える。
-def LV1_user_area_pixel_count(path,save_path):
-    #pngがRGBAになるため、jpegのRGBにコンバート
+
+# cutした画像から指定したpixel数をが数える。
+def LV1_user_area_pixel_count(path, save_path):
+    # pngがRGBAになるため、jpegのRGBにコンバート
     im = Image.open(path).convert('RGB')
-    #画像サイズを取得して数える。
+    # 画像サイズを取得して数える。
     size = im.size
-    #print('画像サイズ(',size,')_x(',size[0],')_y(',size[1],')')
+    # print('画像サイズ(',size,')_x(',size[0],')_y(',size[1],')')
     X = range(size[0])
     Y = range(size[1])
     wh = Image.open('./output/none.png')
@@ -104,70 +110,78 @@ def LV1_user_area_pixel_count(path,save_path):
         for y in Y:
             # print('xy_norm(',xn,yn,'):xy(',x,y,')')
             pixel = im.getpixel((x, y))
-            #print('False:',pixel)
+            # print('False:',pixel)
             if pixel == ID2COLOR[0]:
-                wh.putpixel((x,y),ID2COLOR[0])
-                #print('True:',pixel)
+                wh.putpixel((x, y), ID2COLOR[0])
+                # print('True:',pixel)
                 count += 1
             # print(round(xn,3),round(yn,3),label)
-    #白い画像にplotしてみて確認する。
-    wh_re = wh.resize((int(size[0]),int(size[1])))
-    wh_re.save(save_path,quality=100)
-    return count,size
+    # 白い画像にplotしてみて確認する。
+    wh_re = wh.resize((int(size[0]), int(size[1])))
+    wh_re.save(save_path, quality=100)
+    return count, size
 
-#accuacyの面積結果を画像で保存する。
-def LV1_user_area_count_text(path,pixel_count,area_size):
+
+# accuacyの面積結果を画像で保存する。
+def LV1_user_area_count_text(path, pixel_count, area_size):
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
-    plt.text(0, 1.0, str(path.split('/')[2]+'_'+path.split('/')[3]), fontsize=14)
-    plt.text(0, 0.8, 'Image_size['+str(area_size[0] * area_size[1])+'.pixel]', fontsize=14)
+    plt.text(0, 1.0, str(path.split('/')[2] + '_' + path.split('/')[3]), fontsize=14)
+    plt.text(0, 0.8, 'Image_size[' + str(area_size[0] * area_size[1]) + '.pixel]', fontsize=14)
     plt.text(0, 0.6, 'Image_size_X[' + str(area_size[0]) + '.pixel]_Y[' + str(area_size[1]) + '.pixel]', fontsize=14)
-    plt.text(0, 0.4, 'pixel_of_AccuracyArea['+str(pixel_count)+'.pixel]', fontsize=14)
-    plt.text(0, 0.2, 'Ratio['+str(round(pixel_count / (area_size[0] * area_size[1]) * 100, 2))+'%]', fontsize=14)
+    plt.text(0, 0.4, 'pixel_of_AccuracyArea[' + str(pixel_count) + '.pixel]', fontsize=14)
+    plt.text(0, 0.2, 'Ratio[' + str(round(pixel_count / (area_size[0] * area_size[1]) * 100, 2)) + '%]', fontsize=14)
     ax.axis('off')
     plt.savefig(path)
     plt.close()
 
-#accuacyの面積の計算結果を画像で保存する。
-def LV1_user_area_statistics(path,area_pixel,label,size):
+
+# accuacyの面積の計算結果を画像で保存する。
+def LV1_user_area_statistics(path, area_pixel, label, size):
     fig = plt.figure()
-    #ax1にclassifier毎のAccuracy面積のグラフ
+    # ax1にclassifier毎のAccuracy面積のグラフ
     ax1 = fig.add_subplot(2, 1, 1)
-    #pixelの正規化
-    pixel = [round(i/(size[0]*size[1]),1) for i in area_pixel]
-    plt.plot(np.array(range(len(pixel))),pixel)
-    plt.plot(np.array(range(len(pixel))),pixel,'o')
-    plt.title(path.split('/')[2]+'_statistics')
+    # pixelの正規化
+    pixel = [round(i / (size[0] * size[1]), 1) for i in area_pixel]
+    plt.plot(np.array(range(len(pixel))), pixel)
+    plt.plot(np.array(range(len(pixel))), pixel, 'o')
+    plt.title(path.split('/')[2] + '_statistics')
     plt.xlabel('n_classifier')
-    plt.xticks(np.array(range(len(pixel))),label)
+    plt.xticks(np.array(range(len(pixel))), label)
     plt.ylabel('pixel')
-    plt.ylim(0,1)
-    #平均,中央値,分散,標準偏差の出力
+    plt.ylim(0, 1)
+    # 平均,中央値,分散,標準偏差の出力
     ax2 = fig.add_subplot(2, 1, 2)
     plt.text(0, 0.8, str(path.split('/')[2]), fontsize=14)
-    plt.text(0, 0.6, 'Mean['+str(round(mean(area_pixel),2))+'.pixel,Rate('+str(round((mean(area_pixel)/(size[0]*size[1]))*100,2))+'%)]', fontsize=14)
-    plt.text(0, 0.4, 'Median[' + str(round(median(area_pixel), 2)) + '.pixel,Rate('+str(round((median(area_pixel)/(size[0]*size[1]))*100,2))+'%)]', fontsize=14)
+    plt.text(0, 0.6, 'Mean[' + str(round(mean(area_pixel), 2)) + '.pixel,Rate(' + str(
+        round((mean(area_pixel) / (size[0] * size[1])) * 100, 2)) + '%)]', fontsize=14)
+    plt.text(0, 0.4, 'Median[' + str(round(median(area_pixel), 2)) + '.pixel,Rate(' + str(
+        round((median(area_pixel) / (size[0] * size[1])) * 100, 2)) + '%)]', fontsize=14)
     plt.text(0, 0.2, 'Variance[' + str(round(variance(area_pixel), 2)) + '.pixel]', fontsize=14)
-    plt.text(0, 0.0, 'StandardDeviation[' + str(round(stdev(area_pixel), 2)) + '.pixel,Rate('+str(round((stdev(area_pixel)/(size[0]*size[1]))*100,2))+'%)]', fontsize=14)
+    plt.text(0, 0.0, 'StandardDeviation[' + str(round(stdev(area_pixel), 2)) + '.pixel,Rate(' + str(
+        round((stdev(area_pixel) / (size[0] * size[1])) * 100, 2)) + '%)]', fontsize=14)
     ax2.axis('off')
     plt.savefig(path)
     plt.close()
 
-#pathの下にnameのファイルを作る。
-def LV1_user_make_directory(path,name):
+
+# pathの下にnameのファイルを作る。
+def LV1_user_make_directory(path, name):
     if not os.path.exists(path + '/' + name):
         os.mkdir(path + '/' + name)
     return path + '/' + name
 
-#pathの中にある拡張子pngのファイルをリストで返す。
+
+# pathの中にある拡張子pngのファイルをリストで返す。
 def LV1_user_load_directory(path):
     file_name = os.listdir(path)
     file_path = []
     for i in file_name:
         extension = i.split('.')[-1]
         if extension in 'png':
-            file_path.append(path+'/'+i)
+            file_path.append(path + '/' + i)
     return file_path
+
 
 # クローン処理の実行
 # 第一引数でターゲット認識器を表す画像ファイルのパスを，
@@ -179,44 +193,44 @@ if __name__ == '__main__':
         print("usage: clone.py /target/classifier/image/path /output/image/path")
         exit(0)
     '''
-    #このプログラムファイルの名前と同じdirectoryを作り、その中に結果を保存する。
+    # このプログラムファイルの名前と同じdirectoryを作り、その中に結果を保存する。
     path = './output'
     print('※このプログラムファイルの名前と同じdirectoryを作成することをおすすめします。※')
     directory_name = input('作成するdirectoryを入力してください>>>>')
-    directory_path = LV1_user_make_directory(path,directory_name)
-    #print(directory_path)
+    directory_path = LV1_user_make_directory(path, directory_name)
+    # print(directory_path)
 
     # Lv1_targetsに存在する画像ファイル名を取得する。
     path = './Lv1_targets'
     target_image = LV1_user_load_directory(path)
-    #print(target_image)
+    # print(target_image)
 
     # ターゲット認識器を用意
     target = LV1_TargetClassifier()
 
-    #面積のpixel数を格納するlist
+    # 面積のpixel数を格納するlist
     area_pixel = []
     last_size = 0
-    target_name= []
+    target_name = []
 
-    #target.load(load_path)をLv1_targetsに含まれる画像毎に指定する。
+    # target.load(load_path)をLv1_targetsに含まれる画像毎に指定する。
     for i in target_image:
-        #全部のtargetsをやりたくないときはここをいじって。
-        #if i.split('/')[-1].replace('.png','') == 'classifier_03':break
-        target_name.append(i.split('/')[-1].split('_')[-1].replace('.png',''))
+        # 全部のtargetsをやりたくないときはここをいじって。
+        # if i.split('/')[-1].replace('.png','') == 'classifier_03':break
+        target_name.append(i.split('/')[-1].split('_')[-1].replace('.png', ''))
         target.load(i)
 
-        #入力したdirectoryにtarget_image毎のdirectoryを作成する。
-        target_directory = LV1_user_make_directory(directory_path,i.split('/')[-1].replace('.png',''))
-        #print(target_directory)
+        # 入力したdirectoryにtarget_image毎のdirectoryを作成する。
+        target_directory = LV1_user_make_directory(directory_path, i.split('/')[-1].replace('.png', ''))
+        # print(target_directory)
 
-        #学習したクローン認識器を可視化した画像を保存するためのファイルを作成。
-        clone_image_directory = LV1_user_make_directory(target_directory,'clone_image')
-        #print(clone_image_directory)
+        # 学習したクローン認識器を可視化した画像を保存するためのファイルを作成。
+        clone_image_directory = LV1_user_make_directory(target_directory, 'clone_image')
+        # print(clone_image_directory)
 
         # accuracyの結果を保存するフォルダを作成する。
         accuracy_directory = LV1_user_make_directory(target_directory, 'accuracy_area')
-        #print(accuracy_directory)
+        # print(accuracy_directory)
 
         # ターゲット認識器への入力として用いる二次元特徴量を用意
         # このサンプルコードではひとまず1000サンプルを用意することにする
@@ -224,10 +238,10 @@ if __name__ == '__main__':
         accuracy_list = []
 
         # Nにサンプル数の配列を指定する。
-		#↓N=[1,100]は実行時間を短くしたために書いてます。
-		#↓間隔を自分で試したい場合はいじってください。下記の[1~10000]の配列を使う場合はコメントして。
-        #N = [1,100]
-        #↓[1,100,200,･･･,10000]までを100間隔でおいた配列がコメントを外すと生成されます。
+        # ↓N=[1,100]は実行時間を短くしたために書いてます。
+        # ↓間隔を自分で試したい場合はいじってください。下記の[1~10000]の配列を使う場合はコメントして。
+        # N = [1,100]
+        # ↓[1,100,200,･･･,10000]までを100間隔でおいた配列がコメントを外すと生成されます。
 
         # N1 = np.array([1])
         # N2 = np.arange(100, 1001, 100)
@@ -251,7 +265,7 @@ if __name__ == '__main__':
             # 学習したクローン認識器を可視化し，精度を評価
             evaluator = LV1_Evaluator()
             # 可視化した画像を保存。
-            output_path = clone_image_directory+'/'+directory_name+'_[output_(' + str(n) + ')].png'
+            output_path = clone_image_directory + '/' + directory_name + '_[output_(' + str(n) + ')].png'
             evaluator.visualize(model, output_path)
 
             # accuracyを配列に格納。
@@ -259,10 +273,10 @@ if __name__ == '__main__':
             accuracy_list.append(accuracy)
 
             end = time.time()
-            print('終了:', i.split('/')[2].replace('.png', ''), '_(', n, ')[', round((end - start),2),'(sec)]')
+            print('終了:', i.split('/')[2].replace('.png', ''), '_(', n, ')[', round((end - start), 2), '(sec)]')
 
         # accuracyの面積グラフを作成して保存
-        area_path = accuracy_directory+'/'+directory_name+'_(accuracy_area).png'
+        area_path = accuracy_directory + '/' + directory_name + '_(accuracy_area).png'
         area_features = LV1_user_accuracy_plot(accuracy_list, N, area_path)
 
         # 面積のグラフをcutする。
@@ -270,8 +284,8 @@ if __name__ == '__main__':
         area_cut = LV1_user_plot_cut(area_path, cut_path)
 
         # accuracyのぶりつぶされたpixelを数える。
-        count_path = area_path.replace('.png','_count.png')
-        pixel_count, area_size = LV1_user_area_pixel_count(cut_path,count_path)
+        count_path = area_path.replace('.png', '_count.png')
+        pixel_count, area_size = LV1_user_area_pixel_count(cut_path, count_path)
         area_pixel.append(pixel_count)
 
         # accuracyの面積結果を画像で保存する。
@@ -282,5 +296,5 @@ if __name__ == '__main__':
         print('画像サイズ[', area_size, ']_x[', area_size[0], ']_y[', area_size[1], ']')
         print('面積pixel[', pixel_count, ']_割合[', round(pixel_count / (area_size[0] * area_size[1]) * 100, 2), '%]')
 
-    statistics_path = directory_path+'/'+directory_name+'_(statistics).png'
-    statistics = LV1_user_area_statistics(statistics_path, area_pixel,target_name,last_size)
+    statistics_path = directory_path + '/' + directory_name + '_(statistics).png'
+    statistics = LV1_user_area_statistics(statistics_path, area_pixel, target_name, last_size)

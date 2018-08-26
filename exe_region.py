@@ -4,6 +4,8 @@ from datetime import datetime
 import numpy as np
 import matplotlib.pyplot as plt
 
+from clone_it import LV1_user_load_directory, LV1_user_accuracy_plot, LV1_user_plot_cut, LV1_user_area_pixel_count, \
+    area_pixel, LV1_user_area_count_text
 from evaluation import LV1_Evaluator
 from region import lv1_user_function_sampling_region, \
     SavePathManager, LV1UserDefinedClassifier, create_dir, LV1TargetClassifier, DIVIDER, \
@@ -122,16 +124,15 @@ def save_and_show_graph(graph_dir, n_list, sweeper_acc_list, grid_acc_list, rand
     plt.close()
 
 
-def create_output():
+def create_output(target_path='lv1_targets/classifier_07.png'):
     now_str = datetime.now().strftime('%Y%m%d%H%M%S')
-    target_path = 'lv1_targets/classifier_07.png'
     save_path_manager = SavePathManager(save_root_dir='output/' + now_str)
 
     target = LV1TargetClassifier()
     target.load(target_path)
 
     range_arr = []
-    for i in range(1, 100):
+    for i in range(1, 3):
         range_arr.append(i)
 
     print(DIVIDER)
@@ -158,6 +159,54 @@ def create_output():
         grid_acc_list=grid_acc_list,
         random_acc_list=random_acc_list
     )
+
+    draw_area(accuracy_directory=save_path_manager.save_root_dir,
+              n_list=sweeper_n_list,
+              accuracy_list=sweeper_acc_list,
+              method_name=METHOD_NAME_SWEEPER
+              )
+
+    draw_area(accuracy_directory=save_path_manager.save_root_dir,
+              n_list=grid_n_list,
+              accuracy_list=grid_acc_list,
+              method_name=METHOD_NAME_GRID
+              )
+
+    draw_area(accuracy_directory=save_path_manager.save_root_dir,
+              n_list=random_n_list,
+              accuracy_list=random_acc_list,
+              method_name=METHOD_NAME_RANDOM
+              )
+
+
+def draw_area(accuracy_directory, accuracy_list, method_name, n_list):
+    # accuracyの面積グラフを作成して保存
+    area_path = os.path.join(accuracy_directory, method_name + '_accuracy_area.png')
+    area_features = LV1_user_accuracy_plot(accuracy_list, n_list, area_path)
+
+    # 面積のグラフをcutする。
+    cut_path = area_path.replace('.png', '_cut.png')
+    area_cut = LV1_user_plot_cut(area_path, cut_path)
+
+    # accuracyのぶりつぶされたpixelを数える。
+    count_path = area_path.replace('.png', '_count.png')
+    pixel_count, area_size = LV1_user_area_pixel_count(cut_path, count_path)
+    area_pixel.append(pixel_count)
+
+    # accuracyの面積結果を画像で保存する。
+    text_path = area_path.replace('.png', '_text.png')
+    area_text = LV1_user_area_count_text(text_path, pixel_count, area_size)
+    last_size = area_size
+
+    print('画像サイズ[', area_size, ']_x[', area_size[0], ']_y[', area_size[1], ']')
+    print('面積pixel[', pixel_count, ']_割合[', round(pixel_count / (area_size[0] * area_size[1]) * 100, 2), '%]')
+
+
+def exe_all_images():
+    target_paths = LV1_user_load_directory('lv1_targets')
+
+    for target_path in target_paths:
+        create_output(target_path=target_path)
 
 
 if __name__ == '__main__':
