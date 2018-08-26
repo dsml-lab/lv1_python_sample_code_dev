@@ -49,7 +49,7 @@ class SweeperTest(unittest.TestCase):
         self.assertEqual(expected_x, actual_x)
         self.assertEqual(expected_y, actual_y)
 
-    def test_mapping_x_y_5(self):
+    def test_mapping_x_y_12(self):
         board_size = 12
         b = Board(board_size=board_size)
 

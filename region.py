@@ -199,7 +199,7 @@ def create_region_map(features, target_labels, n, clone_labels):
         color_features = color_features_list[color]
         points = []
         for cnt in range(color_counts[color]):
-            points.append((color_features[cnt][0], color_features[cnt][1])) # x,y
+            points.append((color_features[cnt][0], color_features[cnt][1]))  # x,y
 
         points = set(points)
         if len(points) > 2:
@@ -300,9 +300,9 @@ def lv1_user_function_sampling_region(n_samples, target_model, exe_n, method_nam
     clone_labels = clone_model.predict(features=old_features)
 
     polygon_list = create_region_map(features=old_features,
-                                               target_labels=target_labels,
-                                               clone_labels=clone_labels,
-                                               n=n_samples - 1)
+                                     target_labels=target_labels,
+                                     clone_labels=clone_labels,
+                                     n=n_samples - 1)
 
     point_undecided = True
 
@@ -328,7 +328,7 @@ def lv1_user_function_sampling_region(n_samples, target_model, exe_n, method_nam
     return np.vstack((old_features, new_features))
 
 
-def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n, method_name, path_manager: SavePathManager):
+def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n):
     print('n_samples:' + str(n_samples))
 
     if n_samples < 0:
@@ -339,7 +339,7 @@ def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n, method_na
 
     elif n_samples == 1:
 
-        add_boat = 3
+        add_boat = 1
 
         # # 与えられたnによって１マスの大きさを変える
         # if exe_n < 10:
@@ -349,12 +349,13 @@ def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n, method_na
 
         board_size = math.ceil(math.sqrt(exe_n)) + add_boat
         print('board_size: ' + str(board_size))
+
         new_board = Board(board_size=board_size)
-        #new_board.init_open()
+        # new_board.init_open()
 
         new_features = np.zeros((1, 2))
 
-        feature_x, feature_y = new_board.get_optimal_solution() # 最適解
+        feature_x, feature_y = new_board.get_optimal_solution()  # 最適解
         new_features[0][0] = feature_x
         new_features[0][1] = feature_y
 
@@ -366,18 +367,19 @@ def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n, method_na
         clone_labels = clone_model.predict(features=new_features)
 
         if target_labels[-1] == clone_labels[-1]:
-            new_board.open_once_feature(feature_x=feature_x, feature_y=feature_y, color=clone_labels[-1]) # 開示
+            new_board.open_once_feature(feature_x=feature_x, feature_y=feature_y, color=clone_labels[-1])  # 開示
         else:
-            new_board.open_once_feature(feature_x=feature_x, feature_y=feature_y) # 開示
+            new_board.open_once_feature(feature_x=feature_x, feature_y=feature_y)  # 開示
 
-        return np.float32(new_features), new_board
+        if n_samples == exe_n:
+            return np.float32(new_features)
+        else:
+            return np.float32(new_features), new_board
 
     elif n_samples > 1:
 
         old_features, old_board = lv1_user_function_sampling_sweeper(n_samples=n_samples - 1, target_model=target_model,
-                                                         exe_n=exe_n,
-                                                         method_name=method_name,
-                                                         path_manager=path_manager)
+                                                                     exe_n=exe_n)
 
         new_features = np.zeros((1, 2))
 
@@ -398,4 +400,7 @@ def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n, method_na
         else:
             old_board.open_once_feature(feature_x=feature_x, feature_y=feature_y)  # 開示
 
-        return np.vstack((old_features, new_features)), old_board
+        if n_samples == exe_n:
+            return np.vstack((old_features, new_features))
+        else:
+            return np.vstack((old_features, new_features)), old_board

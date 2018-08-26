@@ -58,7 +58,7 @@ def exe_clone(target, exe_n, method_name, path_manager: SavePathManager):
     evaluator = LV1_Evaluator()
     visualize_save_dir = path_manager.sampling_method_dir(exe_n=exe_n, method_name=method_name)
     create_dir(visualize_save_dir)
-    evaluator.visualize(model, os.path.join(visualize_save_dir, 'visualize.png'))
+    # evaluator.visualize(model, os.path.join(visualize_save_dir, 'visualize.png'))
     print('visualized')
     evaluator.visualize_missing(model=model, target=target,
                                 filename=os.path.join(visualize_save_dir, 'visualize_miss.png'), features=features)
@@ -119,7 +119,7 @@ def save_and_show_graph(graph_dir, n_list, sweeper_acc_list, grid_acc_list, rand
     plt.ylabel("Accuracy")
     plt.grid(True)
     plt.ylim(0, 1)
-    plt.xscale('log')
+    # plt.xscale('log')
     plt.legend()
     plt.savefig(os.path.join(graph_dir, 'n_accuracy.png'))
     plt.show()

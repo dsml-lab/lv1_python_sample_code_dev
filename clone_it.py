@@ -1,6 +1,8 @@
 # coding: UTF-8
 
 import sys
+from datetime import datetime
+
 import numpy as np
 from PIL import Image
 from sklearn import neighbors
@@ -17,6 +19,9 @@ from statistics import mean, median, variance, stdev
 
 # ターゲット認識器を表現するクラス
 # ターゲット認識器は2次元パターン（512x512の画像）で与えられるものとする
+from region import lv1_user_function_sampling_sweeper
+
+
 class LV1_TargetClassifier:
 
     # ターゲット認識器をロード
@@ -145,7 +150,7 @@ def LV1_user_area_statistics(path, area_pixel, label, size):
     pixel = [round(i / (size[0] * size[1]), 1) for i in area_pixel]
     plt.plot(np.array(range(len(pixel))), pixel)
     plt.plot(np.array(range(len(pixel))), pixel, 'o')
-    #plt.title(path.split('/')[2] + '_statistics')
+    # plt.title(path.split('/')[2] + '_statistics')
     plt.xlabel('n_classifier')
     plt.xticks(np.array(range(len(pixel))), label)
     plt.ylabel('pixel')
@@ -193,6 +198,7 @@ def main():
     path = './output'
     print('※このプログラムファイルの名前と同じdirectoryを作成することをおすすめします。※')
     directory_name = input('作成するdirectoryを入力してください>>>>')
+    # directory_name = datetime.now().strftime('%Y%m%d%H%M%S')
     directory_path = LV1_user_make_directory(path, directory_name)
     # print(directory_path)
 
@@ -249,11 +255,14 @@ def main():
         # N = np.hstack((N1, N2))
         # N = np.hstack((N, N3))
 
-        N = np.arange(10, 100, 10)
+        n1 = np.array([1])
+        n2 = np.arange(10, 110, 10)
+        N = np.hstack((n1, n2))
+        print(N)
 
         for n in N:
             start = time.time()
-            features = LV1_user_function_sampling(n_samples=n)
+            features = lv1_user_function_sampling_sweeper(n_samples=n, target_model=target, exe_n=n)
             # ターゲット認識器に用意した入力特徴量を入力し，各々に対応するクラスラベルIDを取得
             labels = target.predict(features)
 
@@ -265,7 +274,7 @@ def main():
             evaluator = LV1_Evaluator()
             # 可視化した画像を保存。
             output_path = clone_image_directory + '/' + directory_name + '_[output_(' + str(n) + ')].png'
-            evaluator.visualize(model, output_path)
+            evaluator.visualize_missing(model=model, filename=output_path, features=features, target=target)
 
             # accuracyを配列に格納。
             accuracy = evaluator.calc_accuracy(target, model)

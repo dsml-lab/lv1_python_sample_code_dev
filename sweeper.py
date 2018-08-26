@@ -19,7 +19,7 @@ class Board:
     def __init__(self, board_size):
         self.board_size = board_size
         self.positions = np.zeros((LABEL_SIZE, board_size, board_size))
-        self.sampling_points = np.zeros((LABEL_SIZE, board_size, board_size))
+        # self.sampling_points = np.zeros((LABEL_SIZE, board_size, board_size))
         self.sampling_points_all = np.full((board_size, board_size), True)
         self.max_position = board_size - 1
         self.integrate_positions = np.ones((board_size, board_size))
@@ -71,12 +71,12 @@ class Board:
         print('y: ' + str(y))
         print('------------')
 
-        # 全ての点のx,yからの距離を計算
-        for i in range(0, 10):
+        # 近傍の点のx,yからの距離を計算
+        for i in range(0, self.board_size//2):
             self.positions[color][max(x - i, 0):min(x + i + 1, self.board_size),
             max(y - i, 0):min(y + i + 1, self.board_size)] += 1
         self.positions[color][x, y] += OPENED
-        self.sampling_points[color][x, y] = OPENED
+        # self.sampling_points[color][x, y] = OPENED
         self.sampling_points_all[x, y] = False
 
     def init_open(self):
@@ -108,16 +108,16 @@ class Board:
         print(self.integrate_positions)
         print('------------')
 
-    def get_convex_hull(self):
-        for points in self.sampling_points:
-            x_arr, y_arr = np.where(points == OPENED)
-            if len(x_arr) > 4:
-                l = [list(a) for a in zip(x_arr, y_arr)]
-
-                print(l)
-
-                hulls = Delaunay(l).convex_hull
-                print(hulls)
+    # def get_convex_hull(self):
+    #     for points in self.sampling_points:
+    #         x_arr, y_arr = np.where(points == OPENED)
+    #         if len(x_arr) > 4:
+    #             l = [list(a) for a in zip(x_arr, y_arr)]
+    #
+    #             print(l)
+    #
+    #             hulls = Delaunay(l).convex_hull
+    #             print(hulls)
 
     def calc_integrate_positions(self):
         arr = np.zeros((self.board_size, self.board_size))
@@ -151,52 +151,50 @@ class Board:
         return self.mapping_feature_x_y(x_arr[index], y_arr[index])
 
 
-def main():
-    board_size = 512
-    b = Board(board_size=board_size)
-    b.print()
-
-    # b.init_open()
-    print('初期化')
-    b.print()
-
-    # b.init_open()
-
-    for i in range(5):
-        b.open_once(i, 3, 2)
-
-    # b.open_once(2, 3, 2)
-    # b.print()
-    #
-    # b.open_once(6, 6, 2)
-    # b.print()
-    #
-    # b.open_once(1, 1, 9)
-    # b.print()
-
-    b.calc_integrate_positions()
-    b.print()
-
-    b.get_convex_hull()
-
-
-def check_nan():
-    board_size = 10
-    b = Board(board_size=board_size)
-
-    b.open_once(0, 3, 2)
-    b.open_once(1, 3, 2)
-    b.open_once(2, 3, 2)
-
-    b.print()
-
-    b.calc_integrate_positions()
-
-    b.print()
-
-
-
-
-
-if __name__ == '__main__':
-    check_nan()
+# def main():
+#     board_size = 512
+#     b = Board(board_size=board_size)
+#     b.print()
+#
+#     # b.init_open()
+#     print('初期化')
+#     b.print()
+#
+#     # b.init_open()
+#
+#     for i in range(5):
+#         b.open_once(i, 3, 2)
+#
+#     # b.open_once(2, 3, 2)
+#     # b.print()
+#     #
+#     # b.open_once(6, 6, 2)
+#     # b.print()
+#     #
+#     # b.open_once(1, 1, 9)
+#     # b.print()
+#
+#     b.calc_integrate_positions()
+#     b.print()
+#
+#
+# def check_nan():
+#     board_size = 10
+#     b = Board(board_size=board_size)
+#
+#     b.open_once(0, 3, 2)
+#     b.open_once(1, 3, 2)
+#     b.open_once(2, 3, 2)
+#
+#     b.print()
+#
+#     b.calc_integrate_positions()
+#
+#     b.print()
+#
+#
+#
+#
+#
+# if __name__ == '__main__':
+#     check_nan()
