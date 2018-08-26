@@ -119,6 +119,7 @@ def save_and_show_graph(graph_dir, n_list, sweeper_acc_list, grid_acc_list, rand
     plt.ylabel("Accuracy")
     plt.grid(True)
     plt.ylim(0, 1)
+    plt.xscale('log')
     plt.legend()
     plt.savefig(os.path.join(graph_dir, 'n_accuracy.png'))
     plt.show()
@@ -131,9 +132,8 @@ def create_output(target_path, save_path_manager):
     target.load(target_path)
 
     range_arr = []
-    range_arr.append(1)
-    for i in range(10, 110, 10):
-        range_arr.append(i)
+    for i in range(1, 13):
+        range_arr.append(2**i)
 
     print(DIVIDER)
     print('実行間隔')
@@ -220,6 +220,8 @@ def exe_all_images():
 
     statistics_path = root_path + '_(statistics).png'
     statistics = LV1_user_area_statistics(statistics_path, area_pixel, target_names, last_size)
+
+
 
 
 if __name__ == '__main__':

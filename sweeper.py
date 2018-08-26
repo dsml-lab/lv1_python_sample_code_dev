@@ -1,3 +1,5 @@
+from scipy.spatial import Delaunay
+
 import numpy as np
 import random
 
@@ -8,7 +10,7 @@ score
 
 np.set_printoptions(suppress=True)
 OPENED = 1.
-COLORLESS = 11
+COLORLESS = 10
 LABEL_SIZE = 11
 
 
@@ -17,7 +19,7 @@ class Board:
     def __init__(self, board_size):
         self.board_size = board_size
         self.positions = np.zeros((LABEL_SIZE, board_size, board_size))
-        self.sampling_points = np.zeros((board_size, board_size))
+        self.sampling_points = np.zeros((LABEL_SIZE, board_size, board_size))
         self.max_position = board_size - 1
         self.integrate_positions = np.ones((board_size, board_size))
 
@@ -31,8 +33,8 @@ class Board:
 
     # px値を少数にマッピング
     def mapping_feature_x_y(self, x, y):
-        feature_x = ((x + 1) / self.board_size)*2 - 1
-        feature_y = ((y + 1) / self.board_size)*2 - 1
+        feature_x = ((x + 0.5) / self.board_size)*2 - 1
+        feature_y = ((y + 0.5) / self.board_size)*2 - 1
 
         return feature_x, feature_y
 
@@ -44,9 +46,6 @@ class Board:
     # 点を開示
     def open_once(self, x, y, color=COLORLESS):
 
-        if color == COLORLESS:
-            return
-
         # x, yを1次元上の値に直す
         # position = self.board_size * y + x
 
@@ -55,7 +54,7 @@ class Board:
         for i in range(0, 5):
             self.positions[color][max(x - i, 0):min(x + i + 1, self.board_size),
             max(y - i, 0):min(y + i + 1, self.board_size)] += 1
-        self.sampling_points[x, y] = OPENED
+        self.sampling_points[color][x, y] = OPENED
 
     def init_open(self):
         # あらかじめ角に点を打つ
@@ -77,16 +76,25 @@ class Board:
             print('ラベル' + str(c))
             print(self.positions[c])
             print('------------')
-
-        print('------------')
-        print('サンプリング点')
-        print(self.sampling_points)
-        print('------------')
+            print('サンプリング点')
+            print(self.sampling_points[c])
+            print('------------')
 
         print('------------')
         print('総合的な分布')
         print(self.integrate_positions)
         print('------------')
+
+    def get_convex_hull(self):
+        for points in self.sampling_points:
+            x_arr, y_arr = np.where(points == OPENED)
+            if len(x_arr) > 4:
+                l = [list(a) for a in zip(x_arr, y_arr)]
+
+                print(l)
+
+                hulls = Delaunay(l).convex_hull
+                print(hulls)
 
     def calc_integrate_positions(self):
         arr = np.zeros((self.board_size, self.board_size))
@@ -111,7 +119,7 @@ class Board:
 
 
 def main():
-    board_size = 10
+    board_size = 512
     b = Board(board_size=board_size)
     b.print()
 
@@ -119,17 +127,24 @@ def main():
     print('初期化')
     b.print()
 
-    b.open_once(2, 3, 2)
-    b.print()
+    # b.init_open()
 
-    b.open_once(6, 6, 2)
-    b.print()
+    for i in range(5):
+        b.open_once(i, 3, 2)
 
-    b.open_once(1, 1, 9)
-    b.print()
+    # b.open_once(2, 3, 2)
+    # b.print()
+    #
+    # b.open_once(6, 6, 2)
+    # b.print()
+    #
+    # b.open_once(1, 1, 9)
+    # b.print()
 
     b.calc_integrate_positions()
     b.print()
+
+    b.get_convex_hull()
 
 
 def main_by_color():
