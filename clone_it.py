@@ -145,14 +145,14 @@ def LV1_user_area_statistics(path, area_pixel, label, size):
     pixel = [round(i / (size[0] * size[1]), 1) for i in area_pixel]
     plt.plot(np.array(range(len(pixel))), pixel)
     plt.plot(np.array(range(len(pixel))), pixel, 'o')
-    plt.title(path.split('/')[2] + '_statistics')
+    #plt.title(path.split('/')[2] + '_statistics')
     plt.xlabel('n_classifier')
     plt.xticks(np.array(range(len(pixel))), label)
     plt.ylabel('pixel')
     plt.ylim(0, 1)
     # 平均,中央値,分散,標準偏差の出力
     ax2 = fig.add_subplot(2, 1, 2)
-    plt.text(0, 0.8, str(path.split('/')[2]), fontsize=14)
+    plt.text(0, 0.8, str(path.split('/')[1]), fontsize=14)
     plt.text(0, 0.6, 'Mean[' + str(round(mean(area_pixel), 2)) + '.pixel,Rate(' + str(
         round((mean(area_pixel) / (size[0] * size[1])) * 100, 2)) + '%)]', fontsize=14)
     plt.text(0, 0.4, 'Median[' + str(round(median(area_pixel), 2)) + '.pixel,Rate(' + str(
@@ -183,16 +183,12 @@ def LV1_user_load_directory(path):
     return file_path
 
 
-# クローン処理の実行
-# 第一引数でターゲット認識器を表す画像ファイルのパスを，
-# 第二引数でクローン認識器の可視化結果を保存する画像ファイルのパスを，
-# それぞれ指定するものとする
-if __name__ == '__main__':
+def main():
     '''
-    if len(sys.argv) < 3:
-        print("usage: clone.py /target/classifier/image/path /output/image/path")
-        exit(0)
-    '''
+        if len(sys.argv) < 3:
+            print("usage: clone.py /target/classifier/image/path /output/image/path")
+            exit(0)
+        '''
     # このプログラムファイルの名前と同じdirectoryを作り、その中に結果を保存する。
     path = './output'
     print('※このプログラムファイルの名前と同じdirectoryを作成することをおすすめします。※')
@@ -247,11 +243,14 @@ if __name__ == '__main__':
         # N2 = np.arange(100, 1001, 100)
         # N = np.hstack((N1, N2))
 
-        N1 = np.arange(1, 10, 1)
-        N2 = np.arange(10, 100, 10)
-        N3 = np.arange(100, 1001, 100)
-        N = np.hstack((N1, N2))
+        # N1 = np.arange(1, 10, 1)
+        # N2 = np.arange(10, 100, 10)
+        # N3 = np.arange(100, 1001, 100)
+        # N = np.hstack((N1, N2))
         # N = np.hstack((N, N3))
+
+        N = np.arange(10, 100, 10)
+
         for n in N:
             start = time.time()
             features = LV1_user_function_sampling(n_samples=n)
@@ -298,3 +297,11 @@ if __name__ == '__main__':
 
     statistics_path = directory_path + '/' + directory_name + '_(statistics).png'
     statistics = LV1_user_area_statistics(statistics_path, area_pixel, target_name, last_size)
+
+
+# クローン処理の実行
+# 第一引数でターゲット認識器を表す画像ファイルのパスを，
+# 第二引数でクローン認識器の可視化結果を保存する画像ファイルのパスを，
+# それぞれ指定するものとする
+if __name__ == '__main__':
+    main()
