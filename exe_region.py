@@ -204,11 +204,25 @@ def draw_area(accuracy_directory, accuracy_list, method_name, n_list):
     return area_size
 
 
+def write_memo(save_path):
+    create_dir(save_path)
+
+    print('メモを書く')
+    memo = input()
+
+    path_w = os.path.join(save_path, 'memo.txt')
+
+    with open(path_w, mode='w') as f:
+        f.write(memo)
+
+
 def exe_all_images():
     now_str = datetime.now().strftime('%Y%m%d%H%M%S')
     root_path = 'output/' + now_str
     target_names = []
     last_size = 0
+
+    write_memo(save_path=root_path)
 
     target_paths = LV1_user_load_directory('lv1_targets')
     target_paths.sort()
@@ -220,8 +234,6 @@ def exe_all_images():
 
     statistics_path = root_path + '_(statistics).png'
     statistics = LV1_user_area_statistics(statistics_path, area_pixel, target_names, last_size)
-
-
 
 
 if __name__ == '__main__':
