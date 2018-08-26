@@ -339,13 +339,15 @@ def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n, method_na
 
     elif n_samples == 1:
 
+        add_boat = 10
+
         # 与えられたnによって１マスの大きさを変える
-        if exe_n < 100:
-            add_boat = 10
-        if exe_n >= 100:
-            add_boat = 0
-        if exe_n >= 1000:
-            add_boat = 10
+        # if exe_n < :
+        #     add_boat = 10
+        # elif 100 <= exe_n < 1000:
+        #     add_boat = 0
+        # elif exe_n >= 512:
+        #     add_boat = 5
 
         board_size = math.ceil(math.sqrt(exe_n)) + add_boat
         print('board_size: ' + str(board_size))

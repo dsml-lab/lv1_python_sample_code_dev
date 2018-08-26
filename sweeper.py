@@ -20,6 +20,7 @@ class Board:
         self.board_size = board_size
         self.positions = np.zeros((LABEL_SIZE, board_size, board_size))
         self.sampling_points = np.zeros((LABEL_SIZE, board_size, board_size))
+        self.sampling_points_all = np.full((board_size, board_size), True)
         self.max_position = board_size - 1
         self.integrate_positions = np.ones((board_size, board_size))
 
@@ -33,8 +34,8 @@ class Board:
 
     # px値を少数にマッピング
     def mapping_feature_x_y(self, x, y):
-        feature_x = ((x + 0.5) / self.board_size)*2 - 1
-        feature_y = ((y + 0.5) / self.board_size)*2 - 1
+        feature_x = ((x + 0.5) / self.board_size) * 2 - 1
+        feature_y = ((y + 0.5) / self.board_size) * 2 - 1
 
         return feature_x, feature_y
 
@@ -62,6 +63,7 @@ class Board:
             max(y - i, 0):min(y + i + 1, self.board_size)] += 1
         self.positions[color][x, y] += OPENED
         self.sampling_points[color][x, y] = OPENED
+        self.sampling_points_all[x, y] = False
 
     def init_open(self):
         # あらかじめ角に点を打つ
@@ -109,7 +111,10 @@ class Board:
         for i in range(LABEL_SIZE):
             arr = np.absolute(arr - self.positions[i])
 
-        self.integrate_positions = arr
+        max_value = np.amax(arr)
+        max_arr = np.full((self.board_size, self.board_size), max_value)
+
+        self.integrate_positions = np.where(self.sampling_points_all, arr, max_arr)
 
     def get_optimal_solution(self):
         self.calc_integrate_positions()
@@ -161,9 +166,20 @@ def main():
     b.get_convex_hull()
 
 
-def main_by_color():
+def check_nan():
     board_size = 10
+    b = Board(board_size=board_size)
+
+    b.open_once(0, 3, 2)
+    b.open_once(1, 3, 2)
+    b.open_once(2, 3, 2)
+
+    b.print()
+
+    b.calc_integrate_positions()
+
+    b.print()
 
 
 if __name__ == '__main__':
-    main()
+    check_nan()
