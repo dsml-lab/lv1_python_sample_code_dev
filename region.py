@@ -338,7 +338,7 @@ def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n, method_na
         return np.zeros((0, 2))
 
     elif n_samples == 1:
-        board_size = exe_n + 1
+        board_size = math.ceil(math.sqrt(exe_n)) + 8
         print('board_size: ' + str(board_size))
         new_board = Board(board_size=board_size)
         #new_board.init_open()
