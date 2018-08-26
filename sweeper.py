@@ -26,9 +26,18 @@ class Board:
 
     # 小数をpx値にマッピング
     def mapping_x_y(self, feature_x, feature_y):
-        h = self.board_size // 2
-        x = int(max(0, min(self.board_size - 1, np.round(h * feature_x + h))))
-        y = int(max(0, min(self.board_size - 1, np.round(h * feature_y + h))))
+        x = int(max(0, min(self.board_size - 1, np.round((feature_x + 1) * (self.board_size - 1) / 2))))
+        y = int(max(0, min(self.board_size - 1, np.round((feature_y + 1) * (self.board_size - 1) / 2))))
+
+        print('------------')
+        print('board_size: ' + str(self.board_size))
+        print('変換前')
+        print('feature_x: ' + str(feature_x))
+        print('feature_y: ' + str(feature_y))
+        print('変換後')
+        print('x: ' + str(x))
+        print('y: ' + str(y))
+        print('------------')
 
         return x, y
 
@@ -36,6 +45,15 @@ class Board:
     def mapping_feature_x_y(self, x, y):
         feature_x = ((x + 0.5) / self.board_size) * 2 - 1
         feature_y = ((y + 0.5) / self.board_size) * 2 - 1
+
+        print('------------')
+        print('変換前')
+        print('x: ' + str(x))
+        print('y: ' + str(y))
+        print('変換後')
+        print('feature_x: ' + str(feature_x))
+        print('feature_y: ' + str(feature_y))
+        print('------------')
 
         return feature_x, feature_y
 
@@ -58,7 +76,7 @@ class Board:
 
         # 全ての点のx,yからの距離を計算
         # self.positions[1:3, 1:3] = 1
-        for i in range(0, 5):
+        for i in range(0, 3):
             self.positions[color][max(x - i, 0):min(x + i + 1, self.board_size),
             max(y - i, 0):min(y + i + 1, self.board_size)] += 1
         self.positions[color][x, y] += OPENED
@@ -111,7 +129,7 @@ class Board:
         for i in range(LABEL_SIZE):
             arr = np.absolute(arr - self.positions[i])
 
-        max_value = np.amax(arr)
+        max_value = np.amax(arr) + 1
         max_arr = np.full((self.board_size, self.board_size), max_value)
 
         self.integrate_positions = np.where(self.sampling_points_all, arr, max_arr)
@@ -179,6 +197,9 @@ def check_nan():
     b.calc_integrate_positions()
 
     b.print()
+
+
+
 
 
 if __name__ == '__main__':

@@ -212,14 +212,14 @@ def create_region_map(features, target_labels, n, clone_labels):
 
     polygon_set_copy = polygon_set.copy()
 
-    # 多角形の交点を計算
-    for polygon1, color1 in polygon_set:
-        for polygon2, color2 in polygon_set:
-            if color1 != color2:
-                result = sg.intersection(polygon1, polygon2)
-                if len(result) > 0:
-                    polygon_set_copy.discard((polygon1, color1))
-                    polygon_set_copy.discard((polygon2, color2))
+    # # 多角形の交点を計算
+    # for polygon1, color1 in polygon_set:
+    #     for polygon2, color2 in polygon_set:
+    #         if color1 != color2:
+    #             result = sg.intersection(polygon1, polygon2)
+    #             if len(result) > 0:
+    #                 polygon_set_copy.discard((polygon1, color1))
+    #                 polygon_set_copy.discard((polygon2, color2))
 
     return list(polygon_set_copy)
 
@@ -339,15 +339,11 @@ def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n, method_na
 
     elif n_samples == 1:
 
-        add_boat = 10
-
         # 与えられたnによって１マスの大きさを変える
-        # if exe_n < :
-        #     add_boat = 10
-        # elif 100 <= exe_n < 1000:
-        #     add_boat = 0
-        # elif exe_n >= 512:
-        #     add_boat = 5
+        if exe_n < 10:
+            add_boat = 10
+        else:
+            add_boat = 0
 
         board_size = math.ceil(math.sqrt(exe_n)) + add_boat
         print('board_size: ' + str(board_size))
