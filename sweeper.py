@@ -71,12 +71,8 @@ class Board:
         print('y: ' + str(y))
         print('------------')
 
-        # x, yを1次元上の値に直す
-        # position = self.board_size * y + x
-
         # 全ての点のx,yからの距離を計算
-        # self.positions[1:3, 1:3] = 1
-        for i in range(0, 3):
+        for i in range(0, 10):
             self.positions[color][max(x - i, 0):min(x + i + 1, self.board_size),
             max(y - i, 0):min(y + i + 1, self.board_size)] += 1
         self.positions[color][x, y] += OPENED
