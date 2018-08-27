@@ -12,6 +12,7 @@ np.set_printoptions(suppress=True)
 OPENED = 1000.
 COLORLESS = 10
 LABEL_SIZE = 11
+COLOR_LABEL_SIZE = 10
 
 
 def get_normal_distribution(size=10):
@@ -92,10 +93,10 @@ class Board:
         #     self.positions[color][max(x - i, 0):min(x + i + 1, self.board_size),
         #     max(y - i, 0):min(y + i + 1, self.board_size)] += 1
 
-        normal_arr = get_normal_distribution(size=self.board_size * 2 + 1) # 正規分布の2次元配列
+        normal_arr = get_normal_distribution(size=self.board_size * 2 + 1)  # 正規分布の2次元配列
 
         trimming_normal_arr = normal_arr[self.board_size - x:self.board_size * 2 - x,
-              self.board_size - y:self.board_size * 2 - y]
+                              self.board_size - y:self.board_size * 2 - y]
 
         print('color')
         print(self.positions[color])
@@ -158,8 +159,10 @@ class Board:
     def calc_integrate_positions(self):
         arr = np.zeros((self.board_size, self.board_size))
 
-        for i in range(LABEL_SIZE):
+        for i in range(COLOR_LABEL_SIZE):
             arr = np.absolute(arr - self.positions[i])
+
+        arr = arr - self.positions[COLORLESS]
 
         max_value = np.amax(arr) + 1
         max_arr = np.full((self.board_size, self.board_size), max_value)
@@ -180,13 +183,15 @@ class Board:
 
         index = random.randrange(len(x_y_arr))
 
-        # 周囲の要素の平均が最小の点
-        min_around_ave = np.amax(self.integrate_positions)
-        for i, (x, y) in enumerate(x_y_arr):
-            around_ave = np.average(self.integrate_positions[self.adjust(x-1):self.adjust(x+1), self.adjust(y-1):self.adjust(y+1)])
-            if min_around_ave > around_ave:
-                min_around_ave = around_ave
-                index = i
+        if self.board_size > 8:
+            # 周囲の要素の平均が最小の点
+            min_around_ave = np.amax(self.integrate_positions)
+            for i, (x, y) in enumerate(x_y_arr):
+                around_ave = np.average(self.integrate_positions[self.adjust(x - 1):self.adjust(x + 1),
+                                        self.adjust(y - 1):self.adjust(y + 1)])
+                if min_around_ave > around_ave:
+                    min_around_ave = around_ave
+                    index = i
 
         select_x, select_y = x_y_arr[index]
 
@@ -195,6 +200,7 @@ class Board:
         print('選択した値: ' + str(self.integrate_positions[select_x, select_y]))
 
         return self.mapping_feature_x_y(select_x, select_y)
+
 
 def main():
     board_size = 8
@@ -233,9 +239,6 @@ def check_nan():
     b.calc_integrate_positions()
 
     b.print()
-
-
-
 
 
 if __name__ == '__main__':

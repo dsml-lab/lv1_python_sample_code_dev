@@ -217,7 +217,7 @@ def main():
     last_size = 0
     target_name = []
 
-    classifier_type = KNN1
+    classifier_type = SVMC10gamma10
 
     # target.load(load_path)をLv1_targetsに含まれる画像毎に指定する。
     for i in target_image:
