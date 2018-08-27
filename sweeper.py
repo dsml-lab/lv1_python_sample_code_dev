@@ -14,6 +14,22 @@ COLORLESS = 10
 LABEL_SIZE = 11
 
 
+def get_normal_distribution(size=10):
+    def normal(x, y):
+        r = x ** 2 + y ** 2
+        return int(np.exp(-r) * 10 ** 2)
+
+    xn = size
+    x0 = np.linspace(-2, 2, xn)
+    x1 = np.linspace(-2, 2, xn)
+    y = np.zeros((len(x0), len(x1)))
+    for i0 in range(xn):
+        for i1 in range(xn):
+            y[i1, i0] = normal(x0[i0], x1[i1])
+
+    return y
+
+
 class Board:
 
     def __init__(self, board_size):
@@ -72,9 +88,26 @@ class Board:
         print('------------')
 
         # 近傍の点のx,yからの距離を計算
-        for i in range(0, self.board_size // 2):
-            self.positions[color][max(x - i, 0):min(x + i + 1, self.board_size),
-            max(y - i, 0):min(y + i + 1, self.board_size)] += 1
+        # for i in range(0, self.board_size // 2):
+        #     self.positions[color][max(x - i, 0):min(x + i + 1, self.board_size),
+        #     max(y - i, 0):min(y + i + 1, self.board_size)] += 1
+
+        normal_arr = get_normal_distribution(size=self.board_size * 2 + 1) # 正規分布の2次元配列
+
+        trimming_normal_arr = normal_arr[self.board_size - x:self.board_size * 2 - x,
+              self.board_size - y:self.board_size * 2 - y]
+
+        self.positions[color] = self.positions[color] + trimming_normal_arr
+
+        print('------------------')
+        print('正規分布')
+        print(normal_arr)
+        print('トリミング')
+        print(trimming_normal_arr)
+        print('色ごとの分布')
+        print(self.positions[color])
+        print('------------------')
+
         self.positions[color][x, y] += OPENED
         # self.sampling_points[color][x, y] = OPENED
         self.sampling_points_all[x, y] = False
