@@ -45,15 +45,15 @@ class Board:
         x = int(max(0, min(self.max_position, np.round((feature_x + 1) * self.max_position / 2))))
         y = int(max(0, min(self.max_position, np.round((feature_y + 1) * self.max_position / 2))))
 
-        print('------------')
-        print('board_size: ' + str(self.board_size))
-        print('変換前')
-        print('feature_x: ' + str(feature_x))
-        print('feature_y: ' + str(feature_y))
-        print('変換後')
-        print('x: ' + str(x))
-        print('y: ' + str(y))
-        print('------------')
+        # print('------------')
+        # print('board_size: ' + str(self.board_size))
+        # print('変換前')
+        # print('feature_x: ' + str(feature_x))
+        # print('feature_y: ' + str(feature_y))
+        # print('変換後')
+        # print('x: ' + str(x))
+        # print('y: ' + str(y))
+        # print('------------')
 
         return x, y
 
@@ -62,14 +62,14 @@ class Board:
         feature_x = ((x + 0.5) / self.board_size) * 2 - 1
         feature_y = ((y + 0.5) / self.board_size) * 2 - 1
 
-        print('------------')
-        print('変換前')
-        print('x: ' + str(x))
-        print('y: ' + str(y))
-        print('変換後')
-        print('feature_x: ' + str(feature_x))
-        print('feature_y: ' + str(feature_y))
-        print('------------')
+        # print('------------')
+        # print('変換前')
+        # print('x: ' + str(x))
+        # print('y: ' + str(y))
+        # print('変換後')
+        # print('feature_x: ' + str(feature_x))
+        # print('feature_y: ' + str(feature_y))
+        # print('------------')
 
         return feature_x, feature_y
 
@@ -96,6 +96,9 @@ class Board:
 
         trimming_normal_arr = normal_arr[self.board_size - x:self.board_size * 2 - x,
               self.board_size - y:self.board_size * 2 - y]
+
+        print('color')
+        print(self.positions[color])
 
         self.positions[color] = self.positions[color] + trimming_normal_arr
 
@@ -132,12 +135,12 @@ class Board:
         #     print('ラベル' + str(c))
         #     print(self.positions[c])
         #     print('------------')
-        #     print('サンプリング点')
-        #     print(self.sampling_points[c])
-        #     print('------------')
 
+        print('サンプリング点')
+        print(self.sampling_points_all)
         print('------------')
         print('総合的な分布')
+        self.calc_integrate_positions()
         print(self.integrate_positions)
         print('------------')
 
@@ -209,50 +212,47 @@ class Board:
 
         return self.mapping_feature_x_y(select_x, select_y)
 
-# def main():
-#     board_size = 512
-#     b = Board(board_size=board_size)
-#     b.print()
-#
-#     # b.init_open()
-#     print('初期化')
-#     b.print()
-#
-#     # b.init_open()
-#
-#     for i in range(5):
-#         b.open_once(i, 3, 2)
-#
-#     # b.open_once(2, 3, 2)
-#     # b.print()
-#     #
-#     # b.open_once(6, 6, 2)
-#     # b.print()
-#     #
-#     # b.open_once(1, 1, 9)
-#     # b.print()
-#
-#     b.calc_integrate_positions()
-#     b.print()
-#
-#
-# def check_nan():
-#     board_size = 10
-#     b = Board(board_size=board_size)
-#
-#     b.open_once(0, 3, 2)
-#     b.open_once(1, 3, 2)
-#     b.open_once(2, 3, 2)
-#
-#     b.print()
-#
-#     b.calc_integrate_positions()
-#
-#     b.print()
-#
-#
-#
-#
-#
-# if __name__ == '__main__':
-#     check_nan()
+def main():
+    board_size = 8
+    b = Board(board_size=board_size)
+    b.print()
+
+    b.open_once(2, 3, 2)
+    b.print()
+
+    b.open_once(6, 6, 2)
+    b.print()
+
+    b.open_once(1, 1, 2)
+    b.print()
+
+    b.open_once(0, 0, 1)
+    b.print()
+
+    b.open_once(0, 2, 3)
+    b.print()
+
+    b.calc_integrate_positions()
+    b.print()
+
+
+def check_nan():
+    board_size = 4
+    b = Board(board_size=board_size)
+
+    b.open_once(0, 3, 2)
+    b.open_once(1, 3, 2)
+    b.open_once(2, 3, 2)
+
+    b.print()
+
+    b.calc_integrate_positions()
+
+    b.print()
+
+
+
+
+
+if __name__ == '__main__':
+    main()
