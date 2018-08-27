@@ -5,7 +5,7 @@ from datetime import datetime
 
 import numpy as np
 from PIL import Image
-from sklearn import neighbors
+from sklearn import neighbors, svm
 from labels import COLOR2ID
 from evaluation import IMAGE_SIZE
 from evaluation import LV1_Evaluator
@@ -20,6 +20,7 @@ from statistics import mean, median, variance, stdev
 # ターゲット認識器を表現するクラス
 # ターゲット認識器は2次元パターン（512x512の画像）で与えられるものとする
 from region import lv1_user_function_sampling_sweeper
+from sampling import lv1_user_function_sampling_meshgrid_rectangular
 
 
 class LV1_TargetClassifier:
@@ -51,6 +52,7 @@ class LV1_UserDefinedClassifier:
 
     def __init__(self):
         self.clf = neighbors.KNeighborsClassifier(n_neighbors=1)
+        # self.clf = svm.SVC()
 
     # クローン認識器の学習
     #   (features, labels): 訓練データ（特徴量とラベルのペアの集合）
@@ -85,7 +87,7 @@ def LV1_user_accuracy_plot(accuracy_list, n, path):
     plt.ylabel('Accuracy')
     plt.ylim(0, 1)
     plt.xlim(n[0], n[-1])
-    plt.xscale('log')
+    # plt.xscale('log')
     plt.savefig(path)
     plt.close()
 

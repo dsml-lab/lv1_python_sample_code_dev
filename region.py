@@ -339,7 +339,7 @@ def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n):
 
     elif n_samples == 1:
 
-        add_boat = 3
+        add_boat = 1
 
         # # 与えられたnによって１マスの大きさを変える
         # if exe_n < 10:

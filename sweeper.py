@@ -144,27 +144,27 @@ class Board:
 
         index = random.randrange(len(x_y_arr))
 
-        min_sum = np.amax(self.integrate_positions) * 8
-        for i, (x, y) in enumerate(x_y_arr):
-            sm = 0
-            sm += self.integrate_positions[self.adjust(x), self.adjust(y - 1)]  # top
-            sm += self.integrate_positions[self.adjust(x), self.adjust(y + 1)]  # bottom
-            sm += self.integrate_positions[self.adjust(x + 1), self.adjust(y)]  # right
-            sm += self.integrate_positions[self.adjust(x - 1), self.adjust(y)]  # left
-
-            sm += self.integrate_positions[self.adjust(x - 1), self.adjust(y - 1)]  # top_left
-            sm += self.integrate_positions[self.adjust(x + 1), self.adjust(y - 1)]  # top_right
-            sm += self.integrate_positions[self.adjust(x - 1), self.adjust(y + 1)]  # bottom_left
-            sm += self.integrate_positions[self.adjust(x + 1), self.adjust(y + 1)]  # bottom_right
-
-            print('sum: ' + str(sm))
-
-            if min_sum > sm:
-                print('x:' + str(x))
-                print('y:' + str(y))
-                print('minimum index: ' + str(i))
-                min_sum = sm
-                index = i
+        # min_sum = np.amax(self.integrate_positions) * 8
+        # for i, (x, y) in enumerate(x_y_arr):
+        #     sm = 0
+        #     sm += self.integrate_positions[self.adjust(x), self.adjust(y - 1)]  # top
+        #     sm += self.integrate_positions[self.adjust(x), self.adjust(y + 1)]  # bottom
+        #     sm += self.integrate_positions[self.adjust(x + 1), self.adjust(y)]  # right
+        #     sm += self.integrate_positions[self.adjust(x - 1), self.adjust(y)]  # left
+        #
+        #     sm += self.integrate_positions[self.adjust(x - 1), self.adjust(y - 1)]  # top_left
+        #     sm += self.integrate_positions[self.adjust(x + 1), self.adjust(y - 1)]  # top_right
+        #     sm += self.integrate_positions[self.adjust(x - 1), self.adjust(y + 1)]  # bottom_left
+        #     sm += self.integrate_positions[self.adjust(x + 1), self.adjust(y + 1)]  # bottom_right
+        #
+        #     print('sum: ' + str(sm))
+        #
+        #     if min_sum > sm:
+        #         print('x:' + str(x))
+        #         print('y:' + str(y))
+        #         print('minimum index: ' + str(i))
+        #         min_sum = sm
+        #         index = i
 
         self.print()
 
