@@ -130,7 +130,7 @@ def create_output(target_path, save_path_manager):
 
     range_arr = []
     for i in range(1, 5):
-        range_arr.append(4**i)
+        range_arr.append(4**i + 3)
 
     print(DIVIDER)
     print('実行間隔')
@@ -142,8 +142,8 @@ def create_output(target_path, save_path_manager):
                                                                            method_name=METHOD_NAME_SWEEPER,
                                                                            model_name=SVMC10gamma10)
 
-    knn1_sweeper_n_list, knn1_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
-                                                   save_path_manager=save_path_manager, method_name=METHOD_NAME_SWEEPER, model_name=KNN1)
+    # knn1_sweeper_n_list, knn1_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
+    #                                                save_path_manager=save_path_manager, method_name=METHOD_NAME_SWEEPER, model_name=KNN1)
 
     # knn3_sweeper_n_list, knn3_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
     #                                                  save_path_manager=save_path_manager,
@@ -152,10 +152,6 @@ def create_output(target_path, save_path_manager):
     # knn5_sweeper_n_list, knn5_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
     #                                                  save_path_manager=save_path_manager,
     #                                                  method_name=METHOD_NAME_SWEEPER, model_name=KNN5)
-
-    knn7_sweeper_n_list, knn7_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
-                                                     save_path_manager=save_path_manager,
-                                                     method_name=METHOD_NAME_SWEEPER, model_name=KNN7)
 
     # region_n_list, region_acc_list = exe_clone_all(range_arr=range_arr, target=target,
     #                                                       save_path_manager=save_path_manager, method_name=METHOD_NAME_REGION)
@@ -168,10 +164,10 @@ def create_output(target_path, save_path_manager):
 
     acc_list_list = []
 
-    acc_list_list.append((knn1_sweeper_acc_list, KNN1))
+    # acc_list_list.append((knn1_sweeper_acc_list, KNN1))
     # acc_list_list.append((knn3_sweeper_acc_list, KNN3))
     # acc_list_list.append((knn5_sweeper_acc_list, KNN5))
-    acc_list_list.append((knn7_sweeper_acc_list, KNN7))
+    # acc_list_list.append((knn7_sweeper_acc_list, KNN7))
     acc_list_list.append((svmc10ga10_sweeper_acc_list, SVMC10gamma10))
     acc_list_list.append((grid_acc_list, 'grid'))
 
