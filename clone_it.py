@@ -19,7 +19,7 @@ from statistics import mean, median, variance, stdev
 
 # ターゲット認識器を表現するクラス
 # ターゲット認識器は2次元パターン（512x512の画像）で与えられるものとする
-from region import lv1_user_function_sampling_sweeper
+from region import lv1_user_function_sampling_sweeper, SVMC10gamma10, KNN1, LV1UserDefinedClassifier, KNN3, KNN5, KNN7
 from sampling import lv1_user_function_sampling_meshgrid_rectangular
 
 
@@ -111,7 +111,7 @@ def LV1_user_area_pixel_count(path, save_path):
     # print('画像サイズ(',size,')_x(',size[0],')_y(',size[1],')')
     X = range(size[0])
     Y = range(size[1])
-    wh = Image.open('./output/none.png')
+    wh = Image.open('./none.png')
     count = 0
     for x in X:
         for y in Y:
@@ -205,7 +205,7 @@ def main():
     # print(directory_path)
 
     # Lv1_targetsに存在する画像ファイル名を取得する。
-    path = './Lv1_targets'
+    path = './lv1_targets'
     target_image = LV1_user_load_directory(path)
     # print(target_image)
 
@@ -216,6 +216,8 @@ def main():
     area_pixel = []
     last_size = 0
     target_name = []
+
+    classifier_type = KNN1
 
     # target.load(load_path)をLv1_targetsに含まれる画像毎に指定する。
     for i in target_image:
@@ -264,12 +266,12 @@ def main():
 
         for n in N:
             start = time.time()
-            features = lv1_user_function_sampling_sweeper(n_samples=n, target_model=target, exe_n=n)
+            features = lv1_user_function_sampling_sweeper(n_samples=n, target_model=target, exe_n=n, model_name=classifier_type)
             # ターゲット認識器に用意した入力特徴量を入力し，各々に対応するクラスラベルIDを取得
             labels = target.predict(features)
 
             # クローン認識器を学習
-            model = LV1_UserDefinedClassifier()
+            model = LV1UserDefinedClassifier(n=n, model_name=classifier_type)
             model.fit(features, labels)
 
             # 学習したクローン認識器を可視化し，精度を評価
