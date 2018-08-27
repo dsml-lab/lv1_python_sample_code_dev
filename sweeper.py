@@ -22,12 +22,12 @@ def get_normal_distribution(size=10):
     xn = size
     x0 = np.linspace(-2, 2, xn)
     x1 = np.linspace(-2, 2, xn)
-    y = np.zeros((len(x0), len(x1)))
+    arr = np.zeros((len(x0), len(x1)))
     for i0 in range(xn):
         for i1 in range(xn):
-            y[i1, i0] = normal(x0[i0], x1[i1])
+            arr[i1, i0] = normal(x0[i0], x1[i1])
 
-    return y
+    return arr
 
 
 class Board:
@@ -115,18 +115,18 @@ class Board:
         # self.sampling_points[color][x, y] = OPENED
         self.sampling_points_all[x, y] = False
 
-    def init_open(self):
-        # あらかじめ角に点を打つ
-        self.open_once(x=0, y=0, color=COLORLESS)
-        self.open_once(x=0, y=self.max_position, color=COLORLESS)
-        self.open_once(x=self.max_position, y=0, color=COLORLESS)
-        self.open_once(x=self.max_position, y=self.max_position, color=COLORLESS)
-
-        # あらかじめ十字に点を打つ
-        self.open_once(x=self.max_position // 2, y=0, color=COLORLESS)
-        self.open_once(x=0, y=self.max_position // 2, color=COLORLESS)
-        self.open_once(x=self.max_position, y=self.max_position // 2, color=COLORLESS)
-        self.open_once(x=self.max_position // 2, y=self.max_position, color=COLORLESS)
+    # def init_open(self):
+    #     # あらかじめ角に点を打つ
+    #     self.open_once(x=0, y=0, color=COLORLESS)
+    #     self.open_once(x=0, y=self.max_position, color=COLORLESS)
+    #     self.open_once(x=self.max_position, y=0, color=COLORLESS)
+    #     self.open_once(x=self.max_position, y=self.max_position, color=COLORLESS)
+    #
+    #     # あらかじめ十字に点を打つ
+    #     self.open_once(x=self.max_position // 2, y=0, color=COLORLESS)
+    #     self.open_once(x=0, y=self.max_position // 2, color=COLORLESS)
+    #     self.open_once(x=self.max_position, y=self.max_position // 2, color=COLORLESS)
+    #     self.open_once(x=self.max_position // 2, y=self.max_position, color=COLORLESS)
 
     def print(self):
         # for c in range(LABEL_SIZE):
@@ -167,7 +167,7 @@ class Board:
         self.integrate_positions = np.where(self.sampling_points_all, arr, max_arr)
 
     def adjust(self, value):
-        return max(0, min(value, self.max_position))
+        return max(0, min(value, self.board_size))
 
     def get_optimal_solution(self):
         self.calc_integrate_positions()
@@ -180,29 +180,13 @@ class Board:
 
         index = random.randrange(len(x_y_arr))
 
-        # min_sum = np.amax(self.integrate_positions) * 8
-        # for i, (x, y) in enumerate(x_y_arr):
-        #     sm = 0
-        #     sm += self.integrate_positions[self.adjust(x), self.adjust(y - 1)]  # top
-        #     sm += self.integrate_positions[self.adjust(x), self.adjust(y + 1)]  # bottom
-        #     sm += self.integrate_positions[self.adjust(x + 1), self.adjust(y)]  # right
-        #     sm += self.integrate_positions[self.adjust(x - 1), self.adjust(y)]  # left
-        #
-        #     sm += self.integrate_positions[self.adjust(x - 1), self.adjust(y - 1)]  # top_left
-        #     sm += self.integrate_positions[self.adjust(x + 1), self.adjust(y - 1)]  # top_right
-        #     sm += self.integrate_positions[self.adjust(x - 1), self.adjust(y + 1)]  # bottom_left
-        #     sm += self.integrate_positions[self.adjust(x + 1), self.adjust(y + 1)]  # bottom_right
-        #
-        #     print('sum: ' + str(sm))
-        #
-        #     if min_sum > sm:
-        #         print('x:' + str(x))
-        #         print('y:' + str(y))
-        #         print('minimum index: ' + str(i))
-        #         min_sum = sm
-        #         index = i
-        #
-        # self.print()
+        # 周囲の要素の平均が最小の点
+        min_around_ave = np.amax(self.integrate_positions)
+        for i, (x, y) in enumerate(x_y_arr):
+            around_ave = np.average(self.integrate_positions[self.adjust(x-1):self.adjust(x+1), self.adjust(y-1):self.adjust(y+1)])
+            if min_around_ave > around_ave:
+                min_around_ave = around_ave
+                index = i
 
         select_x, select_y = x_y_arr[index]
 
