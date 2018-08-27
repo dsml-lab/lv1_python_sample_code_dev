@@ -8,7 +8,7 @@ from sympy.geometry import Polygon, Point
 import matplotlib.pyplot as plt
 from sympy.plotting import plot
 from PIL import Image
-from sklearn import neighbors
+from sklearn import neighbors, svm
 import math
 
 import sys
@@ -51,13 +51,32 @@ class LV1TargetClassifier:
         return np.int32(labels)
 
 
+KNN1 = 'KNeighborsClassifier_n_neighbors_1'
+KNN3 = 'KNeighborsClassifier_n_neighbors_3'
+KNN5 = 'KNeighborsClassifier_n_neighbors_5'
+KNN7 = 'KNeighborsClassifier_n_neighbors_7'
+SVMC10gamma10 = 'SVM_C10_gamma10'
+
+
 # クローン認識器を表現するクラス
 # このサンプルコードでは単純な 1-nearest neighbor 認識器とする（sklearnを使用）
 # 下記と同型の fit メソッドと predict メソッドが必要
 class LV1UserDefinedClassifier:
 
-    def __init__(self):
+    def __init__(self, n=-1, model_name=KNN1):
         self.clf = neighbors.KNeighborsClassifier(n_neighbors=1)
+
+        if model_name == KNN3 and n >= 3:
+            self.clf = neighbors.KNeighborsClassifier(n_neighbors=3)
+
+        if model_name == KNN5 and n >= 5:
+            self.clf = neighbors.KNeighborsClassifier(n_neighbors=5)
+
+        if model_name == KNN7 and n >= 7:
+            self.clf = neighbors.KNeighborsClassifier(n_neighbors=7)
+
+        if model_name == SVMC10gamma10 and n > 10:
+            self.clf = svm.SVC(C=10,gamma=10)
 
     # クローン認識器の学習
     #   (features, labels): 訓練データ（特徴量とラベルのペアの集合）
@@ -328,7 +347,7 @@ def lv1_user_function_sampling_region(n_samples, target_model, exe_n, method_nam
     return np.vstack((old_features, new_features))
 
 
-def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n):
+def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n, model_name: str):
     print('n_samples:' + str(n_samples))
 
     if n_samples < 0:
@@ -359,7 +378,7 @@ def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n):
         new_features[0][0] = feature_x
         new_features[0][1] = feature_y
 
-        clone_model = LV1UserDefinedClassifier()
+        clone_model = LV1UserDefinedClassifier(n=n_samples, model_name=model_name)
         # target識別器からtargetのラベルを取得
         target_labels = target_model.predict(new_features)
         # clone識別器からcloneのラベルを取得
@@ -379,7 +398,7 @@ def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n):
     elif n_samples > 1:
 
         old_features, old_board = lv1_user_function_sampling_sweeper(n_samples=n_samples - 1, target_model=target_model,
-                                                                     exe_n=exe_n)
+                                                                     exe_n=exe_n, model_name=model_name)
 
         new_features = np.zeros((1, 2))
 
@@ -388,11 +407,15 @@ def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n):
         new_features[0][0] = feature_x
         new_features[0][1] = feature_y
 
-        clone_model = LV1UserDefinedClassifier()
+        features = np.vstack((old_features, new_features))
+
+        clone_model = LV1UserDefinedClassifier(n=n_samples, model_name=model_name)
         # target識別器からtargetのラベルを取得
-        target_labels = target_model.predict(new_features)
+        target_labels = target_model.predict(features)
         # clone識別器からcloneのラベルを取得
-        clone_model.fit(features=new_features, labels=target_labels)
+        # 学習
+        clone_model.fit(features=features, labels=target_labels)
+
         clone_labels = clone_model.predict(features=new_features)
 
         if target_labels[-1] == clone_labels[-1]:
@@ -401,6 +424,6 @@ def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n):
             old_board.open_once_feature(feature_x=feature_x, feature_y=feature_y)  # 開示
 
         if n_samples == exe_n:
-            return np.vstack((old_features, new_features))
+            return features
         else:
-            return np.vstack((old_features, new_features)), old_board
+            return features, old_board

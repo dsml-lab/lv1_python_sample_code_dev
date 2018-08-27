@@ -8,7 +8,7 @@ from clone_it import LV1_user_load_directory, LV1_user_accuracy_plot, LV1_user_p
 from evaluation import LV1_Evaluator
 from region import lv1_user_function_sampling_region, \
     SavePathManager, LV1UserDefinedClassifier, create_dir, LV1TargetClassifier, DIVIDER, \
-    lv1_user_function_sampling_sweeper
+    lv1_user_function_sampling_sweeper, KNN1, SVMC10gamma10, KNN7, KNN5, KNN3
 from sampling import lv1_user_function_sampling_meshgrid_rectangular, lv1_user_function_sampling
 
 METHOD_NAME_REGION = 'lv1_user_function_sampling_region'
@@ -19,14 +19,16 @@ METHOD_NAME_RANDOM = 'lv1_user_function_sampling'
 area_pixel = []
 
 def get_features(target, exe_n,
-                 method_name, path_manager):
+                 method_name, path_manager,
+                 model_name
+                 ):
 
     if method_name == METHOD_NAME_REGION:
         return lv1_user_function_sampling_region(n_samples=exe_n, target_model=target, exe_n=exe_n,
                                                      method_name=method_name, path_manager=path_manager)
 
     if method_name == METHOD_NAME_SWEEPER:
-        return lv1_user_function_sampling_sweeper(n_samples=exe_n, target_model=target, exe_n=exe_n)
+        return lv1_user_function_sampling_sweeper(n_samples=exe_n, target_model=target, exe_n=exe_n, model_name=model_name)
 
     if method_name == METHOD_NAME_GRID:
         return lv1_user_function_sampling_meshgrid_rectangular(n_samples=exe_n)
@@ -35,9 +37,9 @@ def get_features(target, exe_n,
         return lv1_user_function_sampling(n_samples=exe_n)
 
 
-def exe_clone(target, exe_n, method_name, path_manager: SavePathManager):
+def exe_clone(target, exe_n, method_name, path_manager: SavePathManager, model_name):
     # ターゲット認識器への入力として用いる二次元特徴量を用意
-    features = get_features(target=target, exe_n=exe_n, method_name=method_name, path_manager=path_manager)
+    features = get_features(target=target, exe_n=exe_n, method_name=method_name, path_manager=path_manager, model_name=model_name)
 
     print(features)
     print(features.shape)
@@ -81,7 +83,7 @@ def exe_clone_one():
     exe_clone(target=target, exe_n=n, method_name=method_name, path_manager=save_path_manager)
 
 
-def exe_clone_all(range_arr, target, save_path_manager: SavePathManager, method_name):
+def exe_clone_all(range_arr, target, save_path_manager: SavePathManager, method_name, model_name):
 
     n_list = []
     acc_list = []
@@ -89,7 +91,7 @@ def exe_clone_all(range_arr, target, save_path_manager: SavePathManager, method_
     acc_list.append(0.0)
 
     for n in range_arr:
-        accuracy = exe_clone(target=target, exe_n=n, method_name=method_name, path_manager=save_path_manager)
+        accuracy = exe_clone(target=target, exe_n=n, method_name=method_name, path_manager=save_path_manager, model_name=model_name)
 
         n_list.append(n)
         acc_list.append(accuracy)
@@ -97,22 +99,18 @@ def exe_clone_all(range_arr, target, save_path_manager: SavePathManager, method_
     return n_list, acc_list
 
 
-def save_and_show_graph(graph_dir, n_list, sweeper_acc_list, grid_acc_list, random_acc_list):
+def save_and_show_graph(graph_dir, n_list, acc_list_list):
 
     print(DIVIDER)
     print('n list')
     print(n_list)
-    print('sweeper_acc_list')
-    print(sweeper_acc_list)
     print(DIVIDER)
 
     left = np.array(n_list)
-    sweeper_acc_height = np.array(sweeper_acc_list)
-    grid_acc_height = np.array(grid_acc_list)
-    random_acc_height = np.array(random_acc_list)
-    plt.plot(left, sweeper_acc_height, label='sweeper Accuracy')
-    plt.plot(left, grid_acc_height, label='grid Accuracy')
-    plt.plot(left, random_acc_height, label='random Accuracy')
+
+    for acc_list, label_text in acc_list_list:
+        acc_height = np.array(acc_list)
+        plt.plot(left, acc_height, label=label_text)
     plt.xlabel("n samples")
     plt.ylabel("Accuracy")
     plt.grid(True)
@@ -130,51 +128,75 @@ def create_output(target_path, save_path_manager):
     target.load(target_path)
 
     range_arr = []
-    for i in range(1, 11):
-        range_arr.append(2**i)
+    for i in range(1, 5):
+        range_arr.append(4**i)
 
     print(DIVIDER)
     print('実行間隔')
     print(range_arr)
     print(DIVIDER)
 
-    sweeper_n_list, sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
-                                                   save_path_manager=save_path_manager, method_name=METHOD_NAME_SWEEPER)
+    svmc10ga10_sweeper_n_list, svmc10ga10_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
+                                                                           save_path_manager=save_path_manager,
+                                                                           method_name=METHOD_NAME_SWEEPER,
+                                                                           model_name=SVMC10gamma10)
+
+    knn1_sweeper_n_list, knn1_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
+                                                   save_path_manager=save_path_manager, method_name=METHOD_NAME_SWEEPER, model_name=KNN1)
+
+    knn3_sweeper_n_list, knn3_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
+                                                     save_path_manager=save_path_manager,
+                                                     method_name=METHOD_NAME_SWEEPER, model_name=KNN3)
+
+    knn5_sweeper_n_list, knn5_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
+                                                     save_path_manager=save_path_manager,
+                                                     method_name=METHOD_NAME_SWEEPER, model_name=KNN5)
+
+    knn7_sweeper_n_list, knn7_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
+                                                     save_path_manager=save_path_manager,
+                                                     method_name=METHOD_NAME_SWEEPER, model_name=KNN7)
 
     # region_n_list, region_acc_list = exe_clone_all(range_arr=range_arr, target=target,
     #                                                       save_path_manager=save_path_manager, method_name=METHOD_NAME_REGION)
 
     grid_n_list, grid_acc_list = exe_clone_all(range_arr=range_arr, target=target,
-                                                   save_path_manager=save_path_manager, method_name=METHOD_NAME_GRID)
+                                                    save_path_manager=save_path_manager, method_name=METHOD_NAME_GRID, model_name=KNN1)
 
-    random_n_list, random_acc_list = exe_clone_all(range_arr=range_arr, target=target,
-                                               save_path_manager=save_path_manager, method_name=METHOD_NAME_RANDOM)
+    # random_n_list, random_acc_list = exe_clone_all(range_arr=range_arr, target=target,
+    #                                            save_path_manager=save_path_manager, method_name=METHOD_NAME_RANDOM)
+
+    acc_list_list = []
+
+    acc_list_list.append((knn1_sweeper_acc_list, KNN1))
+    acc_list_list.append((knn3_sweeper_acc_list, KNN3))
+    acc_list_list.append((knn5_sweeper_acc_list, KNN5))
+    acc_list_list.append((knn7_sweeper_acc_list, KNN7))
+    acc_list_list.append((svmc10ga10_sweeper_acc_list, SVMC10gamma10))
+    acc_list_list.append((grid_acc_list, 'grid'))
 
     save_and_show_graph(
         graph_dir=save_path_manager.save_root_dir,
         n_list=grid_n_list,
-        sweeper_acc_list=sweeper_acc_list,
-        grid_acc_list=grid_acc_list,
-        random_acc_list=random_acc_list
+        acc_list_list=acc_list_list
     )
 
-    draw_area(accuracy_directory=save_path_manager.save_root_dir,
-              n_list=sweeper_n_list,
-              accuracy_list=sweeper_acc_list,
-              method_name=METHOD_NAME_SWEEPER
-              )
-
-    draw_area(accuracy_directory=save_path_manager.save_root_dir,
-              n_list=grid_n_list,
-              accuracy_list=grid_acc_list,
-              method_name=METHOD_NAME_GRID
-              )
-
-    return draw_area(accuracy_directory=save_path_manager.save_root_dir,
-              n_list=random_n_list,
-              accuracy_list=random_acc_list,
-              method_name=METHOD_NAME_RANDOM
-              )
+    # draw_area(accuracy_directory=save_path_manager.save_root_dir,
+    #           n_list=sweeper_n_list,
+    #           accuracy_list=sweeper_acc_list,
+    #           method_name=METHOD_NAME_SWEEPER
+    #           )
+    #
+    # draw_area(accuracy_directory=save_path_manager.save_root_dir,
+    #           n_list=grid_n_list,
+    #           accuracy_list=grid_acc_list,
+    #           method_name=METHOD_NAME_GRID
+    #           )
+    #
+    # return draw_area(accuracy_directory=save_path_manager.save_root_dir,
+    #           n_list=random_n_list,
+    #           accuracy_list=random_acc_list,
+    #           method_name=METHOD_NAME_RANDOM
+    #           )
 
 
 def draw_area(accuracy_directory, accuracy_list, method_name, n_list):
@@ -227,11 +249,11 @@ def exe_all_images():
 
     for target_path in target_paths:
         save_path_manager = SavePathManager(save_root_dir= root_path + '/' + target_path[-6:-4])
-        last_size = create_output(target_path=target_path, save_path_manager=save_path_manager)
+        create_output(target_path=target_path, save_path_manager=save_path_manager)
         target_names.append(target_path[-4:-6])
 
-    statistics_path = root_path + '_(statistics).png'
-    statistics = LV1_user_area_statistics(statistics_path, area_pixel, target_names, last_size)
+    # statistics_path = root_path + '_(statistics).png'
+    # statistics = LV1_user_area_statistics(statistics_path, area_pixel, target_names, last_size)
 
 
 if __name__ == '__main__':
