@@ -26,9 +26,7 @@ def get_features(target, exe_n,
                                                      method_name=method_name, path_manager=path_manager)
 
     if method_name == METHOD_NAME_SWEEPER:
-        features, board = lv1_user_function_sampling_sweeper(n_samples=exe_n, target_model=target, exe_n=exe_n,
-                                                     method_name=method_name, path_manager=path_manager)
-        return features
+        return lv1_user_function_sampling_sweeper(n_samples=exe_n, target_model=target, exe_n=exe_n)
 
     if method_name == METHOD_NAME_GRID:
         return lv1_user_function_sampling_meshgrid_rectangular(n_samples=exe_n)
