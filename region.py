@@ -423,6 +423,11 @@ def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n, model_nam
         else:
             old_board.open_once_feature(feature_x=feature_x, feature_y=feature_y)  # 開示
 
+        print(DIVIDER)
+        print('n: ' + str(n_samples))
+        print('features count: ' + str(len(features)))
+        print(DIVIDER)
+
         if n_samples == exe_n:
             return features
         else:

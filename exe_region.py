@@ -3,8 +3,9 @@ import os
 from datetime import datetime
 import numpy as np
 import matplotlib.pyplot as plt
-
-from clone_it import LV1_user_load_directory, LV1_user_accuracy_plot, LV1_user_plot_cut, LV1_user_area_pixel_count, LV1_user_area_count_text, LV1_user_area_statistics
+import time
+from clone_it import LV1_user_load_directory, LV1_user_accuracy_plot, LV1_user_plot_cut, LV1_user_area_pixel_count, \
+    LV1_user_area_count_text, LV1_user_area_statistics, LV1_user_make_directory
 from evaluation import LV1_Evaluator
 from region import lv1_user_function_sampling_region, \
     SavePathManager, LV1UserDefinedClassifier, create_dir, LV1TargetClassifier, DIVIDER, \
@@ -50,7 +51,7 @@ def exe_clone(target, exe_n, method_name, path_manager: SavePathManager, model_n
     # クローン認識器を学習
     labels = target.predict(features)
 
-    model = LV1UserDefinedClassifier()
+    model = LV1UserDefinedClassifier(n=exe_n, model_name=model_name)
     model.fit(features, labels)
     print("\nA clone recognizer was trained.")
 
@@ -144,13 +145,13 @@ def create_output(target_path, save_path_manager):
     knn1_sweeper_n_list, knn1_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
                                                    save_path_manager=save_path_manager, method_name=METHOD_NAME_SWEEPER, model_name=KNN1)
 
-    knn3_sweeper_n_list, knn3_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
-                                                     save_path_manager=save_path_manager,
-                                                     method_name=METHOD_NAME_SWEEPER, model_name=KNN3)
-
-    knn5_sweeper_n_list, knn5_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
-                                                     save_path_manager=save_path_manager,
-                                                     method_name=METHOD_NAME_SWEEPER, model_name=KNN5)
+    # knn3_sweeper_n_list, knn3_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
+    #                                                  save_path_manager=save_path_manager,
+    #                                                  method_name=METHOD_NAME_SWEEPER, model_name=KNN3)
+    #
+    # knn5_sweeper_n_list, knn5_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
+    #                                                  save_path_manager=save_path_manager,
+    #                                                  method_name=METHOD_NAME_SWEEPER, model_name=KNN5)
 
     knn7_sweeper_n_list, knn7_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
                                                      save_path_manager=save_path_manager,
@@ -168,8 +169,8 @@ def create_output(target_path, save_path_manager):
     acc_list_list = []
 
     acc_list_list.append((knn1_sweeper_acc_list, KNN1))
-    acc_list_list.append((knn3_sweeper_acc_list, KNN3))
-    acc_list_list.append((knn5_sweeper_acc_list, KNN5))
+    # acc_list_list.append((knn3_sweeper_acc_list, KNN3))
+    # acc_list_list.append((knn5_sweeper_acc_list, KNN5))
     acc_list_list.append((knn7_sweeper_acc_list, KNN7))
     acc_list_list.append((svmc10ga10_sweeper_acc_list, SVMC10gamma10))
     acc_list_list.append((grid_acc_list, 'grid'))
@@ -180,48 +181,30 @@ def create_output(target_path, save_path_manager):
         acc_list_list=acc_list_list
     )
 
-    # draw_area(accuracy_directory=save_path_manager.save_root_dir,
-    #           n_list=sweeper_n_list,
-    #           accuracy_list=sweeper_acc_list,
-    #           method_name=METHOD_NAME_SWEEPER
-    #           )
-    #
-    # draw_area(accuracy_directory=save_path_manager.save_root_dir,
-    #           n_list=grid_n_list,
-    #           accuracy_list=grid_acc_list,
-    #           method_name=METHOD_NAME_GRID
-    #           )
-    #
-    # return draw_area(accuracy_directory=save_path_manager.save_root_dir,
-    #           n_list=random_n_list,
-    #           accuracy_list=random_acc_list,
-    #           method_name=METHOD_NAME_RANDOM
-    #           )
 
-
-def draw_area(accuracy_directory, accuracy_list, method_name, n_list):
-    # accuracyの面積グラフを作成して保存
-    area_path = os.path.join(accuracy_directory, method_name + '_accuracy_area.png')
-    area_features = LV1_user_accuracy_plot(accuracy_list, n_list, area_path)
-
-    # 面積のグラフをcutする。
-    cut_path = area_path.replace('.png', '_cut.png')
-    area_cut = LV1_user_plot_cut(area_path, cut_path)
-
-    # accuracyのぶりつぶされたpixelを数える。
-    count_path = area_path.replace('.png', '_count.png')
-    pixel_count, area_size = LV1_user_area_pixel_count(cut_path, count_path)
-    area_pixel.append(pixel_count)
-
-    # accuracyの面積結果を画像で保存する。
-    text_path = area_path.replace('.png', '_text.png')
-    area_text = LV1_user_area_count_text(text_path, pixel_count, area_size)
-    last_size = area_size
-
-    print('画像サイズ[', area_size, ']_x[', area_size[0], ']_y[', area_size[1], ']')
-    print('面積pixel[', pixel_count, ']_割合[', round(pixel_count / (area_size[0] * area_size[1]) * 100, 2), '%]')
-
-    return area_size
+# def draw_area(accuracy_directory, accuracy_list, method_name, n_list):
+#     # accuracyの面積グラフを作成して保存
+#     area_path = os.path.join(accuracy_directory, method_name + '_accuracy_area.png')
+#     area_features = LV1_user_accuracy_plot(accuracy_list, n_list, area_path)
+#
+#     # 面積のグラフをcutする。
+#     cut_path = area_path.replace('.png', '_cut.png')
+#     area_cut = LV1_user_plot_cut(area_path, cut_path)
+#
+#     # accuracyのぶりつぶされたpixelを数える。
+#     count_path = area_path.replace('.png', '_count.png')
+#     pixel_count, area_size = LV1_user_area_pixel_count(cut_path, count_path)
+#     area_pixel.append(pixel_count)
+#
+#     # accuracyの面積結果を画像で保存する。
+#     text_path = area_path.replace('.png', '_text.png')
+#     area_text = LV1_user_area_count_text(text_path, pixel_count, area_size)
+#     last_size = area_size
+#
+#     print('画像サイズ[', area_size, ']_x[', area_size[0], ']_y[', area_size[1], ']')
+#     print('面積pixel[', pixel_count, ']_割合[', round(pixel_count / (area_size[0] * area_size[1]) * 100, 2), '%]')
+#
+#     return area_size
 
 
 def write_memo(save_path):
@@ -251,9 +234,6 @@ def exe_all_images():
         save_path_manager = SavePathManager(save_root_dir= root_path + '/' + target_path[-6:-4])
         create_output(target_path=target_path, save_path_manager=save_path_manager)
         target_names.append(target_path[-4:-6])
-
-    # statistics_path = root_path + '_(statistics).png'
-    # statistics = LV1_user_area_statistics(statistics_path, area_pixel, target_names, last_size)
 
 
 if __name__ == '__main__':
