@@ -18,9 +18,10 @@ from statistics import mean, median, variance, stdev
 
 # ターゲット認識器を表現するクラス
 # ターゲット認識器は2次元パターン（512x512の画像）で与えられるものとする
-from region import lv1_user_function_sampling_sweeper, SVMC10gamma10, KNN1, LV1UserDefinedClassifier, KNN3, KNN5, KNN7, \
-    lv1_user_function_sampling_sweeper_colorless
+from region import SVMC10gamma10, KNN1, LV1UserDefinedClassifier, KNN3, KNN5, KNN7
 from sampling import lv1_user_function_sampling_meshgrid_rectangular
+from sweeper_sampling import lv1_user_function_sampling_sweeper_colorless, lv1_user_function_sampling_sweeper, \
+    LV1UserDefinedClassifierSVM
 
 
 class LV1_TargetClassifier:
@@ -190,6 +191,24 @@ def LV1_user_load_directory(path):
     return file_path
 
 
+def create_dir(path):
+    if not os.path.isdir(path):
+        os.makedirs(path)
+
+
+def write_memo(save_path, method_name):
+    create_dir(save_path)
+
+    print('メモを書く')
+    memo = input()
+    memo = memo + "\n" + method_name
+
+    path_w = os.path.join(save_path, 'memo.txt')
+
+    with open(path_w, mode='w') as f:
+        f.write(memo)
+
+
 def main():
     '''
         if len(sys.argv) < 3:
@@ -221,6 +240,13 @@ def main():
     target_name = []
 
     classifier_type = SVMC10gamma10
+
+    grid = 'grid'
+    colorless = 'colorless'
+    sweeper = 'sweeper'
+
+    method_name = input('メソッド名')
+    write_memo(directory_path, method_name)
 
     # target.load(load_path)をLv1_targetsに含まれる画像毎に指定する。
     for i in target_image:
@@ -269,13 +295,21 @@ def main():
 
         for n in N:
             start = time.time()
-            features = lv1_user_function_sampling_sweeper_colorless(n_samples=n, target_model=target, exe_n=n,
-                                                                    model_name=classifier_type)
+
+            if method_name == grid:
+                features = lv1_user_function_sampling_meshgrid_rectangular(n_samples=n)
+            elif method_name == colorless:
+                features = lv1_user_function_sampling_sweeper(n_samples=n, target_model=target, exe_n=n)
+            elif method_name == sweeper:
+                features = lv1_user_function_sampling_sweeper_colorless(n_samples=n, target_model=target, exe_n=n)
+            else:
+                ValueError
+
             # ターゲット認識器に用意した入力特徴量を入力し，各々に対応するクラスラベルIDを取得
             labels = target.predict(features)
 
             # クローン認識器を学習
-            model = LV1UserDefinedClassifier(n=n, model_name=classifier_type)
+            model = LV1UserDefinedClassifierSVM(n=n)
             model.fit(features, labels)
 
             # 学習したクローン認識器を可視化し，精度を評価
