@@ -77,6 +77,8 @@ class Board:
         self.sampling_points_all[x, y] = False
 
     def print(self):
+        print('missing')
+        print(self.colorless_positions)
         print('サンプリング点')
         print(self.sampling_points_all)
         print('------------')
@@ -91,7 +93,7 @@ class Board:
         for i in range(LABEL_SIZE):
             arr = np.absolute(arr - self.positions[i])
 
-        arr = np.absolute(arr - self.colorless_positions)
+        arr = arr + self.colorless_positions
 
         max_value = np.amax(arr) + 1
         max_arr = np.full((self.board_size, self.board_size), max_value)
@@ -103,6 +105,7 @@ class Board:
 
     def get_optimal_solution(self):
         self.calc_integrate_positions()
+        self.print()
 
         min_value = np.amin(self.integrate_positions)
         x_arr, y_arr = np.where(self.integrate_positions == min_value)
