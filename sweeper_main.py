@@ -2,12 +2,13 @@ from sweeper import Board
 
 
 def main():
-    board_size = 8
-    b = Board(board_size=board_size)
+    board_size_x = 5
+    board_size_y = 4
+    b = Board(board_size_x=board_size_x, board_size_y=board_size_y)
     b.print()
 
-    b.open_once_colorless(0, 0)
-    b.open_once_colorless(2, 7)
+    b.open_once_colorless(0, 0, 2)
+    b.open_once_colorless(2, 3, 3)
 
     #b.open_once(3, 3, 4)
 

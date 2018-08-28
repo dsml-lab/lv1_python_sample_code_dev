@@ -29,8 +29,24 @@ class LV1UserDefinedClassifierSVM:
         return np.int32(labels)
 
 
+def get_grid_x_y_size(n):
+    x_size = 0
+    y_size = 0
+
+    # 格子点の個数がもっとも多くなる
+    # y_sizeとy_sizeの差がなるべく小さくなる
+    for i in range(2, n):
+        for j in range(2, n):
+            if n >= i * j > x_size * y_size and abs(i - j) < 5:  # 格子の縦横の差が5より小さい
+                x_size = i
+                y_size = j
+
+    return x_size, y_size
+
+
 def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n):
-    board_size = math.ceil(math.sqrt(exe_n))
+    board_size_x, board_size_y = get_grid_x_y_size(exe_n)
+
     if n_samples < 0:
         raise ValueError
 
@@ -38,7 +54,7 @@ def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n):
         return np.zeros((0, 2))
 
     elif n_samples == 1:
-        new_board = Board(board_size=board_size)
+        new_board = Board(board_size_x=board_size_x, board_size_y=board_size_y)
 
         new_features = np.zeros((1, 2))
 
@@ -78,7 +94,7 @@ def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n):
 
 
 def lv1_user_function_sampling_sweeper_colorless(n_samples, target_model, exe_n):
-    board_size = math.ceil(math.sqrt(exe_n))
+    board_size_x, board_size_y = get_grid_x_y_size(exe_n)
 
     if n_samples < 0:
         raise ValueError
@@ -88,7 +104,7 @@ def lv1_user_function_sampling_sweeper_colorless(n_samples, target_model, exe_n)
 
     elif n_samples == 1:
 
-        new_board = Board(board_size=board_size)
+        new_board = Board(board_size_x=board_size_x, board_size_y=board_size_y)
 
         new_features = np.zeros((1, 2))
 
@@ -103,7 +119,7 @@ def lv1_user_function_sampling_sweeper_colorless(n_samples, target_model, exe_n)
         old_features = lv1_user_function_sampling_sweeper_colorless(n_samples=n_samples - 1, target_model=target_model,
                                                                     exe_n=exe_n)
 
-        new_board = Board(board_size=board_size)
+        new_board = Board(board_size_x=board_size_x, board_size_y=board_size_y)
 
         # target識別器からtargetのラベルを取得
         target_labels = target_model.predict(old_features)
@@ -120,7 +136,8 @@ def lv1_user_function_sampling_sweeper_colorless(n_samples, target_model, exe_n)
                 new_board.open_once_feature(feature_x=old_feature[0], feature_y=old_feature[1],
                                             color=target_label)  # 開示
             else:
-                new_board.open_once_colorless_feature(feature_x=old_feature[0], feature_y=old_feature[1])  # 開示
+                new_board.open_once_colorless_feature(feature_x=old_feature[0], feature_y=old_feature[1],
+                                                      color=target_label)  # 開示
 
         feature_x, feature_y = new_board.get_optimal_solution()  # 最適解
 
