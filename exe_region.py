@@ -122,8 +122,8 @@ def create_output(target_path, save_path_manager):
     target.load(target_path)
 
     range_arr = []
-    for i in range(1, 10):
-        range_arr.append(2 ** i + 3)
+    for i in range(1, 13):
+        range_arr.append(2 ** i + 7)
 
     print(DIVIDER)
     print('実行間隔')

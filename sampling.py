@@ -70,7 +70,7 @@ def lv1_user_function_sampling_meshgrid_rectangular(n_samples):
 
     for i in range(2, n_samples):
         for j in range(2, n_samples):
-            if n_samples >= i * j > x_samples * y_samples and abs(i - j) < 5:  # 格子の縦横の差が5より小さい
+            if n_samples >= i * j > x_samples * y_samples and abs(i - j) < 2:  # 格子の縦横の差が2より小さい
                 x_samples = i
                 y_samples = j
 
