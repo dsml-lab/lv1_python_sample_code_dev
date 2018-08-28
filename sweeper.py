@@ -1,9 +1,9 @@
 import numpy as np
 import random
 
-
 np.set_printoptions(suppress=True)
 LABEL_SIZE = 10
+OPENED = 1000
 
 
 def get_distribution(size=10):
@@ -27,7 +27,6 @@ class Board:
     def __init__(self, board_size):
         self.board_size = board_size
         self.positions = np.zeros((LABEL_SIZE, board_size, board_size))
-        self.colorless_positions = np.zeros((board_size, board_size))
         self.sampling_points_all = np.full((board_size, board_size), True)
         self.max_position = board_size - 1
         self.integrate_positions = np.ones((board_size, board_size))
@@ -60,25 +59,23 @@ class Board:
     def open_once(self, x, y, color):
         # 近傍の点のx,yからの距離を算出
         distribution_arr = get_distribution(size=self.board_size * 2 + 1)  # 中心を最大の値として中心から遠ざかるほど値が小さくなる2次元配列を作る
-        trimming_distribution_arr = distribution_arr[self.board_size - x:self.board_size * 2 - x,
-                              self.board_size - y:self.board_size * 2 - y]
+        trimming_distribution_arr = distribution_arr[self.board_size - x:self.board_size * 2 - x, self.board_size - y:self.board_size * 2 - y]
 
         self.positions[color] = self.positions[color] + trimming_distribution_arr
+        self.positions[color][x, y] += OPENED
         self.sampling_points_all[x, y] = False
 
     # 点を開示
-    def open_once_colorless(self, x, y):
+    def open_once_colorless(self, x, y, color):
         # 近傍の点のx,yからの距離を算出
         distribution_arr = get_distribution(size=self.board_size * 2 + 1)  # 中心を最大の値として中心から遠ざかるほど値が小さくなる2次元配列を作る
-        trimming_distribution_arr = distribution_arr[self.board_size - x:self.board_size * 2 - x,
-                                    self.board_size - y:self.board_size * 2 - y]
+        trimming_distribution_arr = distribution_arr[self.board_size - x:self.board_size * 2 - x, self.board_size - y:self.board_size * 2 - y]
 
-        self.colorless_positions = self.colorless_positions - trimming_distribution_arr
+        self.positions[color] = self.positions[color] + (trimming_distribution_arr / 100)
+        self.positions[color][x, y] += OPENED
         self.sampling_points_all[x, y] = False
 
     def print(self):
-        print('missing')
-        print(self.colorless_positions)
         print('サンプリング点')
         print(self.sampling_points_all)
         print('------------')
@@ -93,7 +90,7 @@ class Board:
         for i in range(LABEL_SIZE):
             arr = np.absolute(arr - self.positions[i])
 
-        arr = arr + self.colorless_positions
+        # arr = arr + self.colorless_positions
 
         max_value = np.amax(arr) + 1
         max_arr = np.full((self.board_size, self.board_size), max_value)
