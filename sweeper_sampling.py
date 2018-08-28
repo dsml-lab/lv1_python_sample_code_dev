@@ -45,7 +45,8 @@ def get_grid_x_y_size(n):
 
 
 def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n):
-    board_size_x, board_size_y = get_grid_x_y_size(exe_n)
+    board_size_x = math.ceil(math.sqrt(exe_n))
+    board_size_y = math.ceil(math.sqrt(exe_n))
 
     if n_samples < 0:
         raise ValueError
