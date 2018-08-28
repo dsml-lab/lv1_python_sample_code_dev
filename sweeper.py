@@ -10,8 +10,8 @@ score
 
 np.set_printoptions(suppress=True)
 OPENED = 1000.
-COLORLESS = 10
-LABEL_SIZE = 11
+#COLORLESS = 10
+#LABEL_SIZE = 11
 COLOR_LABEL_SIZE = 10
 
 
@@ -35,7 +35,7 @@ class Board:
 
     def __init__(self, board_size):
         self.board_size = board_size
-        self.positions = np.zeros((LABEL_SIZE, board_size, board_size))
+        self.positions = np.zeros((COLOR_LABEL_SIZE, board_size, board_size))
         # self.sampling_points = np.zeros((LABEL_SIZE, board_size, board_size))
         self.sampling_points_all = np.full((board_size, board_size), True)
         self.max_position = board_size - 1
@@ -74,13 +74,13 @@ class Board:
 
         return feature_x, feature_y
 
-    def open_once_feature(self, feature_x, feature_y, color=COLORLESS):
+    def open_once_feature(self, feature_x, feature_y, color):
         x, y = self.mapping_x_y(feature_x=feature_x, feature_y=feature_y)
 
         return self.open_once(x=x, y=y, color=color)
 
     # 点を開示
-    def open_once(self, x, y, color=COLORLESS):
+    def open_once(self, x, y, color):
 
         print('------------')
         print('開示')
@@ -162,7 +162,7 @@ class Board:
         for i in range(COLOR_LABEL_SIZE):
             arr = np.absolute(arr - self.positions[i])
 
-        arr = arr - self.positions[COLORLESS]
+        #arr = arr - self.positions[COLORLESS]
 
         max_value = np.amax(arr) + 1
         max_arr = np.full((self.board_size, self.board_size), max_value)
@@ -183,15 +183,15 @@ class Board:
 
         index = random.randrange(len(x_y_arr))
 
-        if self.board_size > 8:
-            # 周囲の要素の平均が最小の点
-            min_around_ave = np.amax(self.integrate_positions)
-            for i, (x, y) in enumerate(x_y_arr):
-                around_ave = np.average(self.integrate_positions[self.adjust(x - 1):self.adjust(x + 1),
-                                        self.adjust(y - 1):self.adjust(y + 1)])
-                if min_around_ave > around_ave:
-                    min_around_ave = around_ave
-                    index = i
+        # if self.board_size > 16:
+        #     # 周囲の要素の平均が最小の点
+        #     min_around_ave = np.amax(self.integrate_positions)
+        #     for i, (x, y) in enumerate(x_y_arr):
+        #         around_ave = np.average(self.integrate_positions[self.adjust(x - 1):self.adjust(x + 1),
+        #                                 self.adjust(y - 1):self.adjust(y + 1)])
+        #         if min_around_ave > around_ave:
+        #             min_around_ave = around_ave
+        #             index = i
 
         select_x, select_y = x_y_arr[index]
 

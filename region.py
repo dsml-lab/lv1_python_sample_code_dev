@@ -17,7 +17,7 @@ from sympy.plotting.plot import Plot
 from tqdm import tqdm
 
 from labels import COLOR2ID, ID2COLOR
-from sweeper import Board, COLORLESS
+from sweeper import Board
 
 IMAGE_SIZE = 512
 CLASS_SIZE = 10
@@ -350,6 +350,10 @@ def lv1_user_function_sampling_region(n_samples, target_model, exe_n, method_nam
 def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n, model_name: str):
     print('n_samples:' + str(n_samples))
 
+    add_boat = 0
+    board_size = math.ceil(math.sqrt(exe_n)) + add_boat
+    print('board_size: ' + str(board_size))
+
     if n_samples < 0:
         raise ValueError
 
@@ -358,19 +362,7 @@ def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n, model_nam
 
     elif n_samples == 1:
 
-        add_boat = 0
-
-        # # 与えられたnによって１マスの大きさを変える
-        # if exe_n < 10:
-        #     add_boat = 10
-        # else:
-        #     add_boat = 5
-
-        board_size = math.ceil(math.sqrt(exe_n)) + add_boat
-        print('board_size: ' + str(board_size))
-
         new_board = Board(board_size=board_size)
-        # new_board.init_open()
 
         new_features = np.zeros((1, 2))
 
@@ -409,19 +401,20 @@ def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n, model_nam
 
         features = np.vstack((old_features, new_features))
 
-        clone_model = LV1UserDefinedClassifier(n=n_samples, model_name=model_name)
         # target識別器からtargetのラベルを取得
-        target_labels = target_model.predict(features)
+        target_labels = target_model.predict(new_features)
         # clone識別器からcloneのラベルを取得
         # 学習
-        clone_model.fit(features=features, labels=target_labels)
+        # clone_model = LV1UserDefinedClassifier(n=n_samples, model_name=model_name)
+        # clone_model.fit(features=features, labels=target_labels)
+        #
+        # clone_labels = clone_model.predict(features=new_features)
 
-        clone_labels = clone_model.predict(features=new_features)
-
-        if target_labels[-1] == clone_labels[-1]:
-            old_board.open_once_feature(feature_x=feature_x, feature_y=feature_y, color=clone_labels[-1])  # 開示
-        else:
-            old_board.open_once_feature(feature_x=feature_x, feature_y=feature_y)  # 開示
+        #if target_labels[-1] == clone_labels[-1]:
+        #    old_board.open_once_feature(feature_x=feature_x, feature_y=feature_y, color=clone_labels[-1])  # 開示
+        # else:
+        #     old_board.open_once_feature(feature_x=feature_x, feature_y=feature_y)  # 開示
+        old_board.open_once_feature(feature_x=feature_x, feature_y=feature_y, color=target_labels[-1])
 
         print(DIVIDER)
         print('n: ' + str(n_samples))
