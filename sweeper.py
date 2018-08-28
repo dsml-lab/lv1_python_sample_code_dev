@@ -3,14 +3,13 @@ from scipy.spatial import Delaunay
 import numpy as np
 import random
 
-'''
-点がもつ情報
-score
-'''
 
 np.set_printoptions(suppress=True)
 OPENED = 1000.
 LABEL_SIZE = 10
+
+
+
 
 
 def get_normal_distribution(size=10):
@@ -76,6 +75,11 @@ class Board:
         x, y = self.mapping_x_y(feature_x=feature_x, feature_y=feature_y)
 
         return self.open_once(x=x, y=y, color=color)
+
+    def open_once_colorless_feature(self, feature_x, feature_y):
+        x, y = self.mapping_x_y(feature_x=feature_x, feature_y=feature_y)
+
+        return self.open_once_colorless(x=x, y=y)
 
     # 点を開示
     def open_once(self, x, y, color):

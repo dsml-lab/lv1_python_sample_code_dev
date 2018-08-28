@@ -19,7 +19,8 @@ from statistics import mean, median, variance, stdev
 
 # ターゲット認識器を表現するクラス
 # ターゲット認識器は2次元パターン（512x512の画像）で与えられるものとする
-from region import lv1_user_function_sampling_sweeper, SVMC10gamma10, KNN1, LV1UserDefinedClassifier, KNN3, KNN5, KNN7
+from region import lv1_user_function_sampling_sweeper, SVMC10gamma10, KNN1, LV1UserDefinedClassifier, KNN3, KNN5, KNN7, \
+    lv1_user_function_sampling_sweeper_colorless
 from sampling import lv1_user_function_sampling_meshgrid_rectangular
 
 
@@ -266,7 +267,7 @@ def main():
 
         for n in N:
             start = time.time()
-            features = lv1_user_function_sampling_sweeper(n_samples=n, target_model=target, exe_n=n, model_name=classifier_type)
+            features = lv1_user_function_sampling_sweeper_colorless(n_samples=n, target_model=target, exe_n=n, model_name=classifier_type)
             # ターゲット認識器に用意した入力特徴量を入力し，各々に対応するクラスラベルIDを取得
             labels = target.predict(features)
 
