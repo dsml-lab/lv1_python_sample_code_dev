@@ -10,9 +10,7 @@ score
 
 np.set_printoptions(suppress=True)
 OPENED = 1000.
-#COLORLESS = 10
-#LABEL_SIZE = 11
-COLOR_LABEL_SIZE = 10
+LABEL_SIZE = 10
 
 
 def get_normal_distribution(size=10):
@@ -35,7 +33,7 @@ class Board:
 
     def __init__(self, board_size):
         self.board_size = board_size
-        self.positions = np.zeros((COLOR_LABEL_SIZE, board_size, board_size))
+        self.positions = np.zeros((LABEL_SIZE, board_size, board_size))
         # self.sampling_points = np.zeros((LABEL_SIZE, board_size, board_size))
         self.sampling_points_all = np.full((board_size, board_size), True)
         self.max_position = board_size - 1
@@ -116,18 +114,9 @@ class Board:
         # self.sampling_points[color][x, y] = OPENED
         self.sampling_points_all[x, y] = False
 
-    # def init_open(self):
-    #     # あらかじめ角に点を打つ
-    #     self.open_once(x=0, y=0, color=COLORLESS)
-    #     self.open_once(x=0, y=self.max_position, color=COLORLESS)
-    #     self.open_once(x=self.max_position, y=0, color=COLORLESS)
-    #     self.open_once(x=self.max_position, y=self.max_position, color=COLORLESS)
-    #
-    #     # あらかじめ十字に点を打つ
-    #     self.open_once(x=self.max_position // 2, y=0, color=COLORLESS)
-    #     self.open_once(x=0, y=self.max_position // 2, color=COLORLESS)
-    #     self.open_once(x=self.max_position, y=self.max_position // 2, color=COLORLESS)
-    #     self.open_once(x=self.max_position // 2, y=self.max_position, color=COLORLESS)
+    # 点を開示
+    def open_once_colorless(self, x, y):
+        self.sampling_points_all[x, y] = False
 
     def print(self):
         # for c in range(LABEL_SIZE):
@@ -145,24 +134,11 @@ class Board:
         print(self.integrate_positions)
         print('------------')
 
-    # def get_convex_hull(self):
-    #     for points in self.sampling_points:
-    #         x_arr, y_arr = np.where(points == OPENED)
-    #         if len(x_arr) > 4:
-    #             l = [list(a) for a in zip(x_arr, y_arr)]
-    #
-    #             print(l)
-    #
-    #             hulls = Delaunay(l).convex_hull
-    #             print(hulls)
-
     def calc_integrate_positions(self):
         arr = np.zeros((self.board_size, self.board_size))
 
-        for i in range(COLOR_LABEL_SIZE):
+        for i in range(LABEL_SIZE):
             arr = np.absolute(arr - self.positions[i])
-
-        #arr = arr - self.positions[COLORLESS]
 
         max_value = np.amax(arr) + 1
         max_arr = np.full((self.board_size, self.board_size), max_value)
@@ -207,20 +183,27 @@ def main():
     b = Board(board_size=board_size)
     b.print()
 
-    b.open_once(2, 3, 2)
+    b.open_once_colorless(0, 0)
+    b.open_once_colorless(2, 7)
+
+    b.open_once(3, 3, 4)
+
     b.print()
 
-    b.open_once(6, 6, 2)
-    b.print()
-
-    b.open_once(1, 1, 2)
-    b.print()
-
-    b.open_once(0, 0, 1)
-    b.print()
-
-    b.open_once(0, 2, 3)
-    b.print()
+    # b.open_once(2, 3, 2)
+    # b.print()
+    #
+    # b.open_once(6, 6, 2)
+    # b.print()
+    #
+    # b.open_once(1, 1, 2)
+    # b.print()
+    #
+    # b.open_once(0, 0, 1)
+    # b.print()
+    #
+    # b.open_once(0, 2, 3)
+    # b.print()
 
     b.calc_integrate_positions()
     b.print()
