@@ -1,5 +1,3 @@
-from scipy.spatial import Delaunay
-
 import numpy as np
 import random
 
@@ -9,11 +7,8 @@ OPENED = 1000.
 LABEL_SIZE = 10
 
 
-
-
-
-def get_normal_distribution(size=10):
-    def normal(x, y):
+def get_distribution(size=10):
+    def calc(x, y):
         r = x ** 2 + y ** 2
         return int(np.exp(-r) * 10 ** 2)
 
@@ -23,7 +18,7 @@ def get_normal_distribution(size=10):
     arr = np.zeros((len(x0), len(x1)))
     for i0 in range(xn):
         for i1 in range(xn):
-            arr[i1, i0] = normal(x0[i0], x1[i1])
+            arr[i1, i0] = calc(x0[i0], x1[i1])
 
     return arr
 
@@ -95,24 +90,22 @@ class Board:
         #     self.positions[color][max(x - i, 0):min(x + i + 1, self.board_size),
         #     max(y - i, 0):min(y + i + 1, self.board_size)] += 1
 
-        normal_arr = get_normal_distribution(size=self.board_size * 2 + 1)  # 正規分布の2次元配列
+        distribution_arr = get_distribution(size=self.board_size * 2 + 1)  # 正規分布の2次元配列
 
-        trimming_normal_arr = normal_arr[self.board_size - x:self.board_size * 2 - x,
+        trimming_distribution_arr = distribution_arr[self.board_size - x:self.board_size * 2 - x,
                               self.board_size - y:self.board_size * 2 - y]
 
         print('color')
         print(self.positions[color])
 
-        self.positions[color] = self.positions[color] + trimming_normal_arr
+        self.positions[color] = self.positions[color] + trimming_distribution_arr
 
-        print('------------------')
-        print('正規分布')
-        print(normal_arr)
-        print('トリミング')
-        print(trimming_normal_arr)
-        print('色ごとの分布')
-        print(self.positions[color])
-        print('------------------')
+        # print('------------------')
+        # print('トリミング')
+        # print(trimming_distribution_arr)
+        # print('色ごとの分布')
+        # print(self.positions[color])
+        # print('------------------')
 
         self.positions[color][x, y] += OPENED
         # self.sampling_points[color][x, y] = OPENED
