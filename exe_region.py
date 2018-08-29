@@ -8,7 +8,7 @@ from region import SavePathManager, create_dir, LV1TargetClassifier, DIVIDER
 from sampling import lv1_user_function_sampling
 from sweeper_sampling import lv1_user_function_sampling_sweeper, LV1UserDefinedClassifierSVM, \
     lv1_user_function_sampling_sweeper_colorless, lv1_user_function_sampling_meshgrid_rectangular, \
-    lv1_user_function_sampling_sweeper_pixel
+    lv1_user_function_sampling_sweeper_pixel, lv1_user_function_sampling_sweeper_or_grid_or_grid_edge
 
 METHOD_NAME_REGION = 'lv1_user_function_sampling_region'
 METHOD_NAME_SWEEPER = 'lv1_user_function_sampling_sweeper'
@@ -16,6 +16,7 @@ METHOD_NAME_SWEEPER_pixel = 'lv1_user_function_sampling_sweeper_pixel'
 METHOD_NAME_SWEEPER_COLORLESS = 'lv1_user_function_sampling_sweeper_colorless'
 METHOD_NAME_GRID = 'lv1_user_function_sampling_meshgrid_rectangular'
 METHOD_NAME_RANDOM = 'lv1_user_function_sampling'
+METHOD_NAME_OR = 'lv1_user_function_sampling_sweeper_or_grid_or_grid_edge'
 
 area_pixel = []
 
@@ -37,6 +38,9 @@ def get_features(target, exe_n,
 
     if method_name == METHOD_NAME_RANDOM:
         return lv1_user_function_sampling(n_samples=exe_n)
+
+    if method_name == METHOD_NAME_OR:
+        return lv1_user_function_sampling_sweeper_or_grid_or_grid_edge(n_samples=exe_n, target_model=target)
 
 
 def exe_clone(target, exe_n, method_name, path_manager: SavePathManager):
@@ -127,8 +131,9 @@ def create_output(target_path, save_path_manager):
     target.load(target_path)
 
     range_arr = []
-    for i in range(1, 13):
-        range_arr.append(2 ** i + 7)
+    for i in range(1, 7):
+        range_arr.append(3 ** i + 17)
+        #range_arr.append(i)
 
     print(DIVIDER)
     print('実行間隔')
@@ -139,15 +144,20 @@ def create_output(target_path, save_path_manager):
                                                      save_path_manager=save_path_manager,
                                                      method_name=METHOD_NAME_SWEEPER)
 
-    colorless_sweeper_n_list, colorless_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
-                                                                         save_path_manager=save_path_manager,
-                                                                         method_name=METHOD_NAME_SWEEPER_COLORLESS)
+    or_n_list, or_acc_list = exe_clone_all(range_arr=range_arr, target=target,
+                                                     save_path_manager=save_path_manager,
+                                                     method_name=METHOD_NAME_OR)
+
+    # colorless_sweeper_n_list, colorless_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
+    #                                                                      save_path_manager=save_path_manager,
+    #                                                                      method_name=METHOD_NAME_SWEEPER_COLORLESS)
 
     grid_n_list, grid_acc_list = exe_clone_all(range_arr=range_arr, target=target,
                                                save_path_manager=save_path_manager, method_name=METHOD_NAME_GRID)
 
-    acc_list_list = [(sweeper_acc_list, 'sweeper'), (colorless_sweeper_acc_list, 'colorless sweeper'),
-                     (grid_acc_list, 'grid')]
+    acc_list_list = [(sweeper_acc_list, 'sweeper'),
+                     (grid_acc_list, 'grid'),
+                     (or_acc_list, 'branch')]
 
     save_and_show_graph(
         graph_dir=save_path_manager.save_root_dir,
@@ -221,4 +231,4 @@ def exe_all_images():
 
 
 if __name__ == '__main__':
-    exe_clone_one()
+    exe_all_images()
