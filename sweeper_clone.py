@@ -10,11 +10,8 @@ from evaluation import LV1_Evaluator
 
 # ターゲット認識器を表現するクラス
 # ターゲット認識器は2次元パターン（512x512の画像）で与えられるものとする
-from sampling import lv1_user_function_sampling_meshgrid_rectangular
 from sweeper_sampling import lv1_user_function_sampling_sweeper, LV1UserDefinedClassifierSVM
 
-# 再帰の上限
-sys.setrecursionlimit(100000)
 
 class LV1_TargetClassifier:
 

@@ -57,44 +57,6 @@ def lv1_user_function_sampling_meshgrid(n_samples):
     return np.float32(features)
 
 
-# ターゲット認識器に入力する二次元特徴量をサンプリングする関数(格子・長方形)
-#   n_samples: サンプリングする特徴量の数
-def lv1_user_function_sampling_meshgrid_rectangular(n_samples):
-    features = np.zeros((n_samples, 2))
-
-    x_samples = 0
-    y_samples = 0
-
-    # 格子点の個数がもっとも多くなる
-    # y_sizeとy_sizeの差がなるべく小さくなる
-
-    for i in range(2, n_samples):
-        for j in range(2, n_samples):
-            if n_samples >= i * j > x_samples * y_samples and abs(i - j) < 2:  # 格子の縦横の差が2より小さい
-                x_samples = i
-                y_samples = j
-
-    print('x_samples:' + str(x_samples))
-    print('y_samples:' + str(y_samples))
-
-    # 格子ひとつ分の幅
-    x_size = 2 / (x_samples + 1)
-    y_size = 2 / (y_samples + 1)
-
-    # 格子状に値を入れる
-    count = 0
-    for j in range(1, x_samples + 1):
-        for k in range(1, y_samples + 1):
-            features[count][0] = j * x_size - 1
-            features[count][1] = k * y_size - 1
-            count = count + 1
-
-    # 残りはランダムに
-    for i in range(x_samples * y_samples, n_samples):
-        features[i][0] = 2 * np.random.rand() - 1
-        features[i][1] = 2 * np.random.rand() - 1
-    return np.float32(features)
-
 
 # ターゲット認識器に入力する二次元特徴量をサンプリングする関数(適応的)
 #   n_samples: サンプリングする特徴量の数

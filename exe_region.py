@@ -5,12 +5,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from evaluation import LV1_Evaluator
 from region import SavePathManager, create_dir, LV1TargetClassifier, DIVIDER
-from sampling import lv1_user_function_sampling_meshgrid_rectangular, lv1_user_function_sampling
+from sampling import lv1_user_function_sampling
 from sweeper_sampling import lv1_user_function_sampling_sweeper, LV1UserDefinedClassifierSVM, \
-    lv1_user_function_sampling_sweeper_colorless
+    lv1_user_function_sampling_sweeper_colorless, lv1_user_function_sampling_meshgrid_rectangular, \
+    lv1_user_function_sampling_sweeper_pixel
 
 METHOD_NAME_REGION = 'lv1_user_function_sampling_region'
 METHOD_NAME_SWEEPER = 'lv1_user_function_sampling_sweeper'
+METHOD_NAME_SWEEPER_pixel = 'lv1_user_function_sampling_sweeper_pixel'
 METHOD_NAME_SWEEPER_COLORLESS = 'lv1_user_function_sampling_sweeper_colorless'
 METHOD_NAME_GRID = 'lv1_user_function_sampling_meshgrid_rectangular'
 METHOD_NAME_RANDOM = 'lv1_user_function_sampling'
@@ -26,6 +28,9 @@ def get_features(target, exe_n,
 
     if method_name == METHOD_NAME_SWEEPER:
         return lv1_user_function_sampling_sweeper(n_samples=exe_n, target_model=target, exe_n=exe_n)
+
+    if method_name == METHOD_NAME_SWEEPER_pixel:
+        return lv1_user_function_sampling_sweeper_pixel(n_samples=exe_n, target_model=target, exe_n=exe_n)
 
     if method_name == METHOD_NAME_GRID:
         return lv1_user_function_sampling_meshgrid_rectangular(n_samples=exe_n)
@@ -67,8 +72,8 @@ def exe_clone(target, exe_n, method_name, path_manager: SavePathManager):
 
 
 def exe_clone_one():
-    n = 10
-    method_name = METHOD_NAME_SWEEPER
+    n = 1000
+    method_name = METHOD_NAME_SWEEPER_pixel
 
     now_str = datetime.now().strftime('%Y%m%d%H%M%S')
     target_path = 'lv1_targets/classifier_01.png'
@@ -197,6 +202,7 @@ def LV1_user_load_directory(path):
             file_path.append(path + '/' + i)
     return file_path
 
+
 def exe_all_images():
     now_str = datetime.now().strftime('%Y%m%d%H%M%S')
     root_path = 'output/' + now_str
@@ -215,4 +221,4 @@ def exe_all_images():
 
 
 if __name__ == '__main__':
-    exe_all_images()
+    exe_clone_one()

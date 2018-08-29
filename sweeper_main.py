@@ -2,8 +2,8 @@ from sweeper import Board
 
 
 def main():
-    board_size_x = 5
-    board_size_y = 4
+    board_size_x = 512
+    board_size_y = 512
     b = Board(board_size_x=board_size_x, board_size_y=board_size_y)
     b.print()
 
