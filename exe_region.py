@@ -77,7 +77,7 @@ def exe_clone(target, exe_n, method_name, path_manager: SavePathManager):
 
 def exe_clone_one():
     n = 1000
-    method_name = METHOD_NAME_SWEEPER_pixel
+    method_name = METHOD_NAME_SWEEPER_COLORLESS
 
     now_str = datetime.now().strftime('%Y%m%d%H%M%S')
     target_path = 'lv1_targets/classifier_01.png'
@@ -233,4 +233,5 @@ def exe_all_images():
 
 
 if __name__ == '__main__':
-    exe_all_images()
+    # exe_all_images()
+    exe_clone_one()
