@@ -9,14 +9,14 @@ OPENED = 1000
 def get_distribution(x_size, y_size):
     def calc(x, y):
         r = x ** 2 + y ** 2
-        return np.exp(-r) * 10 ** 2
+        return int(np.exp(-r) * ((x_size + y_size) / 4))
 
     x0 = np.linspace(-2, 2, x_size)
     x1 = np.linspace(-2, 2, y_size)
     arr = np.zeros((len(x0), len(x1)))
     for i0 in range(x_size):
         for i1 in range(y_size):
-            arr[i0, i1] = calc(x0[i0], x1[i1])
+            arr[i1, i0] = calc(x0[i0], x1[i1])
 
     return arr
 
