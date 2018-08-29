@@ -7,9 +7,11 @@ OPENED = 1000
 
 
 def get_distribution(x_size, y_size):
+    size = (x_size + y_size) / 2
+
     def calc(x, y):
         r = x ** 2 + y ** 2
-        return int(np.exp(-r) * ((x_size + y_size) / 4))
+        return int(np.exp(-r) * (size / 2))
 
     x0 = np.linspace(-2, 2, x_size)
     x1 = np.linspace(-2, 2, y_size)
