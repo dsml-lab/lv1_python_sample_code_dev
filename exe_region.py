@@ -122,7 +122,7 @@ def save_and_show_graph(graph_dir, n_list, acc_list_list):
     plt.xscale('log', basex=2)
     plt.legend()
     plt.savefig(os.path.join(graph_dir, 'n_accuracy.png'))
-    plt.show()
+    plt.show(block=False)
     plt.close()
 
 
@@ -153,8 +153,8 @@ def create_output(target_path, save_path_manager):
     target.load(target_path)
 
     range_arr = []
-    for i in range(1, 7):
-        range_arr.append(2 ** i)
+    for i in range(0, 7):
+        range_arr.append(2**i)
         #range_arr.append(i)
 
     print(DIVIDER)

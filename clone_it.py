@@ -216,9 +216,9 @@ def main():
         '''
     # このプログラムファイルの名前と同じdirectoryを作り、その中に結果を保存する。
     now = datetime.now().strftime('%Y%m%d%H%M%S')
-    output_path = './output/area_' + now
+    output_root_path = './output/area_' + now
 
-    create_dir(output_path)
+    create_dir(output_root_path)
 
     grid = 'grid'
     colorless = 'colorless'
@@ -229,8 +229,8 @@ def main():
     for max_value in range(20, 500, 10):
         for method_name in method_names:
             # directory_name = input('作成するdirectoryを入力してください>>>>')
-            directory_name = method_name + '_max' + str(max_value) + '_' + now
-            directory_path = LV1_user_make_directory(output_path, directory_name)
+            directory_name = method_name + '_max' + str(max_value)
+            directory_path = LV1_user_make_directory(output_root_path, directory_name)
             # print(directory_path)
 
             # Lv1_targetsに存在する画像ファイル名を取得する。
