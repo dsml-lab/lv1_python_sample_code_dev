@@ -126,13 +126,35 @@ def save_and_show_graph(graph_dir, n_list, acc_list_list):
     plt.close()
 
 
+def calc_diff_area(start_n, end_n, start_height, end_height):
+    rect_area = (end_n - start_n) * start_height
+    triangle_area = ((end_n - start_n) * (end_height - start_height)) / 2
+
+    print(rect_area)
+    print(triangle_area)
+
+    return rect_area + triangle_area
+
+
+def calc_area(n_list, acc_list):
+    sum_value = 0
+
+    for i in range(len(n_list) - 1):
+        sum_value = sum_value + calc_diff_area(start_n=n_list[i],
+                                               end_n=n_list[i + 1],
+                                               start_height=acc_list[i],
+                                               end_height=acc_list[i + 1])
+
+    return sum_value
+
+
 def create_output(target_path, save_path_manager):
     target = LV1TargetClassifier()
     target.load(target_path)
 
     range_arr = []
-    for i in range(1, 7):
-        range_arr.append(3 ** i + 17)
+    for i in range(1, 9):
+        range_arr.append(2 ** i + 17)
         #range_arr.append(i)
 
     print(DIVIDER)
@@ -155,40 +177,19 @@ def create_output(target_path, save_path_manager):
     grid_n_list, grid_acc_list = exe_clone_all(range_arr=range_arr, target=target,
                                                save_path_manager=save_path_manager, method_name=METHOD_NAME_GRID)
 
-    acc_list_list = [(sweeper_acc_list, 'sweeper'),
-                     (grid_acc_list, 'grid'),
-                     (or_acc_list, 'branch')]
+    n_list = grid_n_list
+
+    acc_list_list = [(sweeper_acc_list, 'sweeper_area' + str(calc_area(n_list=n_list,  acc_list=sweeper_acc_list))),
+                     (grid_acc_list, 'grid_area' + str(calc_area(n_list=n_list,  acc_list=grid_acc_list))),
+                     (or_acc_list, 'branch_area' + str(calc_area(n_list=n_list,  acc_list=or_acc_list)))]
 
     save_and_show_graph(
         graph_dir=save_path_manager.save_root_dir,
-        n_list=grid_n_list,
+        n_list=n_list,
         acc_list_list=acc_list_list
     )
 
 
-# def draw_area(accuracy_directory, accuracy_list, method_name, n_list):
-#     # accuracyの面積グラフを作成して保存
-#     area_path = os.path.join(accuracy_directory, method_name + '_accuracy_area.png')
-#     area_features = LV1_user_accuracy_plot(accuracy_list, n_list, area_path)
-#
-#     # 面積のグラフをcutする。
-#     cut_path = area_path.replace('.png', '_cut.png')
-#     area_cut = LV1_user_plot_cut(area_path, cut_path)
-#
-#     # accuracyのぶりつぶされたpixelを数える。
-#     count_path = area_path.replace('.png', '_count.png')
-#     pixel_count, area_size = LV1_user_area_pixel_count(cut_path, count_path)
-#     area_pixel.append(pixel_count)
-#
-#     # accuracyの面積結果を画像で保存する。
-#     text_path = area_path.replace('.png', '_text.png')
-#     area_text = LV1_user_area_count_text(text_path, pixel_count, area_size)
-#     last_size = area_size
-#
-#     print('画像サイズ[', area_size, ']_x[', area_size[0], ']_y[', area_size[1], ']')
-#     print('面積pixel[', pixel_count, ']_割合[', round(pixel_count / (area_size[0] * area_size[1]) * 100, 2), '%]')
-#
-#     return area_size
 
 
 def write_memo(save_path):
