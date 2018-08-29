@@ -47,7 +47,7 @@ def exe_clone(target, exe_n, method_name, path_manager: SavePathManager):
     # クローン認識器を学習
     labels = target.predict(features)
 
-    model = LV1UserDefinedClassifierSVM(n=exe_n)
+    model = LV1UserDefinedClassifierSVM()
     model.fit(features, labels)
     print("\nA clone recognizer was trained.")
 

@@ -309,7 +309,7 @@ def main():
             labels = target.predict(features)
 
             # クローン認識器を学習
-            model = LV1UserDefinedClassifierSVM(n=n)
+            model = LV1UserDefinedClassifierSVM()
             model.fit(features, labels)
 
             # 学習したクローン認識器を可視化し，精度を評価

@@ -10,16 +10,20 @@ from sweeper import Board
 # 下記と同型の fit メソッドと predict メソッドが必要
 class LV1UserDefinedClassifierSVM:
 
-    def __init__(self, n=-1):
-
-        if n > 10:  # ラベル数が2未満だとsvmがエラーになるため
-            self.clf = svm.SVC(C=10, gamma=10)
-        else:
-            self.clf = neighbors.KNeighborsClassifier(n_neighbors=1)
+    def __init__(self):
+        self.svm = svm.SVC(C=10, gamma=10)
+        self.knn1 = neighbors.KNeighborsClassifier(n_neighbors=1)
+        self.clf = None
 
     # クローン認識器の学習
     #   (features, labels): 訓練データ（特徴量とラベルのペアの集合）
     def fit(self, features, labels):
+
+        if len(set(labels)) > 1:  # labelsが2以上ならSVM
+            self.clf = self.svm
+        else:
+            self.clf = self.knn1
+
         self.clf.fit(features, labels)
 
     # 未知の二次元特徴量を認識
@@ -57,6 +61,8 @@ def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n):
     elif n_samples == 1:
         new_board = Board(board_size_x=board_size_x, board_size_y=board_size_y)
 
+        print('n_samples:' + str(n_samples) + ', ' + 'exe_n:' + str(exe_n))
+
         new_features = np.zeros((1, 2))
 
         feature_x, feature_y = new_board.get_optimal_solution()  # 最適解
@@ -73,25 +79,27 @@ def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n):
             return np.float32(new_features), new_board
 
     elif n_samples > 1:
-        old_features, board = lv1_user_function_sampling_sweeper(n_samples=n_samples - 1, target_model=target_model,
+        old_features, old_board = lv1_user_function_sampling_sweeper(n_samples=n_samples - 1, target_model=target_model,
                                                                  exe_n=exe_n)
+
+        print('n_samples:' + str(n_samples) + ', ' + 'exe_n:' + str(exe_n))
 
         new_features = np.zeros((1, 2))
 
-        feature_x, feature_y = board.get_optimal_solution()  # 最適解
+        feature_x, feature_y = old_board.get_optimal_solution()  # 最適解
         new_features[0][0] = feature_x
         new_features[0][1] = feature_y
 
         # target識別器からtargetのラベルを取得
         target_labels = target_model.predict(new_features)
-        board.open_once_feature(feature_x=feature_x, feature_y=feature_y, color=target_labels[-1])
+        old_board.open_once_feature(feature_x=feature_x, feature_y=feature_y, color=target_labels[-1])
 
         features = np.vstack((old_features, new_features))
 
         if n_samples == exe_n:
             return np.float32(features)
         else:
-            return np.float32(features), board
+            return np.float32(features), old_board
 
 
 def lv1_user_function_sampling_sweeper_colorless(n_samples, target_model, exe_n):
@@ -108,6 +116,8 @@ def lv1_user_function_sampling_sweeper_colorless(n_samples, target_model, exe_n)
 
         new_board = Board(board_size_x=board_size_x, board_size_y=board_size_y)
 
+        print('n_samples:' + str(n_samples) + ', ' + 'exe_n:' + str(exe_n))
+
         new_features = np.zeros((1, 2))
 
         feature_x, feature_y = new_board.get_optimal_solution()  # 最適解
@@ -121,13 +131,15 @@ def lv1_user_function_sampling_sweeper_colorless(n_samples, target_model, exe_n)
         old_features = lv1_user_function_sampling_sweeper_colorless(n_samples=n_samples - 1, target_model=target_model,
                                                                     exe_n=exe_n)
 
+        print('n_samples:' + str(n_samples) + ', ' + 'exe_n:' + str(exe_n))
+
         new_board = Board(board_size_x=board_size_x, board_size_y=board_size_y)
 
         # target識別器からtargetのラベルを取得
         target_labels = target_model.predict(old_features)
 
         # clone識別器からcloneのラベルを取得
-        clone = LV1UserDefinedClassifierSVM(n=n_samples)
+        clone = LV1UserDefinedClassifierSVM()
         # 学習
         clone.fit(features=old_features, labels=target_labels)
         clone_labels = clone.predict(features=old_features)

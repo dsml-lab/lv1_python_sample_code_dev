@@ -102,7 +102,6 @@ class Board:
 
     def get_optimal_solution(self):
         self.calc_integrate_positions()
-        self.print()
 
         min_value = np.amin(self.integrate_positions)
         x_arr, y_arr = np.where(self.integrate_positions == min_value)
