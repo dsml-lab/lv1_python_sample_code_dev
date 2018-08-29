@@ -8,7 +8,7 @@ from region import SavePathManager, create_dir, LV1TargetClassifier, DIVIDER
 from sampling import lv1_user_function_sampling
 from sweeper_sampling import lv1_user_function_sampling_sweeper, LV1UserDefinedClassifierSVM, \
     lv1_user_function_sampling_sweeper_colorless, lv1_user_function_sampling_meshgrid_rectangular, \
-    lv1_user_function_sampling_sweeper_pixel, lv1_user_function_sampling_sweeper_or_grid_or_grid_edge
+    lv1_user_function_sampling_sweeper_pixel
 
 METHOD_NAME_REGION = 'lv1_user_function_sampling_region'
 METHOD_NAME_SWEEPER = 'lv1_user_function_sampling_sweeper'
@@ -39,8 +39,8 @@ def get_features(target, exe_n,
     if method_name == METHOD_NAME_RANDOM:
         return lv1_user_function_sampling(n_samples=exe_n)
 
-    if method_name == METHOD_NAME_OR:
-        return lv1_user_function_sampling_sweeper_or_grid_or_grid_edge(n_samples=exe_n, target_model=target)
+    # if method_name == METHOD_NAME_OR:
+    #     return lv1_user_function_sampling_sweeper_or_grid_or_grid_edge(n_samples=exe_n, target_model=target)
 
 
 def exe_clone(target, exe_n, method_name, path_manager: SavePathManager):
@@ -153,7 +153,7 @@ def create_output(target_path, save_path_manager):
     target.load(target_path)
 
     range_arr = []
-    for i in range(0, 7):
+    for i in range(0, 10):
         range_arr.append(2**i)
         #range_arr.append(i)
 
@@ -162,27 +162,23 @@ def create_output(target_path, save_path_manager):
     print(range_arr)
     print(DIVIDER)
 
+    pixel_sweeper_n_list, pixel_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
+                                                                 save_path_manager=save_path_manager,
+                                                                 method_name=METHOD_NAME_SWEEPER_pixel)
+
     sweeper_n_list, sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
                                                      save_path_manager=save_path_manager,
                                                      method_name=METHOD_NAME_SWEEPER)
 
-    # or_n_list, or_acc_list = exe_clone_all(range_arr=range_arr, target=target,
-    #                                                  save_path_manager=save_path_manager,
-    #                                                  method_name=METHOD_NAME_OR)
-
     colorless_sweeper_n_list, colorless_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
                                                                          save_path_manager=save_path_manager,
                                                                          method_name=METHOD_NAME_SWEEPER_COLORLESS)
-
-    grid_n_list, grid_acc_list = exe_clone_all(range_arr=range_arr, target=target,
-                                               save_path_manager=save_path_manager, method_name=METHOD_NAME_GRID)
-
-    n_list = grid_n_list
+    n_list = sweeper_acc_list
 
     acc_list_list = [(sweeper_acc_list, 'sweeper_area' + str(calc_area(n_list=n_list,  acc_list=sweeper_acc_list))),
                      (colorless_sweeper_acc_list, 'colorless_area' + str(calc_area(n_list=n_list, acc_list=colorless_sweeper_acc_list))),
-                     (grid_acc_list, 'grid_area' + str(calc_area(n_list=n_list,  acc_list=grid_acc_list)))]
-                     # (or_acc_list, 'branch_area' + str(calc_area(n_list=n_list,  acc_list=or_acc_list)))]
+                     (pixel_sweeper_acc_list, 'pixel_area' + str(calc_area(n_list=n_list, acc_list=pixel_sweeper_acc_list))),
+                     ]
 
     save_and_show_graph(
         graph_dir=save_path_manager.save_root_dir,

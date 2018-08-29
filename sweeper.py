@@ -11,7 +11,7 @@ def get_distribution(x_size, y_size):
 
     def calc(x, y):
         r = x ** 2 + y ** 2
-        return int(np.exp(-r) * (size / 2))
+        return np.exp(-r) * (size / 2)
 
     x0 = np.linspace(-2, 2, x_size)
     x1 = np.linspace(-2, 2, y_size)
@@ -78,7 +78,7 @@ class Board:
         trimming_distribution_arr = distribution_arr[self.board_size_x - x:self.board_size_x * 2 - x,
                                     self.board_size_y - y:self.board_size_y * 2 - y]
 
-        self.positions[color] = self.positions[color] + trimming_distribution_arr / 10000
+        self.positions[color] = self.positions[color] - trimming_distribution_arr
         self.positions[color][x, y] += OPENED
         self.sampling_points_all[x, y] = False
 
