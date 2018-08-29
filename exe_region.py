@@ -170,9 +170,9 @@ def create_output(target_path, save_path_manager):
                                                      save_path_manager=save_path_manager,
                                                      method_name=METHOD_NAME_OR)
 
-    # colorless_sweeper_n_list, colorless_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
-    #                                                                      save_path_manager=save_path_manager,
-    #                                                                      method_name=METHOD_NAME_SWEEPER_COLORLESS)
+    colorless_sweeper_n_list, colorless_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
+                                                                         save_path_manager=save_path_manager,
+                                                                         method_name=METHOD_NAME_SWEEPER_COLORLESS)
 
     grid_n_list, grid_acc_list = exe_clone_all(range_arr=range_arr, target=target,
                                                save_path_manager=save_path_manager, method_name=METHOD_NAME_GRID)
@@ -180,6 +180,7 @@ def create_output(target_path, save_path_manager):
     n_list = grid_n_list
 
     acc_list_list = [(sweeper_acc_list, 'sweeper_area' + str(calc_area(n_list=n_list,  acc_list=sweeper_acc_list))),
+                     (colorless_sweeper_acc_list, 'colorless_area' + str(calc_area(n_list=n_list, acc_list=colorless_sweeper_acc_list))),
                      (grid_acc_list, 'grid_area' + str(calc_area(n_list=n_list,  acc_list=grid_acc_list))),
                      (or_acc_list, 'branch_area' + str(calc_area(n_list=n_list,  acc_list=or_acc_list)))]
 

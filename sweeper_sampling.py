@@ -165,7 +165,7 @@ def lv1_user_function_sampling_sweeper_pixel(n_samples, target_model, exe_n, bef
 
     elif n_samples > 1:
         old_features, old_board = lv1_user_function_sampling_sweeper_pixel(n_samples=n_samples - 1, target_model=target_model,
-                                                                 exe_n=exe_n)
+                                                                 exe_n=exe_n, before_features=before_features)
 
         print('n_samples:' + str(n_samples) + ', ' + 'exe_n:' + str(exe_n))
 
@@ -189,8 +189,8 @@ def lv1_user_function_sampling_sweeper_pixel(n_samples, target_model, exe_n, bef
 
 
 def lv1_user_function_sampling_sweeper_colorless(n_samples, target_model, exe_n):
-    board_size_x = math.ceil(math.sqrt(exe_n))
-    board_size_y = math.ceil(math.sqrt(exe_n))
+    board_size_x = math.ceil(math.sqrt(exe_n)) + 2
+    board_size_y = math.ceil(math.sqrt(exe_n)) + 2
 
     if n_samples < 0:
         raise ValueError
@@ -251,21 +251,21 @@ def lv1_user_function_sampling_sweeper_colorless(n_samples, target_model, exe_n)
 
 
 def lv1_user_function_sampling_sweeper_or_grid_or_grid_edge(n_samples, target_model):
-    small_threshold = 32
-    large_threshold = 256
+    small_threshold = 20
+    large_threshold = 100
 
     if small_threshold > n_samples:
         return lv1_user_function_sampling_sweeper_colorless(n_samples=n_samples, exe_n=n_samples, target_model=target_model)
     elif large_threshold > n_samples:
         return lv1_user_function_sampling_meshgrid_rectangular(n_samples=n_samples)
     else:
-        edge_n_samples = n_samples - large_threshold
-        grid_n_samples = large_threshold
+        # edge_n_samples = n_samples - large_threshold
+        # grid_n_samples = large_threshold
+        #
+        # grid_features = lv1_user_function_sampling_meshgrid_rectangular(n_samples=grid_n_samples)
+        # edge_features = lv1_user_function_sampling_sweeper_pixel(n_samples=edge_n_samples, exe_n=edge_n_samples, target_model=target_model, before_features=grid_features)
+        #
+        # return np.vstack((edge_features, grid_features))
 
-        grid_features = lv1_user_function_sampling_meshgrid_rectangular(n_samples=grid_n_samples)
-        edge_features = lv1_user_function_sampling_sweeper_pixel(n_samples=edge_n_samples, exe_n=edge_n_samples, target_model=target_model, before_features=grid_features)
-
-        return np.vstack((edge_features, grid_features))
-
-        # return lv1_user_function_sampling_sweeper_colorless(n_samples=n_samples, exe_n=n_samples, target_model=target_model)
+        return lv1_user_function_sampling_sweeper_colorless(n_samples=n_samples, exe_n=n_samples, target_model=target_model)
 

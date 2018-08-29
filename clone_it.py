@@ -19,9 +19,8 @@ from statistics import mean, median, variance, stdev
 # ターゲット認識器を表現するクラス
 # ターゲット認識器は2次元パターン（512x512の画像）で与えられるものとする
 from region import SVMC10gamma10, KNN1, LV1UserDefinedClassifier, KNN3, KNN5, KNN7
-from sampling import lv1_user_function_sampling_meshgrid_rectangular
 from sweeper_sampling import lv1_user_function_sampling_sweeper_colorless, lv1_user_function_sampling_sweeper, \
-    LV1UserDefinedClassifierSVM
+    LV1UserDefinedClassifierSVM, lv1_user_function_sampling_meshgrid_rectangular
 
 
 class LV1_TargetClassifier:
@@ -145,7 +144,7 @@ def LV1_user_area_count_text(path, pixel_count, area_size):
 
 
 # accuacyの面積の計算結果を画像で保存する。
-def LV1_user_area_statistics(path, area_pixel, label, size):
+def LV1_user_area_statistics(path, area_pixel, label, size, title):
     fig = plt.figure()
     # ax1にclassifier毎のAccuracy面積のグラフ
     ax1 = fig.add_subplot(2, 1, 1)
@@ -153,7 +152,7 @@ def LV1_user_area_statistics(path, area_pixel, label, size):
     pixel = [round(i / (size[0] * size[1]), 1) for i in area_pixel]
     plt.plot(np.array(range(len(pixel))), pixel)
     plt.plot(np.array(range(len(pixel))), pixel, 'o')
-    # plt.title(path.split('/')[2] + '_statistics')
+    plt.title(title)
     plt.xlabel('n_classifier')
     plt.xticks(np.array(range(len(pixel))), label)
     plt.ylabel('pixel')
@@ -217,137 +216,139 @@ def main():
         '''
     # このプログラムファイルの名前と同じdirectoryを作り、その中に結果を保存する。
     path = './output'
-    print('※このプログラムファイルの名前と同じdirectoryを作成することをおすすめします。※')
-    directory_name = input('作成するdirectoryを入力してください>>>>')
-    # directory_name = datetime.now().strftime('%Y%m%d%H%M%S')
-    directory_path = LV1_user_make_directory(path, directory_name)
-    # print(directory_path)
-
-    # Lv1_targetsに存在する画像ファイル名を取得する。
-    path = './lv1_targets'
-    target_image = LV1_user_load_directory(path)
-    # print(target_image)
-
-    target_image.sort()
-    print(target_image)
-
-    # ターゲット認識器を用意
-    target = LV1_TargetClassifier()
-
-    # 面積のpixel数を格納するlist
-    area_pixel = []
-    last_size = 0
-    target_name = []
-
-    classifier_type = SVMC10gamma10
 
     grid = 'grid'
     colorless = 'colorless'
     sweeper = 'sweeper'
 
-    method_name = input('メソッド名')
-    write_memo(directory_path, method_name)
+    now = datetime.now().strftime('%Y%m%d%H%M%S')
 
-    # target.load(load_path)をLv1_targetsに含まれる画像毎に指定する。
-    for i in target_image:
-        # 全部のtargetsをやりたくないときはここをいじって。
-        # if i.split('/')[-1].replace('.png','') == 'classifier_03':break
-        target_name.append(i.split('/')[-1].split('_')[-1].replace('.png', ''))
-        target.load(i)
+    method_names = [grid, colorless, sweeper]
 
-        # 入力したdirectoryにtarget_image毎のdirectoryを作成する。
-        target_directory = LV1_user_make_directory(directory_path, i.split('/')[-1].replace('.png', ''))
-        # print(target_directory)
+    for max_value in range(20, 500, 10):
+        for method_name in method_names:
+            # directory_name = input('作成するdirectoryを入力してください>>>>')
+            directory_name = method_name + '_max' + str(max_value) + '_' + now
+            directory_path = LV1_user_make_directory(path, directory_name)
+            # print(directory_path)
 
-        # 学習したクローン認識器を可視化した画像を保存するためのファイルを作成。
-        clone_image_directory = LV1_user_make_directory(target_directory, 'clone_image')
-        # print(clone_image_directory)
+            # Lv1_targetsに存在する画像ファイル名を取得する。
+            path = './lv1_targets'
+            target_image = LV1_user_load_directory(path)
+            # print(target_image)
 
-        # accuracyの結果を保存するフォルダを作成する。
-        accuracy_directory = LV1_user_make_directory(target_directory, 'accuracy_area')
-        # print(accuracy_directory)
+            target_image.sort()
+            print(target_image)
 
-        # ターゲット認識器への入力として用いる二次元特徴量を用意
-        # このサンプルコードではひとまず1000サンプルを用意することにする
-        # Nごとのaccuracyを格納する配列を用意する。面積を計算するため。
-        accuracy_list = []
+            # ターゲット認識器を用意
+            target = LV1_TargetClassifier()
 
-        # Nにサンプル数の配列を指定する。
-        # ↓N=[1,100]は実行時間を短くしたために書いてます。
-        # ↓間隔を自分で試したい場合はいじってください。下記の[1~10000]の配列を使う場合はコメントして。
-        # N = [1,100]
-        # ↓[1,100,200,･･･,10000]までを100間隔でおいた配列がコメントを外すと生成されます。
+            # 面積のpixel数を格納するlist
+            area_pixel = []
+            last_size = 0
+            target_name = []
 
-        # N1 = np.array([1])
-        # N2 = np.arange(100, 1001, 100)
-        # N = np.hstack((N1, N2))
 
-        # N1 = np.arange(1, 10, 1)
-        # N2 = np.arange(10, 100, 10)
-        # N3 = np.arange(100, 1001, 100)
-        # N = np.hstack((N1, N2))
-        # N = np.hstack((N, N3))
+            # target.load(load_path)をLv1_targetsに含まれる画像毎に指定する。
+            for i in target_image:
+                # 全部のtargetsをやりたくないときはここをいじって。
+                # if i.split('/')[-1].replace('.png','') == 'classifier_03':break
+                target_name.append(i.split('/')[-1].split('_')[-1].replace('.png', ''))
+                target.load(i)
 
-        n1 = np.array([1])
-        n2 = np.arange(10, 110, 10)
-        N = np.hstack((n1, n2))
-        print(N)
+                # 入力したdirectoryにtarget_image毎のdirectoryを作成する。
+                target_directory = LV1_user_make_directory(directory_path, i.split('/')[-1].replace('.png', ''))
+                # print(target_directory)
 
-        for n in N:
-            start = time.time()
+                # 学習したクローン認識器を可視化した画像を保存するためのファイルを作成。
+                clone_image_directory = LV1_user_make_directory(target_directory, 'clone_image')
+                # print(clone_image_directory)
 
-            if method_name == grid:
-                features = lv1_user_function_sampling_meshgrid_rectangular(n_samples=n)
-            elif method_name == colorless:
-                features = lv1_user_function_sampling_sweeper(n_samples=n, target_model=target, exe_n=n)
-            elif method_name == sweeper:
-                features = lv1_user_function_sampling_sweeper_colorless(n_samples=n, target_model=target, exe_n=n)
-            else:
-                ValueError
+                # accuracyの結果を保存するフォルダを作成する。
+                accuracy_directory = LV1_user_make_directory(target_directory, 'accuracy_area')
+                # print(accuracy_directory)
 
-            # ターゲット認識器に用意した入力特徴量を入力し，各々に対応するクラスラベルIDを取得
-            labels = target.predict(features)
+                # ターゲット認識器への入力として用いる二次元特徴量を用意
+                # このサンプルコードではひとまず1000サンプルを用意することにする
+                # Nごとのaccuracyを格納する配列を用意する。面積を計算するため。
+                accuracy_list = []
 
-            # クローン認識器を学習
-            model = LV1UserDefinedClassifierSVM()
-            model.fit(features, labels)
+                # Nにサンプル数の配列を指定する。
+                # ↓N=[1,100]は実行時間を短くしたために書いてます。
+                # ↓間隔を自分で試したい場合はいじってください。下記の[1~10000]の配列を使う場合はコメントして。
+                # N = [1,100]
+                # ↓[1,100,200,･･･,10000]までを100間隔でおいた配列がコメントを外すと生成されます。
 
-            # 学習したクローン認識器を可視化し，精度を評価
-            evaluator = LV1_Evaluator()
-            # 可視化した画像を保存。
-            output_path = clone_image_directory + '/' + directory_name + '_[output_(' + str(n) + ')].png'
-            evaluator.visualize_missing(model=model, filename=output_path, features=features, target=target)
+                # N1 = np.array([1])
+                # N2 = np.arange(100, 1001, 100)
+                # N = np.hstack((N1, N2))
 
-            # accuracyを配列に格納。
-            accuracy = evaluator.calc_accuracy(target, model)
-            accuracy_list.append(accuracy)
+                # N1 = np.arange(1, 10, 1)
+                # N2 = np.arange(10, 100, 10)
+                # N3 = np.arange(100, 1001, 100)
+                # N = np.hstack((N1, N2))
+                # N = np.hstack((N, N3))
 
-            end = time.time()
-            print('終了:', i.split('/')[2].replace('.png', ''), '_(', n, ')[', round((end - start), 2), '(sec)]')
+                n1 = np.array([1])
+                n2 = np.arange(10, max_value, 10)
+                N = np.hstack((n1, n2))
+                print(N)
 
-        # accuracyの面積グラフを作成して保存
-        area_path = accuracy_directory + '/' + directory_name + '_(accuracy_area).png'
-        area_features = LV1_user_accuracy_plot(accuracy_list, N, area_path)
+                for n in N:
+                    start = time.time()
 
-        # 面積のグラフをcutする。
-        cut_path = area_path.replace('.png', '_cut.png')
-        area_cut = LV1_user_plot_cut(area_path, cut_path)
+                    if method_name == grid:
+                        features = lv1_user_function_sampling_meshgrid_rectangular(n_samples=n)
+                    elif method_name == colorless:
+                        features = lv1_user_function_sampling_sweeper(n_samples=n, target_model=target, exe_n=n)
+                    elif method_name == sweeper:
+                        features = lv1_user_function_sampling_sweeper_colorless(n_samples=n, target_model=target, exe_n=n)
+                    else:
+                        raise ValueError
 
-        # accuracyのぶりつぶされたpixelを数える。
-        count_path = area_path.replace('.png', '_count.png')
-        pixel_count, area_size = LV1_user_area_pixel_count(cut_path, count_path)
-        area_pixel.append(pixel_count)
+                    # ターゲット認識器に用意した入力特徴量を入力し，各々に対応するクラスラベルIDを取得
+                    labels = target.predict(features)
 
-        # accuracyの面積結果を画像で保存する。
-        text_path = area_path.replace('.png', '_text.png')
-        area_text = LV1_user_area_count_text(text_path, pixel_count, area_size)
-        last_size = area_size
+                    # クローン認識器を学習
+                    model = LV1UserDefinedClassifierSVM()
+                    model.fit(features, labels)
 
-        print('画像サイズ[', area_size, ']_x[', area_size[0], ']_y[', area_size[1], ']')
-        print('面積pixel[', pixel_count, ']_割合[', round(pixel_count / (area_size[0] * area_size[1]) * 100, 2), '%]')
+                    # 学習したクローン認識器を可視化し，精度を評価
+                    evaluator = LV1_Evaluator()
+                    # 可視化した画像を保存。
+                    output_path = clone_image_directory + '/' + directory_name + '_[output_(' + str(n) + ')].png'
+                    evaluator.visualize_missing(model=model, filename=output_path, features=features, target=target)
 
-    statistics_path = directory_path + '/' + directory_name + '_(statistics).png'
-    statistics = LV1_user_area_statistics(statistics_path, area_pixel, target_name, last_size)
+                    # accuracyを配列に格納。
+                    accuracy = evaluator.calc_accuracy(target, model)
+                    accuracy_list.append(accuracy)
+
+                    end = time.time()
+                    print('終了:', i.split('/')[2].replace('.png', ''), '_(', n, ')[', round((end - start), 2), '(sec)]')
+
+                # accuracyの面積グラフを作成して保存
+                area_path = accuracy_directory + '/' + directory_name + '_(accuracy_area).png'
+                area_features = LV1_user_accuracy_plot(accuracy_list, N, area_path)
+
+                # 面積のグラフをcutする。
+                cut_path = area_path.replace('.png', '_cut.png')
+                area_cut = LV1_user_plot_cut(area_path, cut_path)
+
+                # accuracyのぶりつぶされたpixelを数える。
+                count_path = area_path.replace('.png', '_count.png')
+                pixel_count, area_size = LV1_user_area_pixel_count(cut_path, count_path)
+                area_pixel.append(pixel_count)
+
+                # accuracyの面積結果を画像で保存する。
+                text_path = area_path.replace('.png', '_text.png')
+                area_text = LV1_user_area_count_text(text_path, pixel_count, area_size)
+                last_size = area_size
+
+                print('画像サイズ[', area_size, ']_x[', area_size[0], ']_y[', area_size[1], ']')
+                print('面積pixel[', pixel_count, ']_割合[', round(pixel_count / (area_size[0] * area_size[1]) * 100, 2), '%]')
+
+            statistics_path = directory_path + '/' + directory_name + '_(statistics).png'
+            statistics = LV1_user_area_statistics(statistics_path, area_pixel, target_name, last_size, title=method_name)
 
 
 # クローン処理の実行
