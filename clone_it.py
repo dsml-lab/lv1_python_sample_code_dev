@@ -215,13 +215,14 @@ def main():
             exit(0)
         '''
     # このプログラムファイルの名前と同じdirectoryを作り、その中に結果を保存する。
-    path = './output'
+    now = datetime.now().strftime('%Y%m%d%H%M%S')
+    output_path = './output/area_' + now
+
+    create_dir(output_path)
 
     grid = 'grid'
     colorless = 'colorless'
     sweeper = 'sweeper'
-
-    now = datetime.now().strftime('%Y%m%d%H%M%S')
 
     method_names = [grid, colorless, sweeper]
 
@@ -229,7 +230,7 @@ def main():
         for method_name in method_names:
             # directory_name = input('作成するdirectoryを入力してください>>>>')
             directory_name = method_name + '_max' + str(max_value) + '_' + now
-            directory_path = LV1_user_make_directory(path, directory_name)
+            directory_path = LV1_user_make_directory(output_path, directory_name)
             # print(directory_path)
 
             # Lv1_targetsに存在する画像ファイル名を取得する。
@@ -290,7 +291,7 @@ def main():
                 # N = np.hstack((N, N3))
 
                 n1 = np.array([1])
-                n2 = np.arange(10, max_value, 10)
+                n2 = np.arange(10, max_value + 1, int(max_value / 10))
                 N = np.hstack((n1, n2))
                 print(N)
 

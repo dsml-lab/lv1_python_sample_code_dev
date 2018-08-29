@@ -119,7 +119,7 @@ def save_and_show_graph(graph_dir, n_list, acc_list_list):
     plt.ylabel("Accuracy")
     plt.grid(True)
     plt.ylim(0, 1)
-    # plt.xscale('log')
+    plt.xscale('log', basex=2)
     plt.legend()
     plt.savefig(os.path.join(graph_dir, 'n_accuracy.png'))
     plt.show()
@@ -153,8 +153,8 @@ def create_output(target_path, save_path_manager):
     target.load(target_path)
 
     range_arr = []
-    for i in range(1, 9):
-        range_arr.append(2 ** i + 17)
+    for i in range(1, 7):
+        range_arr.append(2 ** i)
         #range_arr.append(i)
 
     print(DIVIDER)
@@ -166,9 +166,9 @@ def create_output(target_path, save_path_manager):
                                                      save_path_manager=save_path_manager,
                                                      method_name=METHOD_NAME_SWEEPER)
 
-    or_n_list, or_acc_list = exe_clone_all(range_arr=range_arr, target=target,
-                                                     save_path_manager=save_path_manager,
-                                                     method_name=METHOD_NAME_OR)
+    # or_n_list, or_acc_list = exe_clone_all(range_arr=range_arr, target=target,
+    #                                                  save_path_manager=save_path_manager,
+    #                                                  method_name=METHOD_NAME_OR)
 
     colorless_sweeper_n_list, colorless_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
                                                                          save_path_manager=save_path_manager,
@@ -181,8 +181,8 @@ def create_output(target_path, save_path_manager):
 
     acc_list_list = [(sweeper_acc_list, 'sweeper_area' + str(calc_area(n_list=n_list,  acc_list=sweeper_acc_list))),
                      (colorless_sweeper_acc_list, 'colorless_area' + str(calc_area(n_list=n_list, acc_list=colorless_sweeper_acc_list))),
-                     (grid_acc_list, 'grid_area' + str(calc_area(n_list=n_list,  acc_list=grid_acc_list))),
-                     (or_acc_list, 'branch_area' + str(calc_area(n_list=n_list,  acc_list=or_acc_list)))]
+                     (grid_acc_list, 'grid_area' + str(calc_area(n_list=n_list,  acc_list=grid_acc_list)))]
+                     # (or_acc_list, 'branch_area' + str(calc_area(n_list=n_list,  acc_list=or_acc_list)))]
 
     save_and_show_graph(
         graph_dir=save_path_manager.save_root_dir,
