@@ -76,10 +76,7 @@ def lv1_user_function_sampling_meshgrid_rectangular(n_samples):
     return np.float32(features)
 
 
-def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n):
-    board_size_x = math.ceil(math.sqrt(exe_n))
-    board_size_y = math.ceil(math.sqrt(exe_n))
-
+def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n, board_size_x, board_size_y):
     if n_samples < 0:
         raise ValueError
 
@@ -108,7 +105,8 @@ def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n):
 
     elif n_samples > 1:
         old_features, old_board = lv1_user_function_sampling_sweeper(n_samples=n_samples - 1, target_model=target_model,
-                                                                     exe_n=exe_n)
+                                                                     exe_n=exe_n, board_size_x=board_size_x,
+                                                                     board_size_y=board_size_y)
 
         print('n_samples:' + str(n_samples) + ', ' + 'exe_n:' + str(exe_n))
 
@@ -131,7 +129,7 @@ def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n):
 
 
 def lv1_user_function_sampling_sweeper_pixel(n_samples, target_model, exe_n):
-    if exe_n < 256*256:
+    if exe_n < 256 * 256:
         board_size_x = 256
         board_size_y = 256
     else:
@@ -189,9 +187,7 @@ def lv1_user_function_sampling_sweeper_pixel(n_samples, target_model, exe_n):
             return np.float32(features), old_board
 
 
-def lv1_user_function_sampling_sweeper_colorless(n_samples, target_model, exe_n):
-    board_size_x = math.ceil(math.sqrt(exe_n))
-    board_size_y = math.ceil(math.sqrt(exe_n))
+def lv1_user_function_sampling_sweeper_colorless(n_samples, target_model, exe_n, board_size_x, board_size_y):
 
     if n_samples < 0:
         raise ValueError
@@ -216,7 +212,7 @@ def lv1_user_function_sampling_sweeper_colorless(n_samples, target_model, exe_n)
     elif n_samples > 1:
 
         old_features = lv1_user_function_sampling_sweeper_colorless(n_samples=n_samples - 1, target_model=target_model,
-                                                                    exe_n=exe_n)
+                                                                    exe_n=exe_n, board_size_x=board_size_x, board_size_y=board_size_y)
 
         print('n_samples:' + str(n_samples) + ', ' + 'exe_n:' + str(exe_n))
 
@@ -252,10 +248,35 @@ def lv1_user_function_sampling_sweeper_colorless(n_samples, target_model, exe_n)
 
 
 def lv1_user_function_sampling_sweeper_start(n_samples, target_model):
-    threshold = 64
+    small_threshold = 32
+    large_threshold = 512
 
-    if threshold > n_samples:
-        return lv1_user_function_sampling_sweeper(n_samples=n_samples, exe_n=n_samples, target_model=target_model)
+    if n_samples < 128**2:
+        virtual_image_size = 128
+    elif n_samples < 256**2:
+        virtual_image_size = 256
     else:
-        return lv1_user_function_sampling_sweeper_colorless(n_samples=n_samples, exe_n=n_samples,
-                                                            target_model=target_model)
+        virtual_image_size = 512
+
+    if n_samples < small_threshold:
+        return lv1_user_function_sampling_sweeper(n_samples=n_samples, exe_n=n_samples, target_model=target_model,
+                                                  board_size_x=virtual_image_size, board_size_y=virtual_image_size)
+    elif small_threshold <= n_samples:
+        return lv1_user_function_sampling_sweeper(n_samples=n_samples, exe_n=n_samples, target_model=target_model,
+                                                  board_size_x=math.ceil(math.sqrt(n_samples)) + 10,
+                                                  board_size_y=math.ceil(math.sqrt(n_samples)) + 10)
+    else:
+        grid_n_samples = n_samples / 2
+        edge_n_samples = n_samples - grid_n_samples
+
+        edge_features = lv1_user_function_sampling_sweeper_colorless(n_samples=edge_n_samples, exe_n=edge_n_samples,
+                                                           target_model=target_model,
+                                                           board_size_x=virtual_image_size,
+                                                           board_size_y=virtual_image_size)
+
+        grid_features = lv1_user_function_sampling_sweeper(n_samples=grid_n_samples, exe_n=grid_n_samples,
+                                                           target_model=target_model,
+                                                           board_size_x=math.ceil(math.sqrt(n_samples)),
+                                                           board_size_y=math.ceil(math.sqrt(n_samples)))
+
+        return np.vstack((edge_features, grid_features))

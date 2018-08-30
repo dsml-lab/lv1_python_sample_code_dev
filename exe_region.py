@@ -1,3 +1,5 @@
+import math
+
 import os
 
 from datetime import datetime
@@ -8,7 +10,7 @@ from region import SavePathManager, create_dir, LV1TargetClassifier, DIVIDER
 from sampling import lv1_user_function_sampling
 from sweeper_sampling import lv1_user_function_sampling_sweeper, LV1UserDefinedClassifierSVM, \
     lv1_user_function_sampling_sweeper_colorless, lv1_user_function_sampling_meshgrid_rectangular, \
-    lv1_user_function_sampling_sweeper_pixel
+    lv1_user_function_sampling_sweeper_pixel, lv1_user_function_sampling_sweeper_start
 
 METHOD_NAME_REGION = 'lv1_user_function_sampling_region'
 METHOD_NAME_SWEEPER = 'lv1_user_function_sampling_sweeper'
@@ -25,10 +27,10 @@ def get_features(target, exe_n,
                  method_name
                  ):
     if method_name == METHOD_NAME_SWEEPER_COLORLESS:
-        return lv1_user_function_sampling_sweeper_colorless(n_samples=exe_n, target_model=target, exe_n=exe_n)
+        return lv1_user_function_sampling_sweeper_colorless(n_samples=exe_n, target_model=target,exe_n=exe_n, board_size_x=math.ceil(math.sqrt(exe_n)), board_size_y=math.ceil(math.sqrt(exe_n)))
 
     if method_name == METHOD_NAME_SWEEPER:
-        return lv1_user_function_sampling_sweeper(n_samples=exe_n, target_model=target, exe_n=exe_n)
+        return lv1_user_function_sampling_sweeper(n_samples=exe_n, target_model=target, exe_n=exe_n, board_size_x=math.ceil(math.sqrt(exe_n)), board_size_y=math.ceil(math.sqrt(exe_n)))
 
     if method_name == METHOD_NAME_SWEEPER_pixel:
         return lv1_user_function_sampling_sweeper_pixel(n_samples=exe_n, target_model=target, exe_n=exe_n)
@@ -39,8 +41,8 @@ def get_features(target, exe_n,
     if method_name == METHOD_NAME_RANDOM:
         return lv1_user_function_sampling(n_samples=exe_n)
 
-    # if method_name == METHOD_NAME_OR:
-    #     return lv1_user_function_sampling_sweeper_or_grid_or_grid_edge(n_samples=exe_n, target_model=target)
+    if method_name == METHOD_NAME_OR:
+        return lv1_user_function_sampling_sweeper_start(n_samples=exe_n, target_model=target)
 
 
 def exe_clone(target, exe_n, method_name, path_manager: SavePathManager):
@@ -76,11 +78,11 @@ def exe_clone(target, exe_n, method_name, path_manager: SavePathManager):
 
 
 def exe_clone_one():
-    n = 1000
-    method_name = METHOD_NAME_SWEEPER_pixel
+    n = 111
+    method_name = METHOD_NAME_GRID
 
     now_str = datetime.now().strftime('%Y%m%d%H%M%S')
-    target_path = 'lv1_targets/classifier_01.png'
+    target_path = 'lv1_targets/classifier_07.png'
 
     save_path_manager = SavePathManager(save_root_dir='output/' + now_str)
 
@@ -173,7 +175,7 @@ def create_output(target_path, save_path_manager):
     colorless_sweeper_n_list, colorless_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
                                                                          save_path_manager=save_path_manager,
                                                                          method_name=METHOD_NAME_SWEEPER_COLORLESS)
-    n_list = sweeper_acc_list
+    n_list = sweeper_n_list
 
     acc_list_list = [(sweeper_acc_list, 'sweeper_area' + str(calc_area(n_list=n_list,  acc_list=sweeper_acc_list))),
                      (colorless_sweeper_acc_list, 'colorless_area' + str(calc_area(n_list=n_list, acc_list=colorless_sweeper_acc_list))),
@@ -229,4 +231,4 @@ def exe_all_images():
 
 
 if __name__ == '__main__':
-    exe_all_images()
+    exe_clone_one()

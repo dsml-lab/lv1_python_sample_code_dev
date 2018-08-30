@@ -3,15 +3,16 @@ import random
 
 np.set_printoptions(suppress=True)
 LABEL_SIZE = 10
-OPENED = 1000
+OPENED = 0
 
 
+# 中心を最小の値として中心から遠ざかるほど値が大きくなる2次元配列を返すメソッド
 def get_distribution(x_size, y_size):
     size = (x_size + y_size) / 2
 
     def calc(x, y):
         r = x ** 2 + y ** 2
-        return np.exp(-r) * (size / 2)
+        return int(np.exp(-r) * (size / 2))
 
     x0 = np.linspace(-2, 2, x_size)
     x1 = np.linspace(-2, 2, y_size)
@@ -19,6 +20,16 @@ def get_distribution(x_size, y_size):
     for i0 in range(x_size):
         for i1 in range(y_size):
             arr[i1, i0] = calc(x0[i0], x1[i1])
+
+    print(arr)
+
+    ones_arr = np.ones((x_size, y_size))
+    zero_points = arr == 0
+    print()
+
+    arr = np.where(zero_points, ones_arr, arr)
+
+    arr = ones_arr / arr
 
     return arr
 
@@ -61,52 +72,41 @@ class Board:
     # 点を開示
     def open_once(self, x, y, color):
         # 近傍の点のx,yからの距離を算出
-        # 中心を最大の値として中心から遠ざかるほど値が小さくなる2次元配列を作る
+        # 中心を最小の値として中心から遠ざかるほど値が大きくなる2次元配列を作る
         distribution_arr = get_distribution(x_size=self.board_size_x * 2 + 1, y_size=self.board_size_y * 2 + 1)
         trimming_distribution_arr = distribution_arr[self.board_size_x - x:self.board_size_x * 2 - x,
                                     self.board_size_y - y:self.board_size_y * 2 - y]
 
         self.positions[color] = self.positions[color] + trimming_distribution_arr
-        self.positions[color][x, y] += OPENED
+        self.positions[color][x, y] = OPENED
         self.sampling_points_all[x, y] = False
 
-    # 点を開示
+    # 点を開示　サンプリング有効度が高い
     def open_once_colorless(self, x, y, color):
-        # 近傍の点のx,yからの距離を算出
-        # 中心を最大の値として中心から遠ざかるほど値が小さくなる2次元配列を作る
+        print('target and clone are not match')
+        # 中心を最小の値として中心から遠ざかるほど値が大きくなる2次元配列を作る
         distribution_arr = get_distribution(x_size=self.board_size_x * 2 + 1, y_size=self.board_size_y * 2 + 1)
         trimming_distribution_arr = distribution_arr[self.board_size_x - x:self.board_size_x * 2 - x,
                                     self.board_size_y - y:self.board_size_y * 2 - y]
 
-        self.positions[color] = self.positions[color] - trimming_distribution_arr
-        self.positions[color][x, y] += OPENED
-        self.sampling_points_all[x, y] = False
+        self.positions[color] = self.positions[color] + trimming_distribution_arr * 10
 
-    def print(self):
-        print('サンプリング点')
-        print(self.sampling_points_all)
-        print('------------')
-        print('総合的な分布')
-        self.calc_integrate_positions()
-        print(self.integrate_positions)
-        print('------------')
+        self.positions[color][x, y] = OPENED
+        self.sampling_points_all[x, y] = False
 
     def calc_integrate_positions(self):
         arr = np.zeros((self.board_size_x, self.board_size_y))
 
         for i in range(LABEL_SIZE):
-            arr = np.absolute(arr - self.positions[i])
+            arr = arr + self.positions[i]
 
-        max_value = np.amax(arr) + 1
-        max_arr = np.full((self.board_size_x, self.board_size_y), max_value)
-
-        self.integrate_positions = np.where(self.sampling_points_all, arr, max_arr)
+        self.integrate_positions = arr
 
     def get_optimal_solution(self):
         self.calc_integrate_positions()
 
-        min_value = np.amin(self.integrate_positions)
-        x_arr, y_arr = np.where(self.integrate_positions == min_value)
+        max_value = np.amax(self.integrate_positions)
+        x_arr, y_arr = np.where(self.integrate_positions == max_value)
 
         x_y_arr = list(zip(x_arr, y_arr))
         random.shuffle(x_y_arr)
