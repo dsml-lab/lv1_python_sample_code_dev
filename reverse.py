@@ -12,6 +12,7 @@ class OseroBoard:
         self.board_size_y = board_size_y
         self.positions = np.zeros((LABEL_SIZE, board_size_x, board_size_y))
         self.sampling_points = np.full((LABEL_SIZE, board_size_x, board_size_y), True)
+        self.sampling_points_all = np.full((board_size_x, board_size_y), True)
         self.max_position_x = board_size_x - 1
         self.max_position_y = board_size_y - 1
 
@@ -37,6 +38,7 @@ class OseroBoard:
     # 点を開示
     def open_once(self, x, y, color):
         self.sampling_points[color][x, y] = False
+        self.sampling_points_all[x, y] = False
 
         for l in range(LABEL_SIZE):
             for x in range(self.board_size_x):
@@ -58,10 +60,14 @@ class OseroBoard:
         for l in range(LABEL_SIZE):
              arr = arr + self.positions[l]
 
+        one_arr = np.ones((self.board_size_x, self.board_size_y))
+        arr = np.where(self.sampling_points_all, arr, one_arr)
+
         return arr
 
     def get_optimal_solution(self):
         integrate_arr = self.calc_integrate_positions()
+        print(integrate_arr)
 
         max_value = np.amax(integrate_arr)
 
@@ -72,11 +78,16 @@ class OseroBoard:
             random.shuffle(x_y_arr)
 
             index = random.randrange(len(x_y_arr))
-
             select_x, select_y = x_y_arr[index]
+            return self.mapping_feature_x_y(select_x, select_y)
+        else:
+            x_arr, y_arr = np.where(integrate_arr == 0)
 
-            self.info()
+            x_y_arr = list(zip(x_arr, y_arr))
+            random.shuffle(x_y_arr)
 
+            index = random.randrange(len(x_y_arr))
+            select_x, select_y = x_y_arr[index]
             return self.mapping_feature_x_y(select_x, select_y)
 
 
