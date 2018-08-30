@@ -15,6 +15,7 @@ class OseroBoard:
         self.sampling_points_all = np.full((board_size_x, board_size_y), True)
         self.max_position_x = board_size_x - 1
         self.max_position_y = board_size_y - 1
+        self.integrate_arr = None
 
     # 小数をpx値にマッピング
     def mapping_x_y(self, feature_x, feature_y):
@@ -40,16 +41,18 @@ class OseroBoard:
         self.sampling_points[color][x, y] = False
         self.sampling_points_all[x, y] = False
 
-        for l in range(LABEL_SIZE):
-            for x in range(self.board_size_x):
-                for y in range(self.board_size_y):
-                    self.positions[l][x, y] = self.position_sandwiched(x=x, y=y, color=color)
+        for x in range(self.board_size_x):
+            for y in range(self.board_size_y):
+                self.positions[color][x, y] = self.position_sandwiched(x=x, y=y, color=color)
 
     def position_sandwiched(self, x, y, color):
-        if np.any(self.sampling_points[color][0:x, y]==False) and np.any(self.sampling_points[color][min(x+1, self.max_position_x):self.board_size_x, y]==False):
+        if not self.sampling_points[color][x, y]:
             return 1
 
-        if np.any(self.sampling_points[color][x, 0:y]==False) and np.any(self.sampling_points[color][x, min(y+1, self.max_position_y):self.board_size_y]==False):
+        if np.any(self.sampling_points[color][0:x+1, y]==False) and np.any(self.sampling_points[color][x:self.board_size_x, y]==False):
+            return 1
+
+        if np.any(self.sampling_points[color][x, 0:y+1]==False) and np.any(self.sampling_points[color][x, y:self.board_size_y]==False):
             return 1
 
         return 0
@@ -63,16 +66,18 @@ class OseroBoard:
         one_arr = np.ones((self.board_size_x, self.board_size_y))
         arr = np.where(self.sampling_points_all, arr, one_arr)
 
-        return arr
+        self.integrate_arr = arr
 
     def get_optimal_solution(self):
-        integrate_arr = self.calc_integrate_positions()
-        print(integrate_arr)
+        self.calc_integrate_positions()
 
-        max_value = np.amax(integrate_arr)
+        for i in range(11):
+            print(str(i) + 'count: ' + str(np.sum(self.integrate_arr == i)))
+
+        max_value = np.amax(self.integrate_arr)
 
         if max_value > 1:
-            x_arr, y_arr = np.where(integrate_arr == max_value)
+            x_arr, y_arr = np.where(self.integrate_arr == max_value)
 
             x_y_arr = list(zip(x_arr, y_arr))
             random.shuffle(x_y_arr)
@@ -81,7 +86,7 @@ class OseroBoard:
             select_x, select_y = x_y_arr[index]
             return self.mapping_feature_x_y(select_x, select_y)
         else:
-            x_arr, y_arr = np.where(integrate_arr == 0)
+            x_arr, y_arr = np.where(self.integrate_arr == 0)
 
             x_y_arr = list(zip(x_arr, y_arr))
             random.shuffle(x_y_arr)
@@ -95,10 +100,17 @@ if __name__ == '__main__':
 
     o = OseroBoard(board_size_x=10, board_size_y=10)
     o.open_once(1, 1, 2)
-    o.open_once(1, 6, 2)
-    o.open_once(1, 1, 2)
-    o.open_once(5, 6, 2)
+    o.open_once(1, 9, 2)
+    o.open_once(1, 2, 2)
+    o.open_once(6, 8, 7)
+    o.open_once(1, 1, 7)
+    o.open_once(9, 1, 7)
+    o.open_once(9, 1, 4)
+    o.open_once(5, 9, 2)
+
+    print(o.sampling_points[1][0:2, 4])
 
     print(o.positions)
+    o.get_optimal_solution()
 
     o.calc_integrate_positions()

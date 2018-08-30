@@ -164,22 +164,25 @@ def create_output(target_path, save_path_manager):
     print(range_arr)
     print(DIVIDER)
 
-    pixel_sweeper_n_list, pixel_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
-                                                                 save_path_manager=save_path_manager,
-                                                                 method_name=METHOD_NAME_SWEEPER_pixel)
+    # pixel_sweeper_n_list, pixel_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
+    #                                                              save_path_manager=save_path_manager,
+    #                                                              method_name=METHOD_NAME_SWEEPER_pixel)
 
     sweeper_n_list, sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
                                                      save_path_manager=save_path_manager,
                                                      method_name=METHOD_NAME_SWEEPER)
 
-    colorless_sweeper_n_list, colorless_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
-                                                                         save_path_manager=save_path_manager,
-                                                                         method_name=METHOD_NAME_SWEEPER_COLORLESS)
+    grid_n_list, grid_acc_list = exe_clone_all(range_arr=range_arr, target=target,
+                                                     save_path_manager=save_path_manager,
+                                                     method_name=METHOD_NAME_GRID)
+
+    # colorless_sweeper_n_list, colorless_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
+    #                                                                      save_path_manager=save_path_manager,
+    #                                                                      method_name=METHOD_NAME_SWEEPER_COLORLESS)
     n_list = sweeper_n_list
 
     acc_list_list = [(sweeper_acc_list, 'sweeper_area' + str(calc_area(n_list=n_list,  acc_list=sweeper_acc_list))),
-                     (colorless_sweeper_acc_list, 'colorless_area' + str(calc_area(n_list=n_list, acc_list=colorless_sweeper_acc_list))),
-                     (pixel_sweeper_acc_list, 'pixel_area' + str(calc_area(n_list=n_list, acc_list=pixel_sweeper_acc_list))),
+                     (grid_acc_list, 'sweeper_area' + str(calc_area(n_list=n_list, acc_list=grid_acc_list))),
                      ]
 
     save_and_show_graph(
@@ -230,4 +233,4 @@ def exe_all_images():
 
 
 if __name__ == '__main__':
-    exe_clone_one()
+    exe_all_images()

@@ -85,7 +85,7 @@ def lv1_user_function_sampling_sweeper(n_samples, target_model, exe_n, board_siz
         return np.zeros((0, 2))
 
     elif n_samples == 1:
-        new_board = Board(board_size_x=board_size_x, board_size_y=board_size_y)
+        new_board = OseroBoard(board_size_x=board_size_x, board_size_y=board_size_y)
 
         print('n_samples:' + str(n_samples) + ', ' + 'exe_n:' + str(exe_n))
 
