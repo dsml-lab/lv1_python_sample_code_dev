@@ -186,7 +186,7 @@ class Parliament:
 
 def get_image_size(exe_n):
 
-    return math.ceil(math.sqrt(exe_n)) + 100
+    return math.ceil(math.sqrt(exe_n)) + 10
 
     # if exe_n < 64**2:
     #     return 64
