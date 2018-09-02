@@ -184,9 +184,11 @@ class Parliament:
 
 def get_image_size(exe_n):
 
-    if exe_n <= 128**2:
+    if exe_n < 64**2:
+        return 64
+    elif exe_n < 128**2:
         return 128
-    elif exe_n <= 256**2:
+    elif exe_n < 256**2:
         return 256
     else:
         return 512
