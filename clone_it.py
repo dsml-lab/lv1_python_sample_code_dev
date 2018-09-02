@@ -3,6 +3,7 @@ import math
 import time
 
 # 面積を計算するためにグラフを用いるモジュールをimport
+import git
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -215,7 +216,10 @@ def main():
         '''
     # このプログラムファイルの名前と同じdirectoryを作り、その中に結果を保存する。
     now = datetime.now().strftime('%Y%m%d%H%M%S')
-    output_root_path = './output/area_' + now
+    repo = git.Repo(search_parent_directories=True)
+    sha = repo.head.object.hexsha
+    commit_hash = repo.git.rev_parse(sha)
+    output_root_path = './output/area_' + now + '_' + str(commit_hash)
 
     create_dir(output_root_path)
 

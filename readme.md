@@ -37,6 +37,12 @@ LV1_UserDefinedClassifier は自由に設計して頂きたく思いますが，
  - pillow
 
 
+# メモ
+
+```
+pip freeze > requirements.txt
+```
+
 # 実行方法
 
 ```
