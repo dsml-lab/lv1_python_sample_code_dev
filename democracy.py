@@ -99,7 +99,6 @@ class LV1UserDefinedClassifierRandomForest:
         return np.int32(labels)
 
 
-
 class Voter:
     """投票者クラス"""
 
@@ -121,8 +120,7 @@ class Voter:
 class Parliament:
     """議会クラス"""
 
-    def __get_samplable_features(self):
-        image_size = 512
+    def __get_samplable_features(self, image_size):
         h = image_size // 2
         point_count = image_size * image_size
         samplable_features = np.zeros((point_count, self.dimension))
@@ -140,12 +138,12 @@ class Parliament:
         self.voters.append(Voter(model=LV1UserDefinedClassifierTree1000MaxDepth()))
         self.voters.append(Voter(model=LV1UserDefinedClassifierRandomForest()))
 
-    def __init__(self):
+    def __init__(self, image_size=512):
         self.dimension = 2
         self.voters = []
         self.__init_voters()
 
-        self.samplable_features = self.__get_samplable_features()
+        self.samplable_features = self.__get_samplable_features(image_size=image_size)
 
     def get_optimal_solution(self, sampled_features, sampled_labels):
         self.__fit_to_voters(sampled_features=sampled_features, sampled_labels=sampled_labels)
@@ -184,6 +182,16 @@ class Parliament:
             self.voters[i].samplable_predict(samplable_features=self.samplable_features)
 
 
+def get_image_size(exe_n):
+
+    if exe_n <= 128**2:
+        return 128
+    elif exe_n <= 256**2:
+        return 256
+    else:
+        return 512
+
+
 def lv1_user_function_sampling_democracy(n_samples, target_model, exe_n):
     if n_samples < 0:
         raise ValueError
@@ -201,12 +209,13 @@ def lv1_user_function_sampling_democracy(n_samples, target_model, exe_n):
         if n_samples == exe_n:
             return np.float32(new_features)
         else:
-            return np.float32(new_features), Parliament()
+            return np.float32(new_features), Parliament(image_size=get_image_size(exe_n))
 
     elif n_samples > 1:
 
-        old_features, parliament = lv1_user_function_sampling_democracy(n_samples=n_samples - 1, target_model=target_model,
-                                                            exe_n=exe_n)
+        old_features, parliament = lv1_user_function_sampling_democracy(n_samples=n_samples - 1,
+                                                                        target_model=target_model,
+                                                                        exe_n=exe_n)
 
         print('n_samples:' + str(n_samples) + ', ' + 'exe_n:' + str(exe_n))
 
