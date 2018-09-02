@@ -5,6 +5,8 @@ import os
 from datetime import datetime
 import numpy as np
 import matplotlib.pyplot as plt
+
+from democracy import lv1_user_function_sampling_democracy
 from evaluation import LV1_Evaluator
 from region import SavePathManager, create_dir, LV1TargetClassifier, DIVIDER
 from sampling import lv1_user_function_sampling
@@ -19,6 +21,7 @@ METHOD_NAME_SWEEPER_COLORLESS = 'lv1_user_function_sampling_sweeper_colorless'
 METHOD_NAME_GRID = 'lv1_user_function_sampling_meshgrid_rectangular'
 METHOD_NAME_RANDOM = 'lv1_user_function_sampling'
 METHOD_NAME_OR = 'lv1_user_function_sampling_sweeper_or_grid_or_grid_edge'
+METHOD_NAME_democracy = 'lv1_user_function_sampling_democracy'
 
 area_pixel = []
 
@@ -43,6 +46,9 @@ def get_features(target, exe_n,
 
     if method_name == METHOD_NAME_OR:
         return lv1_user_function_sampling_sweeper_start(n_samples=exe_n, target_model=target)
+
+    if method_name == METHOD_NAME_democracy:
+        return lv1_user_function_sampling_democracy(n_samples=exe_n, target_model=target, exe_n=exe_n)
 
 
 def exe_clone(target, exe_n, method_name, path_manager: SavePathManager):
@@ -78,8 +84,8 @@ def exe_clone(target, exe_n, method_name, path_manager: SavePathManager):
 
 
 def exe_clone_one():
-    n = 19
-    method_name = METHOD_NAME_SWEEPER_pixel
+    n = 1000
+    method_name = METHOD_NAME_democracy
 
     now_str = datetime.now().strftime('%Y%m%d%H%M%S')
     target_path = 'lv1_targets/classifier_07.png'
@@ -233,4 +239,4 @@ def exe_all_images():
 
 
 if __name__ == '__main__':
-    exe_all_images()
+    exe_clone_one()

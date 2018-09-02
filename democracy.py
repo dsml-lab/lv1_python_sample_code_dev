@@ -156,12 +156,12 @@ class Parliament:
         for voter in self.voters:
             samplable_labels = voter.samplable_labels
 
-            print(samplable_labels.shape)
-            print(label_count_arr.shape)
-
             label_count_arr = label_count_arr + samplable_labels
 
+        label_count_arr[label_count_arr > 0] = 1
+
         label_count_arr = label_count_arr.sum(axis=1)
+        label_count_arr[label_count_arr > 1] = 2
 
         max_value = np.amax(label_count_arr)
         index_list = np.where(label_count_arr == max_value)[0]
@@ -169,12 +169,9 @@ class Parliament:
         random.shuffle(index_list)
 
         opt_feature = self.samplable_features[index_list[0]]
-
-        print('opt')
-        print(opt_feature)
-        print('index')
-        print(index_list[0])
-        print(self.samplable_features[index_list[0]])
+        # サンプリング候補から除外
+        print(self.samplable_features)
+        self.samplable_features = np.delete(self.samplable_features, index_list[0], axis=0)
 
         return opt_feature
 
@@ -200,11 +197,15 @@ def lv1_user_function_sampling_democracy(n_samples, target_model, exe_n):
         new_features = np.zeros((1, 2))
         new_features[0][0] = 2 * np.random.rand() - 1
         new_features[0][1] = 2 * np.random.rand() - 1
-        return np.float32(new_features)
+
+        if n_samples == exe_n:
+            return np.float32(new_features)
+        else:
+            return np.float32(new_features), Parliament()
 
     elif n_samples > 1:
 
-        old_features = lv1_user_function_sampling_democracy(n_samples=n_samples - 1, target_model=target_model,
+        old_features, parliament = lv1_user_function_sampling_democracy(n_samples=n_samples - 1, target_model=target_model,
                                                             exe_n=exe_n)
 
         print('n_samples:' + str(n_samples) + ', ' + 'exe_n:' + str(exe_n))
@@ -212,10 +213,7 @@ def lv1_user_function_sampling_democracy(n_samples, target_model, exe_n):
         # target識別器からtargetのラベルを取得
         target_labels = target_model.predict(old_features)
 
-        parliament = Parliament()
         optimal_feature = parliament.get_optimal_solution(sampled_features=old_features, sampled_labels=target_labels)
-
-        print(optimal_feature.shape)
 
         new_features = np.zeros((1, 2))
         new_features[0][0] = optimal_feature[0]
@@ -223,6 +221,7 @@ def lv1_user_function_sampling_democracy(n_samples, target_model, exe_n):
 
         features = np.vstack((old_features, new_features))
 
-        print(features)
-
-        return np.float32(features)
+        if n_samples == exe_n:
+            return np.float32(features)
+        else:
+            return np.float32(features), parliament
