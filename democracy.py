@@ -53,6 +53,29 @@ class LV1UserDefinedClassifier1NN:
         return np.int32(labels)
 
 
+class LV1UserDefinedClassifier7NN:
+    def __init__(self):
+        self.knn1 = neighbors.KNeighborsClassifier(n_neighbors=1)
+        self.knn7 = neighbors.KNeighborsClassifier(n_neighbors=7)
+        self.clf = None
+
+    # クローン認識器の学習
+    #   (features, labels): 訓練データ（特徴量とラベルのペアの集合）
+    def fit(self, features, labels):
+        if len(features) > 7:
+            self.clf = self.knn7
+        else:
+            self.clf = self.knn1
+
+        self.clf.fit(features, labels)
+
+    # 未知の二次元特徴量を認識
+    #   features: 認識対象の二次元特徴量の集合
+    def predict(self, features):
+        labels = self.clf.predict(features)
+        return np.int32(labels)
+
+
 class LV1UserDefinedClassifierMLP1000HiddenLayer:
     def __init__(self):
         self.clf = MLPClassifier(solver="lbfgs", hidden_layer_sizes=1000)
@@ -136,6 +159,7 @@ class Parliament:
     def __init_voters(self):
         self.voters.append(Voter(model=LV1UserDefinedClassifierSVM10C10Gamma()))
         self.voters.append(Voter(model=LV1UserDefinedClassifier1NN()))
+        self.voters.append(Voter(model=LV1UserDefinedClassifier7NN()))
         self.voters.append(Voter(model=LV1UserDefinedClassifierMLP1000HiddenLayer()))
         self.voters.append(Voter(model=LV1UserDefinedClassifierTree1000MaxDepth()))
         self.voters.append(Voter(model=LV1UserDefinedClassifierRandomForest()))
@@ -188,9 +212,7 @@ def get_image_size(exe_n):
 
     # return math.ceil(math.sqrt(exe_n)) + 10
 
-    if exe_n < 64**2:
-        return 64
-    elif exe_n < 128**2:
+    if exe_n < 128**2:
         return 128
     elif exe_n < 256**2:
         return 256
