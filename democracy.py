@@ -105,6 +105,28 @@ class LV1UserDefinedClassifier1NN:
         return np.int32(labels)
 
 
+class LV1UserDefinedClassifier1NNRetry:
+    def __init__(self):
+        self.clf = neighbors.KNeighborsClassifier(n_neighbors=1)
+
+    # クローン認識器の学習
+    #   (features, labels): 訓練データ（特徴量とラベルのペアの集合）
+    def fit(self, features, labels):
+        while True:
+            self.clf.fit(features, labels)
+            predict_labels = self.clf.predict(features)
+            if np.allclose(labels, predict_labels):
+                break
+            else:
+                print('不一致')
+
+    # 未知の二次元特徴量を認識
+    #   features: 認識対象の二次元特徴量の集合
+    def predict(self, features):
+        labels = self.clf.predict(features)
+        return np.int32(labels)
+
+
 class LV1UserDefinedClassifier7NN:
     def __init__(self):
         self.knn1 = neighbors.KNeighborsClassifier(n_neighbors=1)
@@ -288,7 +310,7 @@ def lv1_user_function_sampling_democracy(n_samples, target_model, exe_n):
         if n_samples == exe_n:
             return np.float32(new_features)
         else:
-            return np.float32(new_features), Parliament(image_size=get_image_size(exe_n))
+            return np.float32(new_features), Parliament(image_size=int(get_image_size(exe_n)))
 
     elif n_samples > 1:
 
@@ -313,3 +335,52 @@ def lv1_user_function_sampling_democracy(n_samples, target_model, exe_n):
             return np.float32(features)
         else:
             return np.float32(features), parliament
+
+
+def lv1_user_function_sampling_grid(n_samples):
+    features = np.zeros((n_samples, 2))
+
+    x_samples = 0
+    y_samples = 0
+
+    # 格子点の個数がもっとも多くなる
+    # y_sizeとy_sizeの差がなるべく小さくなる
+
+    for i in range(2, n_samples):
+        for j in range(2, n_samples):
+            if n_samples >= i * j > x_samples * y_samples and abs(i - j) < 2:  # 格子の縦横の差が2より小さい
+                x_samples = i
+                y_samples = j
+
+    # 格子ひとつ分の幅
+    x_size = 2 / (x_samples + 1)
+    y_size = 2 / (y_samples + 1)
+
+    # 格子状に値を入れる
+    count = 0
+    for j in range(1, x_samples + 1):
+        for k in range(1, y_samples + 1):
+            features[count][0] = j * x_size - 1
+            features[count][1] = k * y_size - 1
+            count = count + 1
+
+    # 残りはランダムに
+    for i in range(x_samples * y_samples, n_samples):
+        features[i][0] = 2 * np.random.rand() - 1
+        features[i][1] = 2 * np.random.rand() - 1
+    return np.float32(features)
+
+
+def lv1_user_function_sampling_democracy_and_grid(n_samples, target_model):
+
+    grid_samples = 128
+
+    if grid_samples < n_samples:
+        grid_features = lv1_user_function_sampling_grid(grid_samples)
+
+        demo_exe_n = n_samples - grid_samples
+        demo_features = lv1_user_function_sampling_democracy(n_samples=demo_exe_n, exe_n=demo_exe_n, target_model=target_model)
+
+        return np.float32(np.vstack((grid_features, demo_features)))
+    else:
+        return lv1_user_function_sampling_democracy(n_samples=n_samples, exe_n=n_samples, target_model=target_model)
