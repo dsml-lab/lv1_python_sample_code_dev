@@ -4,6 +4,7 @@ import numpy as np
 import random
 from sklearn import svm, neighbors, tree
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.grid_search import GridSearchCV
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import OneHotEncoder
 
@@ -34,6 +35,57 @@ class LV1UserDefinedClassifierSVM10C10Gamma:
     #   features: 認識対象の二次元特徴量の集合
     def predict(self, features):
         labels = self.clf.predict(features)
+        return np.int32(labels)
+
+
+class LV1UserDefinedClassifierSVM10C10GammaGridSearch:
+    def __init__(self):
+        tuned_parameters = [
+            {'C': [1, 10, 100, 1000], 'kernel': ['linear']},
+            {'C': [1, 10, 100, 1000], 'kernel': ['rbf'], 'gamma': [0.001, 0.0001]},
+            {'C': [1, 10, 100, 1000], 'kernel': ['poly'], 'degree': [2, 3, 4], 'gamma': [0.001, 0.0001]},
+            {'C': [1, 10, 100, 1000], 'kernel': ['sigmoid'], 'gamma': [0.001, 0.0001]}
+        ]
+        self.score = 'accuracy'
+        self.svm = GridSearchCV(
+            svm.SVC(),  # 識別器
+            tuned_parameters,  # 最適化したいパラメータセット
+            cv=5,  # 交差検定の回数
+            scoring=self.score)  # モデルの評価関数の指定
+        self.knn1 = neighbors.KNeighborsClassifier(n_neighbors=1)
+        self.clf = None
+
+    # クローン認識器の学習
+    #   (features, labels): 訓練データ（特徴量とラベルのペアの集合）
+    def fit(self, features, labels):
+
+        if len(set(labels)) > 1:  # labelsが2以上ならSVM
+            self.clf = self.svm
+            self.clf.fit(features, labels)
+
+            print("# Tuning hyper-parameters for %s" % self.score)
+            print()
+            print("Best parameters set found on development set: %s" % self.clf.best_params_)
+            print()
+
+            # それぞれのパラメータでの試行結果の表示
+            print("Grid scores on development set:")
+            print()
+            for params, mean_score, scores in self.clf.grid_scores_:
+                print("%0.3f (+/-%0.03f) for %r"
+                      % (mean_score, scores.std() * 2, params))
+            print()
+        else:
+            self.clf = self.knn1
+            self.clf.fit(features, labels)
+
+
+
+    # 未知の二次元特徴量を認識
+    #   features: 認識対象の二次元特徴量の集合
+    def predict(self, features):
+        labels = self.clf.predict(features)
+
         return np.int32(labels)
 
 
@@ -194,7 +246,6 @@ class Parliament:
 
         opt_feature = self.samplable_features[index_list[0]]
         # サンプリング候補から除外
-        print(self.samplable_features)
         self.samplable_features = np.delete(self.samplable_features, index_list[0], axis=0)
 
         return opt_feature
@@ -210,7 +261,7 @@ class Parliament:
 
 def get_image_size(exe_n):
 
-    return math.ceil(math.sqrt(exe_n)) + 2
+    return math.ceil(math.sqrt(exe_n)) + 128
 
     # if exe_n < 128**2:
     #     return 128

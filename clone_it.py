@@ -228,7 +228,7 @@ def main():
     sweeper = 'sweeper'
     democracy = 'democracy'
 
-    method_names = [democracy, grid, colorless, sweeper]
+    method_names = [democracy, grid]
 
     for max_value in range(100, 1000, 300):
         for method_name in method_names:

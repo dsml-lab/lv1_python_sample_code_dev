@@ -6,9 +6,10 @@ from datetime import datetime
 import numpy as np
 import matplotlib.pyplot as plt
 
-from democracy import lv1_user_function_sampling_democracy
+from democracy import lv1_user_function_sampling_democracy, LV1UserDefinedClassifierSVM10C10GammaGridSearch, \
+    LV1UserDefinedClassifierTree1000MaxDepth, LV1UserDefinedClassifierRandomForest
 from evaluation import LV1_Evaluator
-from region import SavePathManager, create_dir, LV1TargetClassifier, DIVIDER
+from region import SavePathManager, create_dir, LV1TargetClassifier, DIVIDER, LV1UserDefinedClassifier
 from sampling import lv1_user_function_sampling
 from sweeper_sampling import lv1_user_function_sampling_sweeper, LV1UserDefinedClassifierSVM, \
     lv1_user_function_sampling_sweeper_colorless, lv1_user_function_sampling_meshgrid_rectangular, \
@@ -64,7 +65,7 @@ def exe_clone(target, exe_n, method_name, path_manager: SavePathManager):
     # クローン認識器を学習
     labels = target.predict(features)
 
-    model = LV1UserDefinedClassifierSVM()
+    model = LV1UserDefinedClassifierRandomForest()
     model.fit(features, labels)
     print("\nA clone recognizer was trained.")
 
@@ -239,4 +240,5 @@ def exe_all_images():
 
 
 if __name__ == '__main__':
-    exe_all_images()
+    # exe_all_images()
+    exe_clone_one()
