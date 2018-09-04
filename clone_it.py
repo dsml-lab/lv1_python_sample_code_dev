@@ -230,7 +230,7 @@ def main():
 
     method_names = [democracy, grid, colorless, sweeper]
 
-    for max_value in range(100, 1000, 10):
+    for max_value in range(100, 1000, 300):
         for method_name in method_names:
             # directory_name = input('作成するdirectoryを入力してください>>>>')
             directory_name = method_name + '_max' + str(max_value)
