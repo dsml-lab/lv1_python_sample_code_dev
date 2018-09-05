@@ -230,8 +230,8 @@ class Parliament:
         for i in range(0, point_count):
             x = i % image_size
             y = i // image_size
-            samplable_features[i][0] = np.float32((x - h) / h)
-            samplable_features[i][1] = np.float32(-(y - h) / h)
+            samplable_features[i][0] = np.float32(min(max(np.float32((x - h) / h), -0.9), 0.9))
+            samplable_features[i][1] = np.float32(min(max(np.float32(-(y - h) / h), -0.9), 0.9))
         return np.float32(samplable_features)
 
     def __init_voters(self):
