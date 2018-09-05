@@ -8,9 +8,12 @@ from sklearn.grid_search import GridSearchCV
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import OneHotEncoder
 
+from distance import find_furthest_place
+
+LABEL_SIZE = 10
 
 def to_one_hot(labels):
-    encoder = OneHotEncoder(10)
+    encoder = OneHotEncoder(LABEL_SIZE)
     return encoder.fit_transform(np.reshape(labels, (-1, 1))).toarray()
 
 
@@ -250,7 +253,7 @@ class Parliament:
         self.__fit_to_voters(sampled_features=sampled_features, sampled_labels=sampled_labels)
         self.__predict_to_voters()
 
-        label_count_arr = np.zeros((len(self.samplable_features), 10))
+        label_count_arr = np.zeros((len(self.samplable_features), LABEL_SIZE))  # one hot 形式
 
         for voter in self.voters:
             samplable_labels = voter.samplable_labels
@@ -259,15 +262,18 @@ class Parliament:
 
         label_count_arr[label_count_arr > 0] = 1
 
-        label_count_arr = label_count_arr.sum(axis=1)
+        label_count_arr = label_count_arr.sum(axis=1) # 1次元行列
         label_count_arr[label_count_arr > 1] = 2
 
         max_value = np.amax(label_count_arr)
         index_list = np.where(label_count_arr == max_value)[0]
 
-        random.shuffle(index_list)
+        opt_feature = find_furthest_place(sampled_features=sampled_features, filtered_samplable_features=self.samplable_features[index_list])
 
-        opt_feature = self.samplable_features[index_list[0]]
+        # random.shuffle(index_list)
+        #
+        # opt_feature = self.samplable_features[index_list[0]]
+
         # サンプリング候補から除外
         self.samplable_features = np.delete(self.samplable_features, index_list[0], axis=0)
 
