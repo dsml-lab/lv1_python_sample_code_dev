@@ -116,6 +116,7 @@ class LV1UserDefinedClassifier1NNRetry:
             self.clf.fit(features, labels)
             predict_labels = self.clf.predict(features)
             if np.allclose(labels, predict_labels):
+                print('一致')
                 break
             else:
                 print('不一致')
