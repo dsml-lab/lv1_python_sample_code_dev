@@ -19,9 +19,12 @@ def find_furthest_place(sampled_features, filtered_samplable_features):
     for i, filtered_feature in enumerate(filtered_samplable_features):
         nearest_arr[i] = np.min(distance_arr[i])
 
-    max_value = np.max(nearest_arr)
+    if len(nearest_arr) % 2 == 0:  # 偶数個なら
+        nearest_arr = np.delete(nearest_arr, len(nearest_arr)-1)  # 要素をひとつ除外
 
-    index_list = np.where(max_value == nearest_arr)[0]
+    med_value = np.median(nearest_arr)
+
+    index_list = np.where(med_value == nearest_arr)[0]
     random.shuffle(index_list)
 
     return filtered_samplable_features[index_list[0]]
