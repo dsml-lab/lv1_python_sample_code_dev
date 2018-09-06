@@ -19,7 +19,7 @@ def find_furthest_place(sampled_features, filtered_samplable_features):
     for i, filtered_feature in enumerate(filtered_samplable_features):
         nearest_arr[i] = np.min(distance_arr[i])
 
-    max_value = np.max(nearest_arr)
+    max_value = np.amax(nearest_arr)
 
     index_list = np.where(max_value == nearest_arr)[0]
     random.shuffle(index_list)
