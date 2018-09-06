@@ -7,11 +7,9 @@ OPENED = 1000
 
 
 def get_distribution(x_size, y_size):
-    size = (x_size + y_size) / 2
-
     def calc(x, y):
         r = x ** 2 + y ** 2
-        return int(np.exp(-r) * (size/2))
+        return int(np.exp(-r) * ((x_size + y_size) / 4))
 
     x0 = np.linspace(-2, 2, x_size)
     x1 = np.linspace(-2, 2, y_size)
@@ -60,18 +58,13 @@ class Board:
 
     # 点を開示
     def open_once(self, x, y, color):
-        # # 近傍の点のx,yからの距離を算出
-        # # 中心を最大の値として中心から遠ざかるほど値が小さくなる2次元配列を作る
+        # 近傍の点のx,yからの距離を算出
+        # 中心を最大の値として中心から遠ざかるほど値が小さくなる2次元配列を作る
         distribution_arr = get_distribution(x_size=self.board_size_x * 2 + 1, y_size=self.board_size_y * 2 + 1)
         trimming_distribution_arr = distribution_arr[self.board_size_x - x:self.board_size_x * 2 - x,
                                     self.board_size_y - y:self.board_size_y * 2 - y]
+
         self.positions[color] = self.positions[color] + trimming_distribution_arr
-
-        # # 近傍の点のx,yからの距離を計算
-        # for i in range(0, min(self.board_size_x, self.board_size_y)):
-        #     self.positions[color][max(x - i, 0):min(x + i + 1, self.board_size_x),
-        #     max(y - i, 0):min(y + i + 1, self.board_size_y)] += 1
-
         self.positions[color][x, y] += OPENED
         self.sampling_points_all[x, y] = False
 
@@ -83,7 +76,7 @@ class Board:
         trimming_distribution_arr = distribution_arr[self.board_size_x - x:self.board_size_x * 2 - x,
                                     self.board_size_y - y:self.board_size_y * 2 - y]
 
-        self.positions[color] = self.positions[color] - trimming_distribution_arr
+        self.positions[color] = self.positions[color] + trimming_distribution_arr / 10000
         self.positions[color][x, y] += OPENED
         self.sampling_points_all[x, y] = False
 
@@ -119,7 +112,5 @@ class Board:
         index = random.randrange(len(x_y_arr))
 
         select_x, select_y = x_y_arr[index]
-
-        self.print()
 
         return self.mapping_feature_x_y(select_x, select_y)
