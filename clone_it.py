@@ -1,24 +1,25 @@
 # coding: UTF-8
-
-import sys
-from datetime import datetime
-
-import numpy as np
-from PIL import Image
-from sklearn import neighbors, svm
-from labels import COLOR2ID
-from evaluation import IMAGE_SIZE
-from evaluation import LV1_Evaluator
-# 面積を計算するためにグラフを用いるモジュールをimport
-import matplotlib.pyplot as plt
-from labels import ID2COLOR
+import math
 import time
+
+# 面積を計算するためにグラフを用いるモジュールをimport
+import git
+import matplotlib.pyplot as plt
+import numpy as np
 import os
+from PIL import Image
+from datetime import datetime
+from sklearn import neighbors
 from statistics import mean, median, variance, stdev
 
+from democracy import lv1_user_function_sampling_democracy, LV1UserDefinedClassifier1NNRetry, \
+    LV1UserDefinedClassifier1NN
+from evaluation import IMAGE_SIZE
+from evaluation import LV1_Evaluator
+from labels import COLOR2ID
+from labels import ID2COLOR
 # ターゲット認識器を表現するクラス
 # ターゲット認識器は2次元パターン（512x512の画像）で与えられるものとする
-from region import SVMC10gamma10, KNN1, LV1UserDefinedClassifier, KNN3, KNN5, KNN7
 from sweeper_sampling import lv1_user_function_sampling_sweeper_colorless, lv1_user_function_sampling_sweeper, \
     LV1UserDefinedClassifierSVM, lv1_user_function_sampling_meshgrid_rectangular
 
@@ -216,17 +217,21 @@ def main():
         '''
     # このプログラムファイルの名前と同じdirectoryを作り、その中に結果を保存する。
     now = datetime.now().strftime('%Y%m%d%H%M%S')
-    output_root_path = './output/area_' + now
+    repo = git.Repo(search_parent_directories=True)
+    sha = repo.head.object.hexsha
+    commit_hash = repo.git.rev_parse(sha)
+    output_root_path = './output/area_' + now + '_' + str(commit_hash)
 
     create_dir(output_root_path)
 
     grid = 'grid'
     colorless = 'colorless'
     sweeper = 'sweeper'
+    democracy = 'democracy'
 
-    method_names = [grid, colorless, sweeper]
+    method_names = [democracy, grid]
 
-    for max_value in range(20, 500, 10):
+    for max_value in range(100, 1000, 300):
         for method_name in method_names:
             # directory_name = input('作成するdirectoryを入力してください>>>>')
             directory_name = method_name + '_max' + str(max_value)
@@ -248,7 +253,6 @@ def main():
             area_pixel = []
             last_size = 0
             target_name = []
-
 
             # target.load(load_path)をLv1_targetsに含まれる画像毎に指定する。
             for i in target_image:
@@ -297,13 +301,21 @@ def main():
 
                 for n in N:
                     start = time.time()
+                    board_size = math.ceil(math.sqrt(n)) + 2
 
                     if method_name == grid:
                         features = lv1_user_function_sampling_meshgrid_rectangular(n_samples=n)
                     elif method_name == colorless:
-                        features = lv1_user_function_sampling_sweeper(n_samples=n, target_model=target, exe_n=n)
+                        features = lv1_user_function_sampling_sweeper(n_samples=n, target_model=target, exe_n=n,
+                                                                      board_size_x=board_size, board_size_y=board_size)
                     elif method_name == sweeper:
-                        features = lv1_user_function_sampling_sweeper_colorless(n_samples=n, target_model=target, exe_n=n)
+                        features = lv1_user_function_sampling_sweeper_colorless(n_samples=n, target_model=target,
+                                                                                exe_n=n, board_size_x=board_size,
+                                                                                board_size_y=board_size)
+
+                    elif method_name == democracy:
+                        features = lv1_user_function_sampling_democracy(n_samples=n, target_model=target,
+                                                                        exe_n=n)
                     else:
                         raise ValueError
 
@@ -311,7 +323,7 @@ def main():
                     labels = target.predict(features)
 
                     # クローン認識器を学習
-                    model = LV1UserDefinedClassifierSVM()
+                    model = LV1UserDefinedClassifier1NN()
                     model.fit(features, labels)
 
                     # 学習したクローン認識器を可視化し，精度を評価
@@ -346,10 +358,12 @@ def main():
                 last_size = area_size
 
                 print('画像サイズ[', area_size, ']_x[', area_size[0], ']_y[', area_size[1], ']')
-                print('面積pixel[', pixel_count, ']_割合[', round(pixel_count / (area_size[0] * area_size[1]) * 100, 2), '%]')
+                print('面積pixel[', pixel_count, ']_割合[', round(pixel_count / (area_size[0] * area_size[1]) * 100, 2),
+                      '%]')
 
             statistics_path = directory_path + '/' + directory_name + '_(statistics).png'
-            statistics = LV1_user_area_statistics(statistics_path, area_pixel, target_name, last_size, title=method_name)
+            statistics = LV1_user_area_statistics(statistics_path, area_pixel, target_name, last_size,
+                                                  title=method_name)
 
 
 # クローン処理の実行

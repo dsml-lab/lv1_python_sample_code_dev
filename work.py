@@ -1,21 +1,6 @@
 import numpy as np
 
-
-def get_distribution(size):
-    def calc(x, y):
-        r = x ** 2 + y ** 2
-        return int(np.exp(-r) * (size/2))
-
-    xn = size
-    x0 = np.linspace(-2, 2, xn)
-    x1 = np.linspace(-2, 2, xn)
-    arr = np.zeros((len(x0), len(x1)))
-    for i0 in range(xn):
-        for i1 in range(xn):
-            arr[i1, i0] = calc(x0[i0], x1[i1])
-
-    return arr
-
+from sweeper import get_distribution
 
 if __name__ == '__main__':
     sampling_x = 0
@@ -26,7 +11,7 @@ if __name__ == '__main__':
     arr[sampling_x, sampling_y] = 1
     print(arr)
 
-    normal_arr = get_distribution(size=board_size * 2 + 1)  # 正規分布の2次元配列
+    normal_arr = get_distribution(x_size=board_size * 2 + 1, y_size=board_size * 2 + 1)  # 正規分布の2次元配列
 
     print(normal_arr)
 

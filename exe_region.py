@@ -1,14 +1,21 @@
+import math
+
 import os
 
 from datetime import datetime
 import numpy as np
 import matplotlib.pyplot as plt
+
+from democracy import lv1_user_function_sampling_democracy, LV1UserDefinedClassifierSVM10C10GammaGridSearch, \
+    LV1UserDefinedClassifierTree1000MaxDepth, LV1UserDefinedClassifierRandomForest, \
+    LV1UserDefinedClassifierMLP1000HiddenLayer, LV1UserDefinedClassifier1NN, \
+    lv1_user_function_sampling_democracy_and_grid, LV1UserDefinedClassifier1NNRetry
 from evaluation import LV1_Evaluator
-from region import SavePathManager, create_dir, LV1TargetClassifier, DIVIDER
+from region import SavePathManager, create_dir, LV1TargetClassifier, DIVIDER, LV1UserDefinedClassifier
 from sampling import lv1_user_function_sampling
 from sweeper_sampling import lv1_user_function_sampling_sweeper, LV1UserDefinedClassifierSVM, \
     lv1_user_function_sampling_sweeper_colorless, lv1_user_function_sampling_meshgrid_rectangular, \
-    lv1_user_function_sampling_sweeper_pixel, lv1_user_function_sampling_sweeper_or_grid_or_grid_edge
+    lv1_user_function_sampling_sweeper_pixel, lv1_user_function_sampling_sweeper_start
 
 METHOD_NAME_REGION = 'lv1_user_function_sampling_region'
 METHOD_NAME_SWEEPER = 'lv1_user_function_sampling_sweeper'
@@ -17,6 +24,8 @@ METHOD_NAME_SWEEPER_COLORLESS = 'lv1_user_function_sampling_sweeper_colorless'
 METHOD_NAME_GRID = 'lv1_user_function_sampling_meshgrid_rectangular'
 METHOD_NAME_RANDOM = 'lv1_user_function_sampling'
 METHOD_NAME_OR = 'lv1_user_function_sampling_sweeper_or_grid_or_grid_edge'
+METHOD_NAME_democracy = 'lv1_user_function_sampling_democracy'
+METHOD_NAME_democracy_demo = 'lv1_user_function_sampling_democracy_demo'
 
 area_pixel = []
 
@@ -25,10 +34,10 @@ def get_features(target, exe_n,
                  method_name
                  ):
     if method_name == METHOD_NAME_SWEEPER_COLORLESS:
-        return lv1_user_function_sampling_sweeper_colorless(n_samples=exe_n, target_model=target, exe_n=exe_n)
+        return lv1_user_function_sampling_sweeper_colorless(n_samples=exe_n, target_model=target,exe_n=exe_n, board_size_x=math.ceil(math.sqrt(exe_n)) + 100, board_size_y=math.ceil(math.sqrt(exe_n)) + 100)
 
     if method_name == METHOD_NAME_SWEEPER:
-        return lv1_user_function_sampling_sweeper(n_samples=exe_n, target_model=target, exe_n=exe_n)
+        return lv1_user_function_sampling_sweeper(n_samples=exe_n, target_model=target, exe_n=exe_n, board_size_x=math.ceil(math.sqrt(exe_n)) + 100, board_size_y=math.ceil(math.sqrt(exe_n)) + 100)
 
     if method_name == METHOD_NAME_SWEEPER_pixel:
         return lv1_user_function_sampling_sweeper_pixel(n_samples=exe_n, target_model=target, exe_n=exe_n)
@@ -40,7 +49,13 @@ def get_features(target, exe_n,
         return lv1_user_function_sampling(n_samples=exe_n)
 
     if method_name == METHOD_NAME_OR:
-        return lv1_user_function_sampling_sweeper_or_grid_or_grid_edge(n_samples=exe_n, target_model=target)
+        return lv1_user_function_sampling_sweeper_start(n_samples=exe_n, target_model=target)
+
+    if method_name == METHOD_NAME_democracy:
+        return lv1_user_function_sampling_democracy(n_samples=exe_n, target_model=target, exe_n=exe_n)
+
+    if method_name == METHOD_NAME_democracy_demo:
+        return  lv1_user_function_sampling_democracy_and_grid(n_samples=exe_n, target_model=target)
 
 
 def exe_clone(target, exe_n, method_name, path_manager: SavePathManager):
@@ -56,7 +71,8 @@ def exe_clone(target, exe_n, method_name, path_manager: SavePathManager):
     # クローン認識器を学習
     labels = target.predict(features)
 
-    model = LV1UserDefinedClassifierSVM()
+    # model = LV1UserDefinedClassifierRandomForest()
+    model = LV1UserDefinedClassifier1NNRetry()
     model.fit(features, labels)
     print("\nA clone recognizer was trained.")
 
@@ -77,10 +93,10 @@ def exe_clone(target, exe_n, method_name, path_manager: SavePathManager):
 
 def exe_clone_one():
     n = 1000
-    method_name = METHOD_NAME_SWEEPER_COLORLESS
+    method_name = METHOD_NAME_democracy_demo
 
     now_str = datetime.now().strftime('%Y%m%d%H%M%S')
-    target_path = 'lv1_targets/classifier_01.png'
+    target_path = 'lv1_targets/classifier_03.png'
 
     save_path_manager = SavePathManager(save_root_dir='output/' + now_str)
 
@@ -153,7 +169,7 @@ def create_output(target_path, save_path_manager):
     target.load(target_path)
 
     range_arr = []
-    for i in range(0, 7):
+    for i in range(0, 10):
         range_arr.append(2**i)
         #range_arr.append(i)
 
@@ -162,27 +178,26 @@ def create_output(target_path, save_path_manager):
     print(range_arr)
     print(DIVIDER)
 
-    sweeper_n_list, sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
+    # pixel_sweeper_n_list, pixel_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
+    #                                                              save_path_manager=save_path_manager,
+    #                                                              method_name=METHOD_NAME_SWEEPER_pixel)
+
+    colorless_n_list, colorless_acc_list = exe_clone_all(range_arr=range_arr, target=target,
                                                      save_path_manager=save_path_manager,
-                                                     method_name=METHOD_NAME_SWEEPER)
+                                                     method_name=METHOD_NAME_SWEEPER_COLORLESS)
 
-    # or_n_list, or_acc_list = exe_clone_all(range_arr=range_arr, target=target,
-    #                                                  save_path_manager=save_path_manager,
-    #                                                  method_name=METHOD_NAME_OR)
+    demo_n_list, demo_acc_list = exe_clone_all(range_arr=range_arr, target=target,
+                                                     save_path_manager=save_path_manager,
+                                                     method_name=METHOD_NAME_democracy)
 
-    colorless_sweeper_n_list, colorless_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
-                                                                         save_path_manager=save_path_manager,
-                                                                         method_name=METHOD_NAME_SWEEPER_COLORLESS)
+    # colorless_sweeper_n_list, colorless_sweeper_acc_list = exe_clone_all(range_arr=range_arr, target=target,
+    #                                                                      save_path_manager=save_path_manager,
+    #                                                                      method_name=METHOD_NAME_SWEEPER_COLORLESS)
+    n_list = colorless_n_list
 
-    grid_n_list, grid_acc_list = exe_clone_all(range_arr=range_arr, target=target,
-                                               save_path_manager=save_path_manager, method_name=METHOD_NAME_GRID)
-
-    n_list = grid_n_list
-
-    acc_list_list = [(sweeper_acc_list, 'sweeper_area' + str(calc_area(n_list=n_list,  acc_list=sweeper_acc_list))),
-                     (colorless_sweeper_acc_list, 'colorless_area' + str(calc_area(n_list=n_list, acc_list=colorless_sweeper_acc_list))),
-                     (grid_acc_list, 'grid_area' + str(calc_area(n_list=n_list,  acc_list=grid_acc_list)))]
-                     # (or_acc_list, 'branch_area' + str(calc_area(n_list=n_list,  acc_list=or_acc_list)))]
+    acc_list_list = [(colorless_acc_list, 'colorless_area' + str(calc_area(n_list=n_list,  acc_list=colorless_acc_list))),
+                     (demo_acc_list, 'demo_area' + str(calc_area(n_list=n_list, acc_list=demo_acc_list))),
+                     ]
 
     save_and_show_graph(
         graph_dir=save_path_manager.save_root_dir,
@@ -219,7 +234,6 @@ def exe_all_images():
     now_str = datetime.now().strftime('%Y%m%d%H%M%S')
     root_path = 'output/' + now_str
     target_names = []
-    last_size = 0
 
     write_memo(save_path=root_path)
 
