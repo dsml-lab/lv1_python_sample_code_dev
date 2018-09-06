@@ -13,7 +13,7 @@ from sklearn import neighbors
 from statistics import mean, median, variance, stdev
 
 from democracy import lv1_user_function_sampling_democracy, LV1UserDefinedClassifier1NNRetry, \
-    LV1UserDefinedClassifier1NN
+    LV1UserDefinedClassifier1NN, LV1UserDefinedClassifierSVM10C10Gamma
 from evaluation import IMAGE_SIZE
 from evaluation import LV1_Evaluator
 from labels import COLOR2ID
@@ -323,7 +323,7 @@ def main():
                     labels = target.predict(features)
 
                     # クローン認識器を学習
-                    model = LV1UserDefinedClassifier1NN()
+                    model = LV1UserDefinedClassifierSVM10C10Gamma()
                     model.fit(features, labels)
 
                     # 学習したクローン認識器を可視化し，精度を評価
