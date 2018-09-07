@@ -12,16 +12,17 @@ from datetime import datetime
 from sklearn import neighbors
 from statistics import mean, median, variance, stdev
 
-from democracy import lv1_user_function_sampling_democracy, LV1UserDefinedClassifier1NNRetry, \
-    LV1UserDefinedClassifier1NN, LV1UserDefinedClassifierSVM10C10Gamma
+from democracy import lv1_user_function_sampling_democracy, LV1UserDefinedClassifier1NN, \
+    LV1UserDefinedClassifierSVM10C10Gamma, LV1UserDefinedClassifierTree1000MaxDepth, \
+    LV1UserDefinedClassifierRandomForest, LV1UserDefinedClassifierMLP1000HiddenLayer
 from evaluation import IMAGE_SIZE
 from evaluation import LV1_Evaluator
 from labels import COLOR2ID
 from labels import ID2COLOR
+
+
 # ターゲット認識器を表現するクラス
 # ターゲット認識器は2次元パターン（512x512の画像）で与えられるものとする
-from sweeper_sampling import lv1_user_function_sampling_sweeper_colorless, lv1_user_function_sampling_sweeper, \
-    LV1UserDefinedClassifierSVM, lv1_user_function_sampling_meshgrid_rectangular
 
 
 class LV1_TargetClassifier:
@@ -224,147 +225,160 @@ def main():
 
     create_dir(output_root_path)
 
-    grid = 'grid'
-    colorless = 'colorless'
-    sweeper = 'sweeper'
     democracy = 'democracy'
+    method_names = [democracy]
 
-    method_names = [democracy, grid]
+    svm = 'svm'
+    knn = 'knn'
+    mlp = 'mlp'
+    random_forest = 'random_forest'
+    decision_tree = 'desicion_tree'
+
+    model_names = [
+        svm,
+        knn,
+        random_forest,
+        mlp,
+        decision_tree
+    ]
 
     for max_value in range(100, 1000, 300):
         for method_name in method_names:
-            # directory_name = input('作成するdirectoryを入力してください>>>>')
-            directory_name = method_name + '_max' + str(max_value)
-            directory_path = LV1_user_make_directory(output_root_path, directory_name)
-            # print(directory_path)
+            for model_name in model_names:
+                # directory_name = input('作成するdirectoryを入力してください>>>>')
+                directory_name = method_name + '_' + model_name + '_max' + str(max_value)
+                directory_path = LV1_user_make_directory(output_root_path, directory_name)
+                # print(directory_path)
 
-            # Lv1_targetsに存在する画像ファイル名を取得する。
-            # path = './lv1_targets'
-            path = './lv1_my_targets_from_img7'
-            target_image = LV1_user_load_directory(path)
-            # print(target_image)
+                # Lv1_targetsに存在する画像ファイル名を取得する。
+                # path = './lv1_targets'
+                path = './lv1_my_targets_from_img7'
+                target_image = LV1_user_load_directory(path)
+                # print(target_image)
 
-            target_image.sort()
-            print(target_image)
+                target_image.sort()
+                print(target_image)
 
-            # ターゲット認識器を用意
-            target = LV1_TargetClassifier()
+                # ターゲット認識器を用意
+                target = LV1_TargetClassifier()
 
-            # 面積のpixel数を格納するlist
-            area_pixel = []
-            last_size = 0
-            target_name = []
+                # 面積のpixel数を格納するlist
+                area_pixel = []
+                last_size = 0
+                target_name = []
 
-            # target.load(load_path)をLv1_targetsに含まれる画像毎に指定する。
-            for i in target_image:
-                # 全部のtargetsをやりたくないときはここをいじって。
-                # if i.split('/')[-1].replace('.png','') == 'classifier_03':break
-                target_name.append(i.split('/')[-1].split('_')[-1].replace('.png', ''))
-                target.load(i)
+                # target.load(load_path)をLv1_targetsに含まれる画像毎に指定する。
+                for i in target_image:
+                    # 全部のtargetsをやりたくないときはここをいじって。
+                    # if i.split('/')[-1].replace('.png','') == 'classifier_03':break
+                    target_name.append(i.split('/')[-1].split('_')[-1].replace('.png', ''))
+                    target.load(i)
 
-                # 入力したdirectoryにtarget_image毎のdirectoryを作成する。
-                target_directory = LV1_user_make_directory(directory_path, i.split('/')[-1].replace('.png', ''))
-                # print(target_directory)
+                    # 入力したdirectoryにtarget_image毎のdirectoryを作成する。
+                    target_directory = LV1_user_make_directory(directory_path, i.split('/')[-1].replace('.png', ''))
+                    # print(target_directory)
 
-                # 学習したクローン認識器を可視化した画像を保存するためのファイルを作成。
-                clone_image_directory = LV1_user_make_directory(target_directory, 'clone_image')
-                # print(clone_image_directory)
+                    # 学習したクローン認識器を可視化した画像を保存するためのファイルを作成。
+                    clone_image_directory = LV1_user_make_directory(target_directory, 'clone_image')
+                    # print(clone_image_directory)
 
-                # accuracyの結果を保存するフォルダを作成する。
-                accuracy_directory = LV1_user_make_directory(target_directory, 'accuracy_area')
-                # print(accuracy_directory)
+                    # accuracyの結果を保存するフォルダを作成する。
+                    accuracy_directory = LV1_user_make_directory(target_directory, 'accuracy_area')
+                    # print(accuracy_directory)
 
-                # ターゲット認識器への入力として用いる二次元特徴量を用意
-                # このサンプルコードではひとまず1000サンプルを用意することにする
-                # Nごとのaccuracyを格納する配列を用意する。面積を計算するため。
-                accuracy_list = []
+                    # ターゲット認識器への入力として用いる二次元特徴量を用意
+                    # このサンプルコードではひとまず1000サンプルを用意することにする
+                    # Nごとのaccuracyを格納する配列を用意する。面積を計算するため。
+                    accuracy_list = []
 
-                # Nにサンプル数の配列を指定する。
-                # ↓N=[1,100]は実行時間を短くしたために書いてます。
-                # ↓間隔を自分で試したい場合はいじってください。下記の[1~10000]の配列を使う場合はコメントして。
-                # N = [1,100]
-                # ↓[1,100,200,･･･,10000]までを100間隔でおいた配列がコメントを外すと生成されます。
+                    # Nにサンプル数の配列を指定する。
+                    # ↓N=[1,100]は実行時間を短くしたために書いてます。
+                    # ↓間隔を自分で試したい場合はいじってください。下記の[1~10000]の配列を使う場合はコメントして。
+                    # N = [1,100]
+                    # ↓[1,100,200,･･･,10000]までを100間隔でおいた配列がコメントを外すと生成されます。
 
-                # N1 = np.array([1])
-                # N2 = np.arange(100, 1001, 100)
-                # N = np.hstack((N1, N2))
+                    # N1 = np.array([1])
+                    # N2 = np.arange(100, 1001, 100)
+                    # N = np.hstack((N1, N2))
 
-                # N1 = np.arange(1, 10, 1)
-                # N2 = np.arange(10, 100, 10)
-                # N3 = np.arange(100, 1001, 100)
-                # N = np.hstack((N1, N2))
-                # N = np.hstack((N, N3))
+                    # N1 = np.arange(1, 10, 1)
+                    # N2 = np.arange(10, 100, 10)
+                    # N3 = np.arange(100, 1001, 100)
+                    # N = np.hstack((N1, N2))
+                    # N = np.hstack((N, N3))
 
-                n1 = np.array([1])
-                n2 = np.arange(10, max_value + 1, int(max_value / 10))
-                N = np.hstack((n1, n2))
-                print(N)
+                    n1 = np.array([1])
+                    n2 = np.arange(10, max_value + 1, int(max_value / 10))
+                    N = np.hstack((n1, n2))
+                    print(N)
 
-                for n in N:
-                    start = time.time()
-                    board_size = math.ceil(math.sqrt(n)) + 2
+                    for n in N:
+                        start = time.time()
+                        board_size = math.ceil(math.sqrt(n)) + 2
 
-                    if method_name == grid:
-                        features = lv1_user_function_sampling_meshgrid_rectangular(n_samples=n)
-                    elif method_name == colorless:
-                        features = lv1_user_function_sampling_sweeper(n_samples=n, target_model=target, exe_n=n,
-                                                                      board_size_x=board_size, board_size_y=board_size)
-                    elif method_name == sweeper:
-                        features = lv1_user_function_sampling_sweeper_colorless(n_samples=n, target_model=target,
-                                                                                exe_n=n, board_size_x=board_size,
-                                                                                board_size_y=board_size)
+                        if method_name == democracy:
+                            features = lv1_user_function_sampling_democracy(n_samples=n, target_model=target, exe_n=n)
+                        else:
+                            raise ValueError
 
-                    elif method_name == democracy:
-                        features = lv1_user_function_sampling_democracy(n_samples=n, target_model=target,
-                                                                        exe_n=n)
-                    else:
-                        raise ValueError
+                        # ターゲット認識器に用意した入力特徴量を入力し，各々に対応するクラスラベルIDを取得
+                        labels = target.predict(features)
 
-                    # ターゲット認識器に用意した入力特徴量を入力し，各々に対応するクラスラベルIDを取得
-                    labels = target.predict(features)
+                        # クローン認識器を学習
+                        if model_name == svm:
+                            model = LV1UserDefinedClassifierSVM10C10Gamma()
+                        elif model_name == knn:
+                            model = LV1UserDefinedClassifier1NN()
+                        elif model_name == decision_tree:
+                            model = LV1UserDefinedClassifierTree1000MaxDepth()
+                        elif model_name == random_forest:
+                            model = LV1UserDefinedClassifierRandomForest()
+                        elif model_name == mlp:
+                            model = LV1UserDefinedClassifierMLP1000HiddenLayer()
+                        else:
+                            raise ValueError
 
-                    # クローン認識器を学習
-                    model = LV1UserDefinedClassifierSVM10C10Gamma()
-                    model.fit(features, labels)
+                        model.fit(features, labels)
 
-                    # 学習したクローン認識器を可視化し，精度を評価
-                    evaluator = LV1_Evaluator()
-                    # 可視化した画像を保存。
-                    output_path = clone_image_directory + '/' + directory_name + '_[output_(' + str(n) + ')].png'
-                    evaluator.visualize_missing(model=model, filename=output_path, features=features, target=target)
+                        # 学習したクローン認識器を可視化し，精度を評価
+                        evaluator = LV1_Evaluator()
+                        # 可視化した画像を保存。
+                        output_path = clone_image_directory + '/' + directory_name + '_[output_(' + str(n) + ')].png'
+                        evaluator.visualize_missing(model=model, filename=output_path, features=features, target=target)
 
-                    # accuracyを配列に格納。
-                    accuracy = evaluator.calc_accuracy(target, model)
-                    accuracy_list.append(accuracy)
+                        # accuracyを配列に格納。
+                        accuracy = evaluator.calc_accuracy(target, model)
+                        accuracy_list.append(accuracy)
 
-                    end = time.time()
-                    print('終了:', i.split('/')[2].replace('.png', ''), '_(', n, ')[', round((end - start), 2), '(sec)]')
+                        end = time.time()
+                        print('終了:', i.split('/')[2].replace('.png', ''), '_(', n, ')[', round((end - start), 2),
+                              '(sec)]')
 
-                # accuracyの面積グラフを作成して保存
-                area_path = accuracy_directory + '/' + directory_name + '_(accuracy_area).png'
-                area_features = LV1_user_accuracy_plot(accuracy_list, N, area_path)
+                    # accuracyの面積グラフを作成して保存
+                    area_path = accuracy_directory + '/' + directory_name + '_(accuracy_area).png'
+                    area_features = LV1_user_accuracy_plot(accuracy_list, N, area_path)
 
-                # 面積のグラフをcutする。
-                cut_path = area_path.replace('.png', '_cut.png')
-                area_cut = LV1_user_plot_cut(area_path, cut_path)
+                    # 面積のグラフをcutする。
+                    cut_path = area_path.replace('.png', '_cut.png')
+                    area_cut = LV1_user_plot_cut(area_path, cut_path)
 
-                # accuracyのぶりつぶされたpixelを数える。
-                count_path = area_path.replace('.png', '_count.png')
-                pixel_count, area_size = LV1_user_area_pixel_count(cut_path, count_path)
-                area_pixel.append(pixel_count)
+                    # accuracyのぶりつぶされたpixelを数える。
+                    count_path = area_path.replace('.png', '_count.png')
+                    pixel_count, area_size = LV1_user_area_pixel_count(cut_path, count_path)
+                    area_pixel.append(pixel_count)
 
-                # accuracyの面積結果を画像で保存する。
-                text_path = area_path.replace('.png', '_text.png')
-                area_text = LV1_user_area_count_text(text_path, pixel_count, area_size)
-                last_size = area_size
+                    # accuracyの面積結果を画像で保存する。
+                    text_path = area_path.replace('.png', '_text.png')
+                    area_text = LV1_user_area_count_text(text_path, pixel_count, area_size)
+                    last_size = area_size
 
-                print('画像サイズ[', area_size, ']_x[', area_size[0], ']_y[', area_size[1], ']')
-                print('面積pixel[', pixel_count, ']_割合[', round(pixel_count / (area_size[0] * area_size[1]) * 100, 2),
-                      '%]')
+                    print('画像サイズ[', area_size, ']_x[', area_size[0], ']_y[', area_size[1], ']')
+                    print('面積pixel[', pixel_count, ']_割合[', round(pixel_count / (area_size[0] * area_size[1]) * 100, 2),
+                          '%]')
 
-            statistics_path = directory_path + '/' + directory_name + '_(statistics).png'
-            statistics = LV1_user_area_statistics(statistics_path, area_pixel, target_name, last_size,
-                                                  title=method_name)
+                statistics_path = directory_path + '/' + directory_name + '_(statistics).png'
+                LV1_user_area_statistics(statistics_path, area_pixel, target_name, last_size,
+                                         title=model_name)
 
 
 # クローン処理の実行
