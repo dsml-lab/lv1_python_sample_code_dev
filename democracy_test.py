@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 
-from democracy import to_one_hot, Voter, LV1UserDefinedClassifierSVM
+from democracy import to_one_hot, Voter, LV1UserDefinedClassifier1NN, Parliament
 
 
 class DemocracyTest(unittest.TestCase):
@@ -52,8 +52,19 @@ class VoterTest(unittest.TestCase):
         samplable_features[4][0] = 0.1
         samplable_features[4][1] = 0.0
 
-        v = Voter(model=LV1UserDefinedClassifierSVM())
+        v = Voter(model=LV1UserDefinedClassifier1NN())
         v.sampled_fit(sampled_features=features, sampled_labels=np.int32(labels))
         v.samplable_predict(samplable_features=samplable_features)
 
         print(v.samplable_labels)
+
+class ParliamentTest(unittest.TestCase):
+
+    def test__delete_samplable_features(self):
+
+        par = Parliament()
+        print(par.samplable_features[2])
+
+        par.delete_samplable_features(np.array([-0.9921875, 1]))
+
+        print(par.samplable_features[2])

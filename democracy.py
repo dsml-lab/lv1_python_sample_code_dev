@@ -230,8 +230,8 @@ class Parliament:
         for i in range(0, point_count):
             x = i % image_size
             y = i // image_size
-            samplable_features[i][0] = np.float32(min(max(np.float32((x - h) / h), -0.9), 0.9))
-            samplable_features[i][1] = np.float32(min(max(np.float32(-(y - h) / h), -0.9), 0.9))
+            samplable_features[i][0] = np.float32((x - h) / h)
+            samplable_features[i][1] = np.float32(-(y - h) / h)
         return np.float32(samplable_features)
 
     def __init_voters(self):
@@ -267,17 +267,19 @@ class Parliament:
 
         max_value = np.amax(label_count_arr)
         index_list = np.where(label_count_arr == max_value)[0]
+        filtered_samplable_features = self.samplable_features[index_list]
+        opt_feature = find_furthest_place(sampled_features=sampled_features, filtered_samplable_features=filtered_samplable_features)
 
-        opt_feature = find_furthest_place(sampled_features=sampled_features, filtered_samplable_features=self.samplable_features[index_list])
+        self.delete_samplable_features(delete_feature=opt_feature)
 
-        # random.shuffle(index_list)
-        #
-        # opt_feature = self.samplable_features[index_list[0]]
+        return opt_feature
+
+    def delete_samplable_features(self, delete_feature):
+
+        index_list = np.where(delete_feature == self.samplable_features)[0]
 
         # サンプリング候補から除外
         self.samplable_features = np.delete(self.samplable_features, index_list[0], axis=0)
-
-        return opt_feature
 
     def __fit_to_voters(self, sampled_features, sampled_labels):
         for i in range(len(self.voters)):
