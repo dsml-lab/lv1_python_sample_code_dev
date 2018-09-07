@@ -3,9 +3,6 @@ import numpy as np
 
 from labels import COLOR2ID
 
-MODEL_SVM = 'svm'
-MODEL_KNN = 'knn'
-
 
 class LV1TargetClassifier:
 
@@ -33,10 +30,24 @@ class LV1TargetClassifier:
         return np.int32(labels)
 
 
+MODEL_NAME_SVM = 'svm'
+MODEL_NAME_KNN = 'knn'
+
+TARGET_NAME_1 = 'target1'
+TARGET_NAME_2 = 'target2'
+TARGET_NAME_3 = 'target3'
+TARGET_NAME_4 = 'target4'
+TARGET_NAME_5 = 'target5'
+TARGET_NAME_6 = 'target6'
+TARGET_NAME_7 = 'target7'
+TARGET_NAME_8 = 'target8'
+
+
 class TargetModel:
 
-    def __init__(self, created_model_name, target_path):
+    def __init__(self, created_model_name, created_target_name, target_path):
         self.created_model_name = created_model_name
+        self.created_target_name = created_target_name
         self.target = LV1TargetClassifier()
         self.target.load(target_path)
 
