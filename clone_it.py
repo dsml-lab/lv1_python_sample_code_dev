@@ -16,7 +16,7 @@ from statistics import mean, median, variance, stdev
 
 from democracy import lv1_user_function_sampling_democracy, LV1UserDefinedClassifier1NNRetry, \
     LV1UserDefinedClassifier1NN, LV1UserDefinedClassifierSVM10C10Gamma, LV1UserDefinedClassifierMLP1000HiddenLayer, \
-    LV1UserDefinedClassifierKeras
+    LV1UserDefinedClassifierKeras, LV1UserDefinedClassifierKerasMLP
 from evaluation import IMAGE_SIZE
 from evaluation import LV1_Evaluator
 from labels import COLOR2ID
@@ -329,7 +329,7 @@ def main():
                     if n == 1:
                         model = LV1UserDefinedClassifier1NN()
                     else:
-                        model = LV1UserDefinedClassifierKeras()
+                        model = LV1UserDefinedClassifierKerasMLP()
 
                     model.fit(features, labels)
 
