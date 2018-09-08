@@ -4,6 +4,7 @@ import numpy as np
 import random
 
 from keras import Sequential, optimizers
+from keras.callbacks import EarlyStopping
 from keras.layers import Dense
 from sklearn import svm, neighbors, tree
 from sklearn.ensemble import RandomForestClassifier
@@ -246,12 +247,12 @@ class LV1UserDefinedClassifierKerasMLP:
         # self.clf.add(Dense(5, input_dim=2, activation='tanh'))
         # self.clf.add(Dense(10, activation='softmax'))
 
-        self.clf.add(Dense(4096, input_dim=2, init='glorot_uniform', activation='relu'))
-        self.clf.add(Dense(10, input_dim=4096, init='glorot_uniform', activation='softmax'))
+        self.clf.add(Dense(1024, input_dim=2, init='glorot_uniform', activation='relu'))
+        self.clf.add(Dense(10, input_dim=1024, init='glorot_uniform', activation='softmax'))
 
         optimizer1 = optimizers.SGD(lr=0.01, momentum=0.0, decay=0.0, nesterov=False)
         self.clf.compile(loss='categorical_crossentropy', optimizer=optimizer1, metrics=['accuracy'])
-        #early_stopping = EarlyStopping(patience=5, verbose=1)
+        self.early_stopping = EarlyStopping(patience=5, verbose=1)
 
     # クローン認識器の学習
     #   (features, labels): 訓練データ（特徴量とラベルのペアの集合）
@@ -259,7 +260,7 @@ class LV1UserDefinedClassifierKerasMLP:
         Y = np.eye(10)[labels.astype(int)]
         epochs = 1000
         batch_size = 5
-        self.history = self.clf.fit(features, Y, batch_size=batch_size, epochs = epochs, shuffle=True, validation_split=0.1)
+        self.history = self.clf.fit(features, Y, batch_size=batch_size, epochs = epochs, shuffle=True, validation_split=0.1, callbacks=[self.early_stopping])
 
     # 未知の二次元特徴量を認識
     #   features: 認識対象の二次元特徴量の集合
