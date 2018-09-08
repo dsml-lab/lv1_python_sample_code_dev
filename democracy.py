@@ -4,7 +4,7 @@ import numpy as np
 import random
 from sklearn import svm, neighbors, tree
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.grid_search import GridSearchCV
+from sklearn.model_selection import GridSearchCV
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import OneHotEncoder
 
@@ -44,10 +44,7 @@ class LV1UserDefinedClassifierSVM10C10Gamma:
 class LV1UserDefinedClassifierSVM10C10GammaGridSearch:
     def __init__(self):
         tuned_parameters = [
-            {'C': [1, 10, 100, 1000], 'kernel': ['linear']},
-            {'C': [1, 10, 100, 1000], 'kernel': ['rbf'], 'gamma': [0.001, 0.0001]},
-            {'C': [1, 10, 100, 1000], 'kernel': ['poly'], 'degree': [2, 3, 4], 'gamma': [0.001, 0.0001]},
-            {'C': [1, 10, 100, 1000], 'kernel': ['sigmoid'], 'gamma': [0.001, 0.0001]}
+            {'C': np.logspace(-1, 2, 30), 'gamma': np.logspace(-1, 2, 30)}
         ]
         self.score = 'accuracy'
         self.svm = GridSearchCV(
@@ -108,29 +105,6 @@ class LV1UserDefinedClassifier1NN:
         return np.int32(labels)
 
 
-class LV1UserDefinedClassifier1NNRetry:
-    def __init__(self):
-        self.clf = neighbors.KNeighborsClassifier(n_neighbors=1)
-
-    # クローン認識器の学習
-    #   (features, labels): 訓練データ（特徴量とラベルのペアの集合）
-    def fit(self, features, labels):
-        while True:
-            self.clf.fit(features, labels)
-            predict_labels = self.clf.predict(features)
-            if np.allclose(labels, predict_labels):
-                print('一致')
-                break
-            else:
-                print('不一致')
-
-    # 未知の二次元特徴量を認識
-    #   features: 認識対象の二次元特徴量の集合
-    def predict(self, features):
-        labels = self.clf.predict(features)
-        return np.int32(labels)
-
-
 class LV1UserDefinedClassifier7NN:
     def __init__(self):
         self.knn1 = neighbors.KNeighborsClassifier(n_neighbors=1)
@@ -167,6 +141,52 @@ class LV1UserDefinedClassifierMLP1000HiddenLayer:
     #   features: 認識対象の二次元特徴量の集合
     def predict(self, features):
         labels = self.clf.predict(features)
+        return np.int32(labels)
+
+
+class LV1UserDefinedClassifierMLPGridSearch:
+    def __init__(self):
+        tuned_parameters = [
+            {'hidden_layer_sizes': np.logspace(1, 10, 11, base=2)}
+        ]
+        self.score = 'accuracy'
+        self.mlp = MLPClassifier(solver="lbfgs", hidden_layer_sizes=1000)
+        self.grid_mlp = GridSearchCV(
+            self.mlp,  # 識別器
+            tuned_parameters,  # 最適化したいパラメータセット
+            cv=2,  # 交差検定の回数
+            scoring=self.score)  # モデルの評価関数の指定
+        self.clf = None
+
+    # クローン認識器の学習
+    #   (features, labels): 訓練データ（特徴量とラベルのペアの集合）
+    def fit(self, features, labels):
+
+        if len(set(labels)) > 1:  # labelsが2以上ならSVM
+            self.clf = self.grid_mlp
+            self.clf.fit(features, labels)
+
+            print("# Tuning hyper-parameters for %s" % self.score)
+            print()
+            print("Best parameters set found on development set: %s" % self.clf.best_params_)
+            print()
+
+            # それぞれのパラメータでの試行結果の表示
+            print("Grid scores on development set:")
+            print()
+            for params, mean_score, scores in self.clf.grid_scores_:
+                print("%0.3f (+/-%0.03f) for %r"
+                      % (mean_score, scores.std() * 2, params))
+            print()
+        else:
+            self.clf = self.mlp
+            self.clf.fit(features, labels)
+
+    # 未知の二次元特徴量を認識
+    #   features: 認識対象の二次元特徴量の集合
+    def predict(self, features):
+        labels = self.clf.predict(features)
+
         return np.int32(labels)
 
 
