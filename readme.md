@@ -40,6 +40,7 @@ LV1_UserDefinedClassifier は自由に設計して頂きたく思いますが，
 # メモ
 
 ```
+nvidia-docker run -v /media/ando/8b052113-9e75-4fb4-af54-53f93bbe44a7/dsml_public/lv1_python_sample_code:/alcon/ -i -t alcon_lv1_keras:alcon /bin/bash
 pip freeze > requirements.txt
 ```
 
