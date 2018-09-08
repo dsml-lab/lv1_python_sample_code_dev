@@ -1,9 +1,11 @@
-# coding: UTF-8
+# -*- coding: utf_8 -*-
 import math
 import time
 
+import matplotlib
+matplotlib.use('Agg') # 表示しない
+
 # 面積を計算するためにグラフを用いるモジュールをimport
-import git
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -13,7 +15,8 @@ from sklearn import neighbors
 from statistics import mean, median, variance, stdev
 
 from democracy import lv1_user_function_sampling_democracy, LV1UserDefinedClassifier1NNRetry, \
-    LV1UserDefinedClassifier1NN, LV1UserDefinedClassifierSVM10C10Gamma, LV1UserDefinedClassifierMLP1000HiddenLayer
+    LV1UserDefinedClassifier1NN, LV1UserDefinedClassifierSVM10C10Gamma, LV1UserDefinedClassifierMLP1000HiddenLayer, \
+    LV1UserDefinedClassifierKeras
 from evaluation import IMAGE_SIZE
 from evaluation import LV1_Evaluator
 from labels import COLOR2ID
@@ -217,10 +220,10 @@ def main():
         '''
     # このプログラムファイルの名前と同じdirectoryを作り、その中に結果を保存する。
     now = datetime.now().strftime('%Y%m%d%H%M%S')
-    repo = git.Repo(search_parent_directories=True)
-    sha = repo.head.object.hexsha
-    commit_hash = repo.git.rev_parse(sha)
-    output_root_path = './output/area_' + now + '_' + str(commit_hash)
+    # repo = git.Repo(search_parent_directories=True)
+    # sha = repo.head.object.hexsha
+    # commit_hash = repo.git.rev_parse(sha)
+    output_root_path = './output/area_' + now + '_' # + str(commit_hash)
 
     create_dir(output_root_path)
 
@@ -323,7 +326,11 @@ def main():
                     labels = target.predict(features)
 
                     # クローン認識器を学習
-                    model = LV1UserDefinedClassifierMLP1000HiddenLayer()
+                    if n == 1:
+                        model = LV1UserDefinedClassifier1NN()
+                    else:
+                        model = LV1UserDefinedClassifierKeras()
+
                     model.fit(features, labels)
 
                     # 学習したクローン認識器を可視化し，精度を評価
@@ -337,7 +344,7 @@ def main():
                     accuracy_list.append(accuracy)
 
                     end = time.time()
-                    print('終了:', i.split('/')[2].replace('.png', ''), '_(', n, ')[', round((end - start), 2), '(sec)]')
+                    print('end:', i.split('/')[2].replace('.png', ''), '_(', n, ')[', round((end - start), 2), '(sec)]')
 
                 # accuracyの面積グラフを作成して保存
                 area_path = accuracy_directory + '/' + directory_name + '_(accuracy_area).png'
@@ -357,8 +364,8 @@ def main():
                 area_text = LV1_user_area_count_text(text_path, pixel_count, area_size)
                 last_size = area_size
 
-                print('画像サイズ[', area_size, ']_x[', area_size[0], ']_y[', area_size[1], ']')
-                print('面積pixel[', pixel_count, ']_割合[', round(pixel_count / (area_size[0] * area_size[1]) * 100, 2),
+                print('image size[', area_size, ']_x[', area_size[0], ']_y[', area_size[1], ']')
+                print('image pixel[', pixel_count, ']_ratio[', round(pixel_count / (area_size[0] * area_size[1]) * 100, 2),
                       '%]')
 
             statistics_path = directory_path + '/' + directory_name + '_(statistics).png'

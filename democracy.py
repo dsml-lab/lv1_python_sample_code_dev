@@ -2,6 +2,9 @@ import math
 
 import numpy as np
 import random
+
+from keras import Sequential, optimizers
+from keras.layers import Dense
 from sklearn import svm, neighbors, tree
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.grid_search import GridSearchCV
@@ -31,6 +34,7 @@ class LV1UserDefinedClassifierSVM10C10Gamma:
             self.clf = self.svm
         else:
             self.clf = self.knn1
+
 
         self.clf.fit(features, labels)
 
@@ -201,6 +205,35 @@ class LV1UserDefinedClassifierRandomForest:
         labels = self.clf.predict(features)
         return np.int32(labels)
 
+
+# クローン認識器を表現するクラス
+# このサンプルコードでは単純な 1-nearest neighbor 認識器とする（sklearnを使用）
+# 下記と同型の fit メソッドと predict メソッドが必要
+class LV1UserDefinedClassifierKeras:
+
+    # クローン認識器の設定
+    def __init__(self):
+        self.clf = Sequential()
+        self.clf.add(Dense(5, input_dim=2, activation='tanh'))
+        self.clf.add(Dense(10, activation='softmax'))
+        optimizer1 = optimizers.SGD(lr=0.01, momentum=0.0, decay=0.0, nesterov=False)
+        self.clf.compile(loss='categorical_crossentropy', optimizer=optimizer1, metrics=['accuracy'])
+        #early_stopping = EarlyStopping(patience=5, verbose=1)
+
+    # クローン認識器の学習
+    #   (features, labels): 訓練データ（特徴量とラベルのペアの集合）
+    def fit(self, features, labels):
+        Y = np.eye(10)[labels.astype(int)]
+        epochs = 1000
+        batch_size = 5
+        self.history = self.clf.fit(features, Y, batch_size=batch_size, epochs = epochs, shuffle=True, validation_split=0.1)
+
+    # 未知の二次元特徴量を認識
+    #   features: 認識対象の二次元特徴量の集合
+    def predict(self, features):
+        Y = self.clf.predict(features)
+        labels=np.argmax(Y,1)
+        return np.int32(labels)
 
 class Voter:
     """投票者クラス"""

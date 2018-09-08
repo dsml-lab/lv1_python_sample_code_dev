@@ -27,7 +27,7 @@ def find_furthest_place(sampled_features, filtered_samplable_features):
 
     print(max_value)
 
-    print("sampling候補数: " + str(len(nearest_arr)))
+    print("samplable count: " + str(len(nearest_arr)))
 
     index_list = np.where(max_value == nearest_arr)[0]
     random.shuffle(index_list)
