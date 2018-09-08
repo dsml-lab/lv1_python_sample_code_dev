@@ -236,9 +236,9 @@ class Parliament:
 
     def __init_voters(self):
         self.voters.append(Voter(model=LV1UserDefinedClassifierSVM10C10Gamma()))
-        self.voters.append(Voter(model=LV1UserDefinedClassifier1NN()))
+        # self.voters.append(Voter(model=LV1UserDefinedClassifier1NN()))
         # self.voters.append(Voter(model=LV1UserDefinedClassifier7NN()))
-        # self.voters.append(Voter(model=LV1UserDefinedClassifierMLP1000HiddenLayer()))
+        self.voters.append(Voter(model=LV1UserDefinedClassifierMLP1000HiddenLayer()))
         # self.voters.append(Voter(model=LV1UserDefinedClassifierTree1000MaxDepth()))
         # self.voters.append(Voter(model=LV1UserDefinedClassifierRandomForest()))
 
