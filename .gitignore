@@ -1,6 +1,7 @@
 .idea
 venv
 output
+output_lv2
 workspace
 __pycache__
 .DS_Store
