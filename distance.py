@@ -37,6 +37,33 @@ def find_furthest_place(sampled_features, filtered_samplable_features):
     return filtered_samplable_features[index_list[0]]
 
 
+def find_non_close_place(sampled_features, filtered_samplable_features):
+    distance_arr = np.zeros((len(filtered_samplable_features), len(sampled_features)))
+
+    for i, filtered_feature in enumerate(filtered_samplable_features):
+        for j, sampled_feature in enumerate(sampled_features):
+            distance_arr[i][j] = calc_distance(feature1=filtered_feature, feature2=sampled_feature)
+
+    nearest_arr = np.zeros((len(filtered_samplable_features)))
+    for i, filtered_feature in enumerate(filtered_samplable_features):
+        nearest_arr[i] = np.min(distance_arr[i])
+
+    print(nearest_arr)
+
+    median_value = np.median(nearest_arr)
+
+    print('中央値:' + str(median_value))
+
+    print("sampling候補数: " + str(len(nearest_arr)))
+
+    index_list = np.where(median_value <= nearest_arr)[0]
+    random.shuffle(index_list)
+
+    print(index_list)
+
+    return filtered_samplable_features[index_list[0]]
+
+
 class DistanceTest(unittest.TestCase):
 
     def test_calc_distance(self):
