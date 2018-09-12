@@ -146,7 +146,7 @@ def LV1_user_area_count_text(path, pixel_count, area_size):
 
 
 # accuacyの面積の計算結果を画像で保存する。
-def LV1_user_area_statistics(path, area_pixel, label, size, title):
+def LV1_user_area_statistics(path, area_pixel, labels, size, title):
     fig = plt.figure()
     # ax1にclassifier毎のAccuracy面積のグラフ
     ax1 = fig.add_subplot(2, 1, 1)
@@ -156,7 +156,7 @@ def LV1_user_area_statistics(path, area_pixel, label, size, title):
     plt.plot(np.array(range(len(pixel))), pixel, 'o')
     plt.title(title)
     plt.xlabel('n_classifier')
-    plt.xticks(np.array(range(len(pixel))), label)
+    plt.xticks(np.array(range(len(pixel))), labels)
     plt.ylabel('pixel')
     plt.ylim(0, 1)
     # 平均,中央値,分散,標準偏差の出力
@@ -265,13 +265,13 @@ def main():
                 # 面積のpixel数を格納するlist
                 area_pixel = []
                 last_size = 0
-                target_name = []
+                target_names = []
 
                 # target.load(load_path)をLv1_targetsに含まれる画像毎に指定する。
                 for i in target_image:
                     # 全部のtargetsをやりたくないときはここをいじって。
                     # if i.split('/')[-1].replace('.png','') == 'classifier_03':break
-                    target_name.append(i.split('/')[-1].split('_')[-1].replace('.png', ''))
+                    target_names.append(os.path.basename(i).split('_')[0])
                     target.load(i)
 
                     # 入力したdirectoryにtarget_image毎のdirectoryを作成する。
@@ -377,7 +377,7 @@ def main():
                           '%]')
 
                 statistics_path = directory_path + '/' + directory_name + '_(statistics).png'
-                LV1_user_area_statistics(statistics_path, area_pixel, target_name, last_size,
+                LV1_user_area_statistics(statistics_path, area_pixel, target_names, last_size,
                                          title=model_name)
 
 
