@@ -56,7 +56,7 @@ def find_non_close_place(sampled_features, filtered_samplable_features):
 
     print("sampling候補数: " + str(len(nearest_arr)))
 
-    index_list = np.where(median_value <= nearest_arr)[0]
+    index_list = np.where(median_value == nearest_arr)[0]
     random.shuffle(index_list)
 
     print(index_list)
