@@ -8,7 +8,7 @@ from sklearn.grid_search import GridSearchCV
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import OneHotEncoder
 
-from distance import find_furthest_place, find_non_close_place
+from distance import find_furthest_place, find_non_close_place, find_median_place
 
 LABEL_SIZE = 10
 
@@ -269,7 +269,8 @@ class Parliament:
         index_list = np.where(label_count_arr == max_value)[0]
         filtered_samplable_features = self.samplable_features[index_list]
         # opt_feature = find_furthest_place(sampled_features=sampled_features, filtered_samplable_features=filtered_samplable_features)
-        opt_feature = find_non_close_place(sampled_features=sampled_features, filtered_samplable_features=filtered_samplable_features)
+        # opt_feature = find_non_close_place(sampled_features=sampled_features, filtered_samplable_features=filtered_samplable_features)
+        opt_feature = find_median_place(sampled_features=sampled_features, filtered_samplable_features=filtered_samplable_features)
 
         self.delete_samplable_features(delete_feature=opt_feature)
 
