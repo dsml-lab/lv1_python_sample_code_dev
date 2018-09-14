@@ -2,7 +2,7 @@ import math
 import numpy as np
 
 from democ.distance import find_furthest_place
-from democ.lv1_clone_clf import LV1UserDefinedClassifierMLP1000HiddenLayer
+from democ.lv1_clf import LV1UserDefinedClassifierMLP1000HiddenLayer
 from democ.voter import Lv1Voter
 
 
@@ -32,9 +32,6 @@ class Parliament:
         self.dimension = dimension
         self.label_size = label_size
         self.samplable_features = samplable_features
-
-        # TODO samplable_featuresを初期化
-        # TODO votersを追加
 
     def get_optimal_solution(self, sampled_features, sampled_labels):
         self.__fit_to_voters(sampled_features=sampled_features, sampled_labels=sampled_labels)  # 投票者を訓練

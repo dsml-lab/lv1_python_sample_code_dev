@@ -12,7 +12,9 @@ from datetime import datetime
 from sklearn import neighbors
 from statistics import mean, median, variance, stdev
 
-from democ.democracy import lv1_user_function_sampling_democracy, LV1UserDefinedClassifierMLP1000HiddenLayer
+# from democ.democracy import lv1_user_function_sampling_democracy, LV1UserDefinedClassifierMLP1000HiddenLayer
+from democ.lv1_clf import LV1UserDefinedClassifierMLP1000HiddenLayer
+from democ.sampling import lv1_user_function_sampling_democracy
 from evaluation import IMAGE_SIZE
 from evaluation import LV1_Evaluator
 from labels import COLOR2ID

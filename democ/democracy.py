@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.preprocessing import OneHotEncoder
 
 from democ.distance import find_furthest_place
-from democ.lv1_clone_clf import LV1UserDefinedClassifierSVM10C10Gamma, LV1UserDefinedClassifier1NN, \
+from democ.lv1_clf import LV1UserDefinedClassifierSVM10C10Gamma, LV1UserDefinedClassifier1NN, \
     LV1UserDefinedClassifierMLP1000HiddenLayer
 
 LEVEL_1 = 1
