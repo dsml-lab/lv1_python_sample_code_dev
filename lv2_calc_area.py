@@ -3,14 +3,29 @@ import os
 from datetime import datetime
 
 # from clone import LV1_user_function_sampling, LV1_UserDefinedClassifier, LV1_TargetClassifier
-from clone_lv2 import LV2_user_function_sampling, LV2_UserDefinedClassifier, LV2_TargetClassifier
-from evaluation_lv2 import LV2_Evaluator
+from lv2_clone import LV2_user_function_sampling, LV2_UserDefinedClassifier, LV2_TargetClassifier
+from lv2_evaluation import LV2_Evaluator
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
 RANDOM_SAMPLING = 'LV2_user_function_sampling'
 DEMOCRACY_SAMPLING = 'democracy'
+
+
+class Lv2PathManager:
+
+    def __init__(self, save_root_path):
+        self.save_root_path = save_root_path
+
+    def sampling_method_path(self, sampling_method_name):
+        return os.path.join(self.save_root_path, sampling_method_name)
+
+    def clone_clf_path(self, sampling_method_name, clone_clf_name):
+        return os.path.join(self.save_root_path, sampling_method_name, clone_clf_name)
+
+    def target_path(self, sampling_method_name, clone_clf_name, target_name):
+        return os.path.join(self.save_root_path, sampling_method_name, clone_clf_name, target_name)
 
 
 def calc_diff_area(start_n, end_n, start_height, end_height):
@@ -32,7 +47,9 @@ def calc_area(n_list, evaluation_value_list):
                                                start_height=evaluation_value_list[i],
                                                end_height=evaluation_value_list[i + 1])
 
-    return sum_value
+    square_area = max(n_list) * 1
+    ratio = sum_value / square_area
+    return sum_value, ratio
 
 
 def get_features(n, method_name):
@@ -68,9 +85,7 @@ def exe_my_clone(target, img_save_path, n, method_name):
     return recall, precision, f_score
 
 
-def exe_my_clone_all(target_path, max_n, increment_value, now_str, method_name):
-    img_save_dir = 'output_lv2/' + now_str + '/images/'
-
+def exe_my_clone_all(target_path, range_list, img_save_dir, method_name):
     n_list = []
     recall_list = []
     precision_list = []
@@ -86,8 +101,8 @@ def exe_my_clone_all(target_path, max_n, increment_value, now_str, method_name):
     precision_list.append(0.0)
     f_score_list.append(0.0)
 
-    for n in range(10, max_n, increment_value):
-        save_dir = img_save_dir + 'n' + str(n) + '/'
+    for n in range_list:
+        save_dir = os.path.join(img_save_dir, 'n' + str(n))
         os.makedirs(save_dir)
 
         recall, precision, f_score = exe_my_clone(target=target,
@@ -101,37 +116,23 @@ def exe_my_clone_all(target_path, max_n, increment_value, now_str, method_name):
     return n_list, recall_list, precision_list, f_score_list
 
 
-def save_csv(now_str, n_list, recall_list, precision_list, f_score_list, f_score_area, sampling_method_name):
-    df_dir = 'output_lv2/' + now_str + '/csv/'
-    os.makedirs(df_dir)
+def save_csv(save_dir, n_dict, log_dict):
+    df_dir = os.path.join(save_dir, '/csv/')
 
-    save_n_accuracy_csv(n_list=n_list, recall_list=recall_list, precision_list=precision_list,
-                        f_score_list=f_score_list, df_dir=df_dir)
-    save_log_csv(f_score_area=f_score_area, sampling_method_name=sampling_method_name, df_dir=df_dir)
+    save_n_accuracy_csv(n_dict=n_dict, df_dir=df_dir)
+    save_log_csv(log_dict=log_dict, df_dir=df_dir)
 
 
-def save_n_accuracy_csv(n_list, recall_list, precision_list, f_score_list, df_dir):
-    n_dict = {
-        'n': n_list,
-        'recall': recall_list,
-        'precision': precision_list,
-        'f_score_list': f_score_list
-    }
-
+def save_n_accuracy_csv(n_dict, df_dir):
     df = pd.DataFrame.from_dict(n_dict)
     print(df)
-    df.to_csv(df_dir + "n_accuracy.csv")
+    df.to_csv(os.path.join(df_dir, "n_accuracy.csv"))
 
 
-def save_log_csv(f_score_area, sampling_method_name, df_dir):
-    log_dict = {
-        'f_score_area': [f_score_area],
-        'sampling_method_name': [sampling_method_name]
-    }
-
+def save_log_csv(log_dict, df_dir):
     df = pd.DataFrame.from_dict(log_dict)
     print(df)
-    df.to_csv(df_dir + "log.csv")
+    df.to_csv(os.path.join(df_dir, "log.csv"))
 
 
 def save_and_show_graph_f_score(n_list, f_score_list, f_score_area, method_name, graph_dir):
@@ -173,23 +174,22 @@ def save_and_show_graph_precision(n_list, precision_list, precision_area, method
     plt.show()
 
 
-def create_output():
-    now_str = datetime.now().strftime('%Y%m%d%H%M%S')
+def create_output(save_dir):
     target_path = 'lv2_targets/classifier_01'
     method_name = RANDOM_SAMPLING
-    n_list, recall_list, precision_list, f_score_list = exe_my_clone_all(target_path=target_path, now_str=now_str,
-                                                                         max_n=300, increment_value=31,
+    n_list, recall_list, precision_list, f_score_list = exe_my_clone_all(target_path=target_path,
+                                                                         img_save_dir=save_dir,
+                                                                         range_list=range(10, 110, 10),
                                                                          method_name=method_name)
 
-    recall_area = calc_area(n_list, recall_list)
-    precision_area = calc_area(n_list, precision_list)
-    f_score_area = calc_area(n_list, f_score_list)
+    recall_area, recall_ratio = calc_area(n_list, recall_list)
+    precision_area, precision_ratio = calc_area(n_list, precision_list)
+    f_score_area, f_score_ratio = calc_area(n_list, f_score_list)
     print('recallの面積: ' + str(recall_area))
     print('precisionの面積: ' + str(precision_area))
     print('f_scoreの面積: ' + str(f_score_area))
 
-    graph_dir = 'output_lv2/' + now_str + '/graph/'
-    os.makedirs(graph_dir)
+    graph_dir = os.path.join(save_dir, '/graph/')
 
     save_and_show_graph_recall(graph_dir=graph_dir, n_list=n_list, recall_list=recall_list, recall_area=recall_area,
                                method_name=method_name)
@@ -198,9 +198,27 @@ def create_output():
     save_and_show_graph_f_score(graph_dir=graph_dir, n_list=n_list, f_score_list=f_score_list, f_score_area=f_score_area,
                                 method_name=method_name)
 
-    save_csv(now_str=now_str, n_list=n_list, recall_list=recall_list, precision_list=precision_list,
-             f_score_list=f_score_list, f_score_area=f_score_area, sampling_method_name=method_name)
+    n_dict = {
+        'n': n_list,
+        'recall': recall_list,
+        'precision': precision_list,
+        'f_score_list': f_score_list
+    }
+
+    log_dict = {
+        'f_score_area': [f_score_area],
+        'sampling_method_name': [method_name]
+    }
+
+    save_csv(save_dir=save_dir, n_dict=n_dict, log_dict=log_dict)
+
+
+def run():
+    now_str = datetime.now().strftime('%Y%m%d%H%M%S')
+    output_path = os.path.join('output_lv2', now_str)
+
+    create_output(output_path)
 
 
 if __name__ == '__main__':
-    create_output()
+    run()

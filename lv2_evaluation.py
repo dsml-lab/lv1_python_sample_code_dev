@@ -2,8 +2,8 @@
 
 import numpy as np
 from PIL import Image
-from labels_lv2 import N_LABELS
-from labels_lv2 import ID2LNAME
+from lv2_labels import N_LABELS
+from lv2_labels import ID2LNAME
 
 # ターゲット認識器を表現する画像のサイズ
 IMAGE_SIZE = 512

@@ -4,10 +4,10 @@ import sys
 import numpy as np
 from PIL import Image
 from sklearn import neighbors
-from labels_lv2 import N_LABELS
-from labels_lv2 import ID2LNAME
-from evaluation_lv2 import IMAGE_SIZE
-from evaluation_lv2 import LV2_Evaluator
+from lv2_labels import N_LABELS
+from lv2_labels import ID2LNAME
+from lv2_evaluation import IMAGE_SIZE
+from lv2_evaluation import LV2_Evaluator
 
 # ターゲット認識器を表現するクラス
 # ターゲット認識器は8枚の2次元パターン（512x512の画像）で与えられるものとする
@@ -83,7 +83,7 @@ def LV2_user_function_sampling(n_samples=1):
 
 def main():
     if len(sys.argv) < 3:
-        print("usage: clone_lv2.py /target/classifier/directory/path /output_lv2/directory/path")
+        print("usage: lv2_clone.py /target/classifier/directory/path /output_lv2/directory/path")
         exit(0)
 
     # ターゲット認識器を用意
