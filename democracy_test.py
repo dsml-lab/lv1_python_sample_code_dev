@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 
-from democracy import to_one_hot, Voter, LV1UserDefinedClassifier1NN, Parliament
+from democ.democracy import to_one_hot, Lv1Voter, LV1UserDefinedClassifier1NN, Parliament
 
 
 class DemocracyTest(unittest.TestCase):
@@ -52,7 +52,7 @@ class VoterTest(unittest.TestCase):
         samplable_features[4][0] = 0.1
         samplable_features[4][1] = 0.0
 
-        v = Voter(model=LV1UserDefinedClassifier1NN())
+        v = Lv1Voter(model=LV1UserDefinedClassifier1NN())
         v.sampled_fit(sampled_features=features, sampled_labels=np.int32(labels))
         v.samplable_predict(samplable_features=samplable_features)
 

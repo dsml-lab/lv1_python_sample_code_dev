@@ -6,15 +6,11 @@ from datetime import datetime
 import numpy as np
 import matplotlib.pyplot as plt
 
-from democracy import lv1_user_function_sampling_democracy, LV1UserDefinedClassifierSVM10C10GammaGridSearch, \
-    LV1UserDefinedClassifierTree1000MaxDepth, LV1UserDefinedClassifierRandomForest, \
-    LV1UserDefinedClassifierMLP1000HiddenLayer, LV1UserDefinedClassifier1NN, \
-    lv1_user_function_sampling_democracy_and_grid, LV1UserDefinedClassifier1NNRetry
+from democ.democracy import lv1_user_function_sampling_democracy, lv1_user_function_sampling_democracy_and_grid, LV1UserDefinedClassifier1NNRetry
 from evaluation import LV1_Evaluator
-from region import SavePathManager, create_dir, LV1TargetClassifier, DIVIDER, LV1UserDefinedClassifier
+from region import SavePathManager, create_dir, LV1TargetClassifier, DIVIDER
 from sampling import lv1_user_function_sampling
-from sweeper_sampling import lv1_user_function_sampling_sweeper, LV1UserDefinedClassifierSVM, \
-    lv1_user_function_sampling_sweeper_colorless, lv1_user_function_sampling_meshgrid_rectangular, \
+from sweeper_sampling import lv1_user_function_sampling_sweeper, lv1_user_function_sampling_sweeper_colorless, lv1_user_function_sampling_meshgrid_rectangular, \
     lv1_user_function_sampling_sweeper_pixel, lv1_user_function_sampling_sweeper_start
 
 METHOD_NAME_REGION = 'lv1_user_function_sampling_region'

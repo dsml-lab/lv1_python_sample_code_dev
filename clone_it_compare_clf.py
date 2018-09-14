@@ -12,7 +12,7 @@ from datetime import datetime
 from sklearn import neighbors
 from statistics import mean, median, variance, stdev
 
-from democracy import lv1_user_function_sampling_democracy, LV1UserDefinedClassifier1NN, \
+from democ.democracy import lv1_user_function_sampling_democracy, LV1UserDefinedClassifier1NN, \
     LV1UserDefinedClassifierSVM10C10Gamma, LV1UserDefinedClassifierTree1000MaxDepth, \
     LV1UserDefinedClassifierRandomForest, LV1UserDefinedClassifierMLP1000HiddenLayer
 from evaluation import IMAGE_SIZE

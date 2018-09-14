@@ -12,8 +12,7 @@ from datetime import datetime
 from sklearn import neighbors
 from statistics import mean, median, variance, stdev
 
-from democracy import lv1_user_function_sampling_democracy, LV1UserDefinedClassifier1NNRetry, \
-    LV1UserDefinedClassifier1NN, LV1UserDefinedClassifierSVM10C10Gamma, LV1UserDefinedClassifierMLP1000HiddenLayer
+from democ.democracy import lv1_user_function_sampling_democracy, LV1UserDefinedClassifierMLP1000HiddenLayer
 from evaluation import IMAGE_SIZE
 from evaluation import LV1_Evaluator
 from labels import COLOR2ID
@@ -21,7 +20,7 @@ from labels import ID2COLOR
 # ターゲット認識器を表現するクラス
 # ターゲット認識器は2次元パターン（512x512の画像）で与えられるものとする
 from sweeper_sampling import lv1_user_function_sampling_sweeper_colorless, lv1_user_function_sampling_sweeper, \
-    LV1UserDefinedClassifierSVM, lv1_user_function_sampling_meshgrid_rectangular
+    lv1_user_function_sampling_meshgrid_rectangular
 
 
 class LV1_TargetClassifier:
