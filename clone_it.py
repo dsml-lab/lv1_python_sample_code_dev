@@ -304,24 +304,24 @@ def main():
                     start = time.time()
                     board_size = math.ceil(math.sqrt(n)) + 2
 
-                    if method_name == grid:
-                        features = lv1_user_function_sampling_meshgrid_rectangular(n_samples=n)
-                    elif method_name == colorless:
-                        features = lv1_user_function_sampling_sweeper(n_samples=n, target_model=target, exe_n=n,
-                                                                      board_size_x=board_size, board_size_y=board_size)
-                    elif method_name == sweeper:
-                        features = lv1_user_function_sampling_sweeper_colorless(n_samples=n, target_model=target,
-                                                                                exe_n=n, board_size_x=board_size,
-                                                                                board_size_y=board_size)
-
-                    elif method_name == democracy:
-                        features = lv1_user_function_sampling_democracy(n_samples=n, target_model=target,
+                    # if method_name == grid:
+                    #     features = lv1_user_function_sampling_meshgrid_rectangular(n_samples=n)
+                    # elif method_name == colorless:
+                    #     features = lv1_user_function_sampling_sweeper(n_samples=n, target_model=target, exe_n=n,
+                    #                                                   board_size_x=board_size, board_size_y=board_size)
+                    # elif method_name == sweeper:
+                    #     features = lv1_user_function_sampling_sweeper_colorless(n_samples=n, target_model=target,
+                    #                                                             exe_n=n, board_size_x=board_size,
+                    #                                                             board_size_y=board_size)
+                    #
+                    # elif method_name == democracy:
+                    features, labels = lv1_user_function_sampling_democracy(n_samples=n, target_model=target,
                                                                         exe_n=n)
-                    else:
-                        raise ValueError
+                    # else:
+                    #     raise ValueError
 
                     # ターゲット認識器に用意した入力特徴量を入力し，各々に対応するクラスラベルIDを取得
-                    labels = target.predict(features)
+                    # labels = target.predict(features)
 
                     # クローン認識器を学習
                     model = LV1UserDefinedClassifierMLP1000HiddenLayer()

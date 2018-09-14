@@ -63,7 +63,6 @@ class Parliament:
         return opt_feature
 
     def delete_samplable_features(self, delete_feature):
-
         index_list = np.where(delete_feature == self.samplable_features)[0]
 
         # サンプリング候補から除外
