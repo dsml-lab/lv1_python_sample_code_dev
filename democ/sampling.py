@@ -6,7 +6,7 @@ from democ.parliament import Parliament
 
 
 def get_image_size(exe_n):
-    return math.ceil(math.sqrt(exe_n)) + 10
+    return math.ceil(math.sqrt(exe_n)) + 100
 
 
 def lv1_user_function_sampling_democracy(n_samples, target_model, exe_n):

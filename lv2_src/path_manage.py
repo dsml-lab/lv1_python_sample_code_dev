@@ -1,12 +1,12 @@
-from datetime import datetime
 import os
+from datetime import datetime
 
 
 def load_directories(path):
-    file_names = os.listdir(path)
+    directories = [d for d in os.listdir(path) if os.path.isdir(d)]
     file_path_list = []
-    for file_name in file_names:
-        file_path_list.append(os.path.join(path, file_name))
+    for dir_name in directories:
+        file_path_list.append(os.path.join(path, dir_name))
     file_path_list.sort()
     return file_path_list
 
