@@ -11,6 +11,15 @@ from lv2_src.labels_lv2 import ID2LNAME, N_LABELS
 IMAGE_SIZE = 512
 
 
+# 小数をpx値にマッピング
+def mapping_x_y(feature_x, feature_y):
+    h = IMAGE_SIZE // 2
+    x = int(max(0, min(IMAGE_SIZE - 1, np.round(h * feature_x + h))))
+    y = int(max(0, min(IMAGE_SIZE - 1, np.round(h - h * feature_y))))
+
+    return x, y
+
+
 # 構築したクローン認識器を評価するためのクラス
 class LV2Evaluator:
 
@@ -69,3 +78,23 @@ class LV2Evaluator:
         p_avg /= self.size
         f_avg /= self.size
         return r_avg, p_avg, f_avg
+
+        # クローン認識器を可視化する（可視化結果を8枚の画像として保存する）
+        #   model: クローン認識器
+        #   directory: 可視化結果の画像の保存先ディレクトリ
+    def visualize_missing(self, model, directory, features):
+        if directory[-1] != "/" and directory[-1] != "\\":
+            directory = directory + "/"
+        clone_likelihoods = model.predict_proba(self.samples)
+        for i in trange(0, N_LABELS):
+            img = Image.new('L', (IMAGE_SIZE, IMAGE_SIZE))
+            for j in range(0, self.size):
+                x = j % IMAGE_SIZE
+                y = j // IMAGE_SIZE
+                img.putpixel((x, y), int(clone_likelihoods[j][i] * 255))
+
+            img.save(directory + "{0}.png".format(ID2LNAME[i]))
+
+            for fea in features:
+                x, y = mapping_x_y(fea[0], fea[1])
+                img.putpixel((x, y), (255, 0, 0))

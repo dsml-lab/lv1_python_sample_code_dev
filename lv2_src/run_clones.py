@@ -32,7 +32,8 @@ def run_clone(target_path, n, visualize_directory):
 
     # 学習したクローン認識器を可視化し，精度を評価
     evaluator = LV2Evaluator()
-    evaluator.visualize(model, visualize_directory)
+    # evaluator.visualize(model, visualize_directory)
+    evaluator.visualize_missing(model, visualize_directory, features)
     print('visualized')
     recall, precision, f_score = evaluator.calc_accuracy(target, model)
     print("\nrecall: {0}".format(recall))
