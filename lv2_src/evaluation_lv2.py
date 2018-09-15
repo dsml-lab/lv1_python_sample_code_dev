@@ -4,9 +4,12 @@ import numpy as np
 from PIL import Image
 
 # ターゲット認識器を表現する画像のサイズ
+from tqdm import trange
+
 from lv2_src.labels_lv2 import ID2LNAME, N_LABELS
 
 IMAGE_SIZE = 512
+
 
 # 構築したクローン認識器を評価するためのクラス
 class LV2Evaluator:
@@ -15,7 +18,7 @@ class LV2Evaluator:
         h = IMAGE_SIZE // 2
         self.size = IMAGE_SIZE * IMAGE_SIZE
         self.samples = np.zeros((self.size, 2))
-        for i in range(0, self.size):
+        for i in trange(0, self.size):
             x = i % IMAGE_SIZE
             y = i // IMAGE_SIZE
             self.samples[i][0] = np.float32((x - h) / h)
@@ -29,7 +32,7 @@ class LV2Evaluator:
         if directory[-1] != "/" and directory[-1] != "\\":
             directory = directory + "/"
         self.clone_likelihoods = model.predict_proba(self.samples)
-        for i in range(0, N_LABELS):
+        for i in trange(0, N_LABELS):
             img = Image.new('L', (IMAGE_SIZE, IMAGE_SIZE))
             for j in range(0, self.size):
                 x = j % IMAGE_SIZE
