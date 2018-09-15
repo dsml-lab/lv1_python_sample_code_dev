@@ -45,24 +45,31 @@ class Parliament:
         self.__predict_to_voters()  # 投票者による予測
 
         # サンプリング特徴量候補数,ラベル(one hot形式)数の集計用行列を作成
-        label_count_arr = np.zeros((len(self.samplable_features), self.label_size))
+        # label_count_arr = np.zeros((len(self.samplable_features), self.label_size))
 
         # すべての投票者の投票結果を集計
-        for voter in self.voters:
-            samplable_labels = voter.samplable_labels  # 投票者のサンプリング特徴量候補の予測結果(labels)を取得
+        # for voter in self.voters:
+        #     samplable_labels = voter.samplable_labels  # 投票者のサンプリング特徴量候補の予測結果(labels)を取得
+        #
+        #     label_count_arr = label_count_arr + samplable_labels  # 投票者のぶんだけ、予測結果[0,0,1,0...0]を集計用行列に加算
+        #
+        # label_count_arr[label_count_arr == len(self.voters)] = 0  # すべての識別器が同じ予測結果
+        #
+        # label_count_arr = label_count_arr.sum(axis=1)  # 同じ点の値を合計し、1次元行列に変換
+        # label_count_arr[label_count_arr > 0] = 1  # 1以上の値は1に変更
 
-            label_count_arr = label_count_arr + samplable_labels  # 投票者のぶんだけ、予測結果[0,0,1,0...0]を集計用行列に加算
-
-        label_count_arr[label_count_arr == len(self.voters)] = 0  # すべての識別器が同じ予測結果
-
-        label_count_arr = label_count_arr.sum(axis=1)  # 同じ点の値を合計し、1次元行列に変換
-        label_count_arr[label_count_arr > 0] = 1  # 1以上の値は1に変更
+        # 識別結果1と2の差分をとる
+        label_count_arr = self.voters[0].samplable_labels - self.voters[1].samplable_labels
+        # 同じ点の値を合計し、1次元行列に変換
+        label_count_arr = label_count_arr.sum(axis=1)
 
         max_value = np.amax(label_count_arr)
-        index_list = np.where(label_count_arr == max_value)[0]
-        filtered_samplable_features = self.samplable_features[index_list]
+        filtered_index_list = np.where(label_count_arr == max_value)[0]
+        out_of_range_index_list = np.where(label_count_arr != max_value)[0]
+        filtered_samplable_features = self.samplable_features[filtered_index_list]
+        out_of_range_samplable_features = self.samplable_features[out_of_range_index_list]
 
-        opt_feature = find_furthest_place(sampled_features=sampled_features,
+        opt_feature = find_furthest_place(sampled_features=out_of_range_samplable_features,
                                           filtered_samplable_features=filtered_samplable_features)
 
         self.delete_samplable_features(delete_feature=opt_feature)
