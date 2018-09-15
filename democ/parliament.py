@@ -3,6 +3,7 @@ import numpy as np
 
 from democ.distance import find_furthest_place
 from democ.lv1_clf import LV1UserDefinedClassifierMLP1000HiddenLayer
+from democ.lv2_clf import LV2UserDefinedClassifierMLP1000HiddenLayer
 from democ.voter import Lv1Voter, Lv2Voter
 
 
@@ -29,8 +30,8 @@ class Parliament:
 
     @staticmethod
     def create_lv2_voters():
-        voters = [Lv2Voter(model=LV1UserDefinedClassifierMLP1000HiddenLayer(), label_size=8),
-                  Lv2Voter(model=LV1UserDefinedClassifierMLP1000HiddenLayer(), label_size=8)]
+        voters = [Lv2Voter(model=LV2UserDefinedClassifierMLP1000HiddenLayer(8), label_size=8),
+                  Lv2Voter(model=LV2UserDefinedClassifierMLP1000HiddenLayer(8), label_size=8)]
         return voters
 
     def __init__(self, dimension, label_size, samplable_features, voters):

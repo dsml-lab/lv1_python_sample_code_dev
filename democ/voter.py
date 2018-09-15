@@ -35,8 +35,8 @@ class Lv2Voter:
 
     # クローン認識器の学習
     #   (features, labels): 訓練データ（特徴量とラベルのペアの集合）
-    def sampled_fit(self, sampled_features, sampled_likelihoods):
-        self.model.fit(features=sampled_features, likelihoods=sampled_likelihoods)  # 学習
+    def sampled_fit(self, sampled_features, sampled_labels):
+        self.model.fit(features=sampled_features, likelihoods=sampled_labels)  # 学習
 
     # 未知の二次元特徴量を認識
     #   features: 認識対象の二次元特徴量の集合

@@ -88,7 +88,7 @@ def lv2_user_function_sampling_democracy(n_samples, target_model, exe_n):
 
     elif n_samples > 1:
 
-        old_features, old_target_likelihoods, parliament = lv1_user_function_sampling_democracy(n_samples=n_samples - 1,
+        old_features, old_target_likelihoods, parliament = lv2_user_function_sampling_democracy(n_samples=n_samples - 1,
                                                                                            target_model=target_model,
                                                                                            exe_n=exe_n)
 
