@@ -93,8 +93,10 @@ class LV2Evaluator:
                 y = j // IMAGE_SIZE
                 img.putpixel((x, y), int(clone_likelihoods[j][i] * 255))
 
-            img.save(directory + "{0}.png".format(ID2LNAME[i]))
+            img = img.convert('RGB')
 
             for fea in features:
                 x, y = mapping_x_y(fea[0], fea[1])
                 img.putpixel((x, y), (255, 0, 0))
+
+            img.save(directory + "{0}.png".format(ID2LNAME[i]))
