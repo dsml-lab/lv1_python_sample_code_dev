@@ -2,7 +2,7 @@ import os
 
 from democ.lv2_clf import LV2UserDefinedClassifierMLP1000HiddenLayer
 from democ.sampling import lv2_user_function_sampling_democracy
-from lv2_src.caluculator import calc_area, area_statistics
+from lv2_src.caluculator import calc_area, area_statistics, save_area_text
 from lv2_src.evaluation_lv2 import LV2Evaluator
 from lv2_src.labels_lv2 import N_LABELS
 from lv2_src.lv2_defined import LV2TargetClassifier
@@ -56,6 +56,13 @@ def run_clone_area(target_path, save_area_path, n_list):
 
     f_score_area = calc_area(n_list=n_list, acc_list=f_score_list)
     ratio = f_score_area / max(n_list)
+
+    save_area_text(
+        save_path=os.path.join(save_area_path, 'area_text.png'),
+        area=f_score_area,
+        area_size_x=max(n_list),
+        area_size_y=1
+    )
 
     return f_score_area, ratio
 

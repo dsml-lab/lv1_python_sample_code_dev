@@ -51,3 +51,17 @@ def area_statistics(save_path, areas, target_names, x_size, y_size, title):
     ax2.axis('off')
     plt.savefig(save_path)
     plt.close()
+
+
+# accuacyの面積結果を画像で保存する。
+def save_area_text(save_path, area, area_size_x, area_size_y):
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    plt.text(0, 1.0, str(save_path.split('/')[2] + '_' + save_path.split('/')[3]), fontsize=14)
+    plt.text(0, 0.8, 'Image_size[' + str(area_size_x * area_size_y) + '.pixel]', fontsize=14)
+    plt.text(0, 0.6, 'Image_size_X[' + str(area_size_x) + '.pixel]_Y[' + str(area_size_y) + '.pixel]', fontsize=14)
+    plt.text(0, 0.4, 'pixel_of_AccuracyArea[' + str(area) + '.pixel]', fontsize=14)
+    plt.text(0, 0.2, 'Ratio[' + str(round(area / (area_size_x * area_size_y) * 100, 2)) + '%]', fontsize=14)
+    ax.axis('off')
+    plt.savefig(save_path)
+    plt.close()
