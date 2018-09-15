@@ -59,9 +59,10 @@ class Parliament:
         # label_count_arr[label_count_arr > 0] = 1  # 1以上の値は1に変更
 
         # 識別結果1と2の差分をとる
-        label_count_arr = self.voters[0].samplable_labels - self.voters[1].samplable_labels
+        label_count_arr = np.absolute(self.voters[0].samplable_labels - self.voters[1].samplable_labels)
         # 同じ点の値を合計し、1次元行列に変換
-        label_count_arr = label_count_arr.sum(axis=1)
+        label_count_arr = label_count_arr.max(axis=1)
+        # label_count_arr = label_count_arr.sum(axis=1)
 
         max_value = np.amax(label_count_arr)
         filtered_index_list = np.where(label_count_arr == max_value)[0]
