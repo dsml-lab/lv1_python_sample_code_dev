@@ -1,10 +1,9 @@
-import math
 import numpy as np
 
 from democ.distance import find_furthest_place
 from democ.lv1_clf import LV1UserDefinedClassifierMLP1000HiddenLayer
 from democ.lv2_clf import LV2UserDefinedClassifierMLP1000HiddenLayer
-from democ.voter import Lv1Voter, Lv2Voter
+from democ.voter import Lv1Voter, Lv2Voter, Voter
 
 
 class Parliament:
@@ -34,29 +33,27 @@ class Parliament:
                   Lv2Voter(model=LV2UserDefinedClassifierMLP1000HiddenLayer(8), label_size=8)]
         return voters
 
-    def __init__(self, dimension, label_size, samplable_features, voters):
-        self.voters = voters
+    def __init__(self, dimension, label_size, samplable_features, voter1: Voter, voter2: Voter):
+        self.voter1 = voter1
+        self.voter2 = voter2
         self.dimension = dimension
         self.label_size = label_size
         self.samplable_features = samplable_features
 
-    def get_optimal_solution(self, sampled_features, sampled_labels):
-        self.__fit_to_voters(sampled_features=sampled_features, sampled_labels=sampled_labels)  # 投票者を訓練
+    def get_optimal_solution(self, sampled_features, sampled_likelihoods):
+        self.__fit_to_voters(sampled_features=sampled_features, sampled_likelihoods=sampled_likelihoods)  # 投票者を訓練
         self.__predict_to_voters()  # 投票者による予測
 
-        # サンプリング特徴量候補数,ラベル(one hot形式)数の集計用行列を作成
-        label_count_arr = np.zeros((len(self.samplable_features), self.label_size))
+        # # すべての投票者の投票結果を集計
+        # 識別結果1と2の差分をとる
+        label_count_arr = np.absolute(
+            self.voter1.get_samplable_likelihoods() - self.voter2.get_samplable_likelihoods())
 
-        # すべての投票者の投票結果を集計
-        for voter in self.voters:
-            samplable_labels = voter.samplable_labels  # 投票者のサンプリング特徴量候補の予測結果(labels)を取得
+        print('label_count_arr')
+        print(label_count_arr)
 
-            label_count_arr = label_count_arr + samplable_labels  # 投票者のぶんだけ、予測結果[0,0,1,0...0]を集計用行列に加算
-
-        label_count_arr[label_count_arr == len(self.voters)] = 0  # すべての識別器が同じ予測結果
-
-        label_count_arr = label_count_arr.sum(axis=1)  # 同じ点の値を合計し、1次元行列に変換
-        label_count_arr[label_count_arr > 0] = 1  # 1以上の値は1に変更
+        # 同じ点の値を合計し、1次元行列に変換
+        label_count_arr = label_count_arr.max(axis=1)
 
         max_value = np.amax(label_count_arr)
         index_list = np.where(label_count_arr == max_value)[0]
@@ -75,10 +72,10 @@ class Parliament:
         # サンプリング候補から除外
         self.samplable_features = np.delete(self.samplable_features, index_list[0], axis=0)
 
-    def __fit_to_voters(self, sampled_features, sampled_labels):
-        for i in range(len(self.voters)):
-            self.voters[i].sampled_fit(sampled_features=sampled_features, sampled_labels=sampled_labels)
+    def __fit_to_voters(self, sampled_features, sampled_likelihoods):
+        self.voter1.sampled_fit(sampled_features=sampled_features, sampled_likelihoods=sampled_likelihoods)
+        self.voter2.sampled_fit(sampled_features=sampled_features, sampled_likelihoods=sampled_likelihoods)
 
     def __predict_to_voters(self):
-        for i in range(len(self.voters)):
-            self.voters[i].samplable_predict(samplable_features=self.samplable_features)
+        self.voter1.samplable_predict(samplable_features=self.samplable_features)
+        self.voter2.samplable_predict(samplable_features=self.samplable_features)

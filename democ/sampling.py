@@ -28,12 +28,13 @@ def lv1_user_function_sampling_democracy(n_samples, target_model, exe_n):
         if n_samples == exe_n:
             return np.float32(new_features), target_labels
         else:
+            vtrs = Parliament.create_lv1_voters()
             return np.float32(new_features), target_labels, Parliament(
                 dimension=2,
                 label_size=10,
                 samplable_features=Parliament.get_samplable_features_2_dimension(
                     image_size=get_image_size(exe_n=exe_n)),
-                voters=Parliament.create_lv1_voters()),
+                voter1=vtrs[0], voter2=vtrs[1]),
 
     elif n_samples > 1:
 
@@ -79,12 +80,13 @@ def lv2_user_function_sampling_democracy(n_samples, target_model, exe_n):
         if n_samples == exe_n:
             return np.float32(new_features), target_likelihoods
         else:
+            vtrs = Parliament.create_lv2_voters()
             return np.float32(new_features), target_likelihoods, Parliament(
                 dimension=2,
                 label_size=8,
                 samplable_features=Parliament.get_samplable_features_2_dimension(
                     image_size=get_image_size(exe_n=exe_n)),
-                voters=Parliament.create_lv2_voters()),
+                voter1=vtrs[0], voter2=vtrs[1]),
 
     elif n_samples > 1:
 
@@ -95,7 +97,7 @@ def lv2_user_function_sampling_democracy(n_samples, target_model, exe_n):
         print('n_samples:' + str(n_samples) + ', ' + 'exe_n:' + str(exe_n))
 
         optimal_feature = parliament.get_optimal_solution(sampled_features=old_features,
-                                                          sampled_labels=old_target_likelihoods)
+                                                          sampled_likelihoods=old_target_likelihoods)
 
         new_features = np.zeros((1, 2))
         new_features[0][0] = optimal_feature[0]
