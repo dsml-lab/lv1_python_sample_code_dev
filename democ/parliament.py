@@ -53,7 +53,7 @@ class Parliament:
         print(label_count_arr)
 
         # 同じ点の値を合計し、1次元行列に変換
-        label_count_arr = label_count_arr.max(axis=1) # 各色について総合的に評価するか、ある色に特化するか
+        label_count_arr = label_count_arr.sum(axis=1) # 各色について総合的に評価するか、ある色に特化するか
 
         max_value = np.amax(label_count_arr)
         index_list = np.where(label_count_arr == max_value)[0]
