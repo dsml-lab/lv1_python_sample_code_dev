@@ -9,6 +9,7 @@ def load_directories(path):
         extension = i.split('.')[-1]
         if extension in 'png':
             file_path.append(path + '/' + i)
+    file_path.sort()
     return file_path
 
 
