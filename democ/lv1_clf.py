@@ -70,8 +70,6 @@ class LV1UserDefinedClassifierSVM10C10GammaGridSearch:
             self.clf = self.knn1
             self.clf.fit(features, labels)
 
-
-
     # 未知の二次元特徴量を認識
     #   features: 認識対象の二次元特徴量の集合
     def predict(self, features):
