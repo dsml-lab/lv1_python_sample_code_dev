@@ -1,6 +1,8 @@
 import os
+import numpy as np
 
 from democ.lv1_clf import LV1UserDefinedClassifierMLP1000HiddenLayer
+from democ.lv1_clone_clf import LV1UserDefinedClassifierMLP1000HiddenLayerUndiscoveredLabel
 from democ.sampling import lv1_user_function_sampling_democracy
 from lv1_src.caluculator import calc_area, save_area_text, area_statistics
 from lv1_src.evaluation_lv1 import LV1Evaluator
@@ -21,7 +23,7 @@ def run_clone(target_path, n, visualize_directory):
     print("\nThe sampled features were recognized by the target recognizer.")
 
     # クローン認識器を学習
-    model = LV1UserDefinedClassifierMLP1000HiddenLayer()
+    model = LV1UserDefinedClassifierMLP1000HiddenLayerUndiscoveredLabel(all_labels=np.array(range(10)))
     model.fit(features, likelihoods)
     print("\nA clone recognizer was trained.")
 
@@ -63,21 +65,21 @@ def run_clone_area_each_targets(targets_path, save_parent_path):
     target_path_list = load_directories(path=targets_path)
     n_list = range(10, 110, 10)
     target_names = []
-    f_score_area_list = []
+    acc_area_list = []
     ratio_list = []
 
     for path in target_path_list:
-        f_score_area, ratio = run_clone_area(target_path=path,
-                                             save_area_path=os.path.join(save_parent_path, os.path.basename(path)),
-                                             n_list=n_list)
+        acc_area, ratio = run_clone_area(target_path=path,
+                                         save_area_path=os.path.join(save_parent_path, os.path.basename(path)),
+                                         n_list=n_list)
         target_names.append(os.path.basename(path))
-        f_score_area_list.append(f_score_area)
+        acc_area_list.append(acc_area)
         ratio_list.append(ratio)
 
     print(ratio_list)
 
     area_statistics(save_path=os.path.join(save_parent_path, 'statistics.png'),
-                    areas=f_score_area_list,
+                    areas=acc_area_list,
                     target_names=target_names,
                     x_size=max(n_list),
                     y_size=1,
