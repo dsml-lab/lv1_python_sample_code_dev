@@ -1,6 +1,8 @@
 import os
+import numpy as np
 
 from democ.lv1_clf import LV1UserDefinedClassifierMLP1000HiddenLayer
+from democ.lv1_clone_clf import LV1UserDefinedClassifierMLP1000HiddenLayerUndiscoveredLabel
 from democ.sampling import lv1_user_function_sampling_democracy
 from lv1_src.caluculator import calc_area, save_area_text, area_statistics
 from lv1_src.evaluation_lv1 import LV1Evaluator
@@ -21,7 +23,7 @@ def run_clone(target_path, n, visualize_directory):
     print("\nThe sampled features were recognized by the target recognizer.")
 
     # クローン認識器を学習
-    model = LV1UserDefinedClassifierMLP1000HiddenLayer()
+    model = LV1UserDefinedClassifierMLP1000HiddenLayerUndiscoveredLabel(all_labels=np.array(range(10)))
     model.fit(features, likelihoods)
     print("\nA clone recognizer was trained.")
 
