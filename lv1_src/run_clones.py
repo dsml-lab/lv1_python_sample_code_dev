@@ -23,7 +23,7 @@ def run_clone(target_path, n, visualize_directory):
     print("\nThe sampled features were recognized by the target recognizer.")
 
     # クローン認識器を学習
-    model = LV1UserDefinedClassifierMLP1000HiddenLayerUndiscoveredLabel(all_labels=np.array(range(10)))
+    model = LV1UserDefinedClassifierMLP1000HiddenLayerUndiscoveredLabel(label_size=10)
     model.fit(features, likelihoods)
     print("\nA clone recognizer was trained.")
 

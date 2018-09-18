@@ -8,14 +8,17 @@ from democ.parliament import Parliament
 
 
 class LV1UserDefinedClassifierMLP1000HiddenLayerUndiscoveredLabel:
-    def __init__(self, all_labels):
+    def __init__(self, label_size):
         self.clf = MLPClassifier(solver="lbfgs", hidden_layer_sizes=1000)
-        self.all_labels = all_labels
+        self.all_labels = range(label_size)
 
     # クローン認識器の学習
     #   (features, labels): 訓練データ（特徴量とラベルのペアの集合）
     def fit(self, features, labels):
-        undiscovered_labels = set(list(self.all_labels)) - set(list(labels))
+        flat_labels = labels.flatten()
+        undiscovered_labels = set(self.all_labels) - set(flat_labels)
+        print('undiscovered_labels')
+        print(undiscovered_labels)
 
         voters = Parliament.create_lv1_voters()
         parliament = Parliament(dimension=2,
@@ -40,6 +43,9 @@ class LV1UserDefinedClassifierMLP1000HiddenLayerUndiscoveredLabel:
             new_features[0][1] = optimal_feature[1]
             features = np.vstack((features, new_features))
             labels = np.vstack((labels, u_discover_label))
+
+        print('labels: ')
+        print(labels)
 
         self.clf.fit(features, labels)
 
