@@ -1,6 +1,8 @@
 import os
 from datetime import datetime
 
+import git
+
 
 def load_directories(path):
     directories = [d for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
@@ -18,5 +20,8 @@ def create_dir(path):
 
 
 def get_root_dir():
+    repo = git.Repo(search_parent_directories=True)
+    sha = repo.head.object.hexsha
+    commit_hash = repo.git.rev_parse(sha)
     now = datetime.now().strftime('%Y%m%d%H%M%S')
-    return 'output_lv2/' + now
+    return 'output_lv2/' + commit_hash + '_' + now
