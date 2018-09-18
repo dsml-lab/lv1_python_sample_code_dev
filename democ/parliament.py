@@ -62,10 +62,18 @@ class Parliament:
         label_count_arr = label_count_arr.max(axis=1)
 
         max_value = np.amax(label_count_arr)
-        index_list = np.where(label_count_arr == max_value)[0]
-        filtered_samplable_features = self.samplable_features[index_list]
+        filtered_index_list = np.where(label_count_arr == max_value)[0]
+        filtered_samplable_features = self.samplable_features[filtered_index_list]
 
-        opt_feature = find_furthest_place(sampled_features=sampled_features,
+        not_filtered_index_list = np.where(label_count_arr != max_value)[0]
+        not_filtered_samplable_features = self.samplable_features[not_filtered_index_list]
+
+        if len(not_filtered_samplable_features) > 0:
+            furthest_features = not_filtered_samplable_features
+        else:
+            furthest_features = sampled_features
+
+        opt_feature = find_furthest_place(sampled_features=furthest_features,
                                           filtered_samplable_features=filtered_samplable_features)
 
         self.delete_samplable_features(delete_feature=opt_feature)
