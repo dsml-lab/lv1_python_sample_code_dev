@@ -15,7 +15,7 @@ class LV1UserDefinedClassifierMLP1000HiddenLayerUndiscoveredLabel:
     # クローン認識器の学習
     #   (features, labels): 訓練データ（特徴量とラベルのペアの集合）
     def fit(self, features, labels):
-        undiscovered_labels = set(self.all_labels) - set(labels)
+        undiscovered_labels = set(list(self.all_labels)) - set(list(labels))
 
         voters = Parliament.create_lv1_voters()
         parliament = Parliament(dimension=2,
