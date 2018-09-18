@@ -61,7 +61,11 @@ def run_clone_area(target_path, save_area_path, n_list):
 
 def run_clone_area_each_targets(targets_path, save_parent_path):
     target_path_list = load_directories(path=targets_path)
-    n_list = range(10, 110, 10)
+
+    n_list = [1]
+    for i in range(10, 110, 10):
+        n_list.append(i)
+
     target_names = []
     f_score_area_list = []
     ratio_list = []
