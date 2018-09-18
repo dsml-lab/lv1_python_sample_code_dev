@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 
 from democ.distance import find_furthest_place
@@ -8,6 +10,10 @@ from democ.voter import Lv1Voter, Lv2Voter, Voter
 
 class Parliament:
     """議会クラス"""
+
+    @staticmethod
+    def get_image_size(exe_n):
+        return math.ceil(math.sqrt(exe_n)) + 100
 
     @staticmethod
     def get_samplable_features_2_dimension(image_size):
