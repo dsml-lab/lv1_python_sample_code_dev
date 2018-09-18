@@ -29,7 +29,7 @@ def lv1_user_function_sampling_democracy(n_samples, target_model, exe_n):
             return np.float32(new_features), target_labels, Parliament(
                 dimension=2,
                 label_size=10,
-                samplable_features=Parliament.get_samplable_features_2_dimension(
+                samplable_features=Parliament.get_samplable_features_2_dimension_90percent(
                     image_size=Parliament.get_image_size(exe_n=exe_n)),
                 voter1=voters[0], voter2=voters[1]),
 
