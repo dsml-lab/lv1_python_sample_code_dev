@@ -89,7 +89,6 @@ class Parliament:
         self.samplable_features = samplable_features
 
     def get_optimal_solution(self, sampled_features, sampled_likelihoods):
-        sampled_features = self.get_virtual_sampled_features_2_dimension(sampled_features=sampled_features)
         self.__fit_to_voters(sampled_features=sampled_features, sampled_likelihoods=sampled_likelihoods)  # 投票者を訓練
         self.__predict_to_voters()  # 投票者による予測
 
@@ -108,7 +107,8 @@ class Parliament:
         index_list = np.where(label_count_arr == max_value)[0]
         filtered_samplable_features = self.samplable_features[index_list]
 
-        opt_feature = find_furthest_place(sampled_features=sampled_features,
+        virtual_sampled_features = self.get_virtual_sampled_features_2_dimension(sampled_features=sampled_features)
+        opt_feature = find_furthest_place(sampled_features=virtual_sampled_features,
                                           filtered_samplable_features=filtered_samplable_features)
 
         self.delete_samplable_features(delete_feature=opt_feature)
