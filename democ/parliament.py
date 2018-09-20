@@ -28,17 +28,17 @@ class Parliament:
             samplable_features[i][1] = np.float32(-(y - h) / h)
         return np.float32(samplable_features)
 
-    @staticmethod
-    def get_samplable_features_2_dimension_90percent(image_size):
-        h = image_size // 2
-        point_count = image_size * image_size
-        samplable_features = np.zeros((point_count, 2))
-        for i in range(0, point_count):
-            x = i % image_size
-            y = i // image_size
-            samplable_features[i][0] = np.float32((x - h) / h) * 0.9
-            samplable_features[i][1] = np.float32(-(y - h) / h) * 0.9
-        return np.float32(samplable_features)
+    # @staticmethod
+    # def get_samplable_features_2_dimension_90percent(image_size):
+    #     h = image_size // 2
+    #     point_count = image_size * image_size
+    #     samplable_features = np.zeros((point_count, 2))
+    #     for i in range(0, point_count):
+    #         x = i % image_size
+    #         y = i // image_size
+    #         samplable_features[i][0] = np.float32((x - h) / h) * 0.9
+    #         samplable_features[i][1] = np.float32(-(y - h) / h) * 0.9
+    #     return np.float32(samplable_features)
 
     @staticmethod
     def get_virtual_sampled_features_2_dimension(sampled_features):
