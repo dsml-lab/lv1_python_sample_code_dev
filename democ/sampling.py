@@ -30,7 +30,9 @@ def lv1_user_function_sampling_democracy(n_samples, target_model, exe_n):
                 label_size=10,
                 samplable_features=Parliament.get_samplable_features_2_dimension(
                     image_size=Parliament.get_image_size(exe_n=exe_n)),
-                voter1=voters[0], voter2=voters[1]),
+                voter1=voters[0], voter2=voters[1],
+                virtual_features=Parliament.get_virtual_features_2_dimension()
+            ),
 
     elif n_samples > 1:
 

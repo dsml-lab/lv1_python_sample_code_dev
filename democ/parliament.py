@@ -41,7 +41,7 @@ class Parliament:
     #     return np.float32(samplable_features)
 
     @staticmethod
-    def get_virtual_sampled_features_2_dimension(sampled_features):
+    def get_virtual_features_2_dimension():
         dimension = 2
         x_list = [-1.0, 1.0]
         y_list = [-1.0, 1.0]
@@ -51,6 +51,7 @@ class Parliament:
         for i in range(-breadth, breadth+1, 1):
             range_list.append(i*(1/breadth))
 
+        print('virtual features size')
         print(len(range_list)*(dimension**2))
         features = np.zeros((len(range_list)*(dimension**2), 2))
 
@@ -67,7 +68,7 @@ class Parliament:
                 features[count][1] = y
                 count += 1
 
-        return np.vstack((features, sampled_features))
+        return features
 
     @staticmethod
     def create_lv1_voters():
@@ -81,12 +82,13 @@ class Parliament:
                   Lv2Voter(model=LV2UserDefinedClassifierMLP1000HiddenLayer(8), label_size=8)]
         return voters
 
-    def __init__(self, dimension, label_size, samplable_features, voter1: Voter, voter2: Voter):
+    def __init__(self, dimension, label_size, samplable_features, virtual_features, voter1: Voter, voter2: Voter):
         self.voter1 = voter1
         self.voter2 = voter2
         self.dimension = dimension
         self.label_size = label_size
         self.samplable_features = samplable_features
+        self.virtual_features = virtual_features
 
     def get_optimal_solution(self, sampled_features, sampled_likelihoods):
         self.__fit_to_voters(sampled_features=sampled_features, sampled_likelihoods=sampled_likelihoods)  # 投票者を訓練
@@ -107,7 +109,7 @@ class Parliament:
         index_list = np.where(label_count_arr == max_value)[0]
         filtered_samplable_features = self.samplable_features[index_list]
 
-        virtual_sampled_features = self.get_virtual_sampled_features_2_dimension(sampled_features=sampled_features)
+        virtual_sampled_features = np.vstack((self.virtual_features, sampled_features))
         opt_feature = find_furthest_place(sampled_features=virtual_sampled_features,
                                           filtered_samplable_features=filtered_samplable_features)
 
@@ -147,6 +149,6 @@ class ParliamentTest(unittest.TestCase):
                 samplable_features=Parliament.get_samplable_features_2_dimension(
                     image_size=Parliament.get_image_size(exe_n=100)), voter1=voters[0], voter2=voters[1])
 
-        features = p.get_virtual_sampled_features_2_dimension()
+        features = p.get_virtual_features_2_dimension()
         print(features)
         print(len(features))
