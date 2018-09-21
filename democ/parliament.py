@@ -9,6 +9,16 @@ from democ.lv3_clf import LV3UserDefinedClassifier
 from democ.voter import Lv1Voter, Lv2Voter, Voter, Lv3Voter
 
 
+def convert_list_from_numpy(features, feature_ids):
+    feature_list = []
+
+    for i in range(len(features)):
+        f = features[i]
+        feature_list.append((np.int32(feature_ids[i]), f))
+
+    return feature_list
+
+
 class Parliament:
     """議会クラス"""
 

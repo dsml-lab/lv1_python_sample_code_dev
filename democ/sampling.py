@@ -1,9 +1,10 @@
 import math
+import unittest
 
 import numpy as np
 from tqdm import trange
 
-from democ.parliament import Parliament
+from democ.parliament import Parliament, convert_list_from_numpy
 
 
 def lv1_user_function_sampling_democracy(n_samples, target_model, exe_n):
@@ -127,16 +128,6 @@ def extract_features_from_images(data_set, extractor, all_image_size, dimension_
     return all_features, all_image_ids
 
 
-def convert_list_from_numpy(features, image_ids):
-    feature_list = []
-
-    for i in range(len(features)):
-        f = features[i].reshape(-1, 1)
-        feature_list.append((np.int32(image_ids[i]), f))
-
-    return feature_list
-
-
 # def convert_numpy_from_list(features_list):
 #     features = np.zeros((len(features_list), len(features_list[0])))
 #
@@ -162,7 +153,7 @@ def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_
         print('n_samples:' + str(n_samples) + ', ' + 'exe_n:' + str(exe_n))
 
         perm = np.random.permutation(all_image_size)
-        new_features = np.zeros((n_samples, dimension_size))
+        new_features = np.zeros((n_samples, dimension_size,))
         new_image_ids = np.zeros(n_samples)
         for i in range(0, n_samples):
             new_features[i] = all_features[perm[i]]
@@ -187,20 +178,34 @@ def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_
             data_set=data_set,
             extractor=extractor,
             label_table=label_table
-            )
+        )
 
         print('n_samples:' + str(n_samples) + ', ' + 'exe_n:' + str(exe_n))
 
         optimal_feature, optimal_feature_id = parliament.get_optimal_solution(sampled_features=old_features,
-                                                          sampled_likelihoods=old_target_likelihoods)
+                                                                              sampled_likelihoods=old_target_likelihoods)
 
         new_features = optimal_feature
+        new_feature_ids = optimal_feature_id
         features = np.vstack((old_features, new_features))
 
-        new_target_likelihoods = target_model.predict_proba(new_features)
+        new_target_likelihoods = target_model.predict_proba(convert_list_from_numpy(new_features, new_feature_ids))
         target_likelihoods = np.vstack((old_target_likelihoods, new_target_likelihoods))
 
         if n_samples == exe_n:
             return features
         else:
             return features, target_likelihoods, parliament
+
+
+class SamplingTest(unittest.TestCase):
+
+    def test_convert_list_from_numpy(self):
+        n_samples = 20
+        dimension_size = 5
+        features = np.zeros((n_samples, dimension_size))
+        feature_ids = np.zeros(n_samples)
+        actual = convert_list_from_numpy(features=features, feature_ids=feature_ids)
+
+        print(actual)
+        # self.assertEqual(actual, )

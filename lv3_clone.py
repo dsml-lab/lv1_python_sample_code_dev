@@ -13,6 +13,7 @@ from tqdm import trange, tqdm
 
 # ラベルリストのファイルパス
 # ダウンロード先に応じて適宜変更してください
+from democ.lv3_clf import LV3UserDefinedClassifier
 from democ.sampling import lv3_user_function_sampling_democracy
 from lv3_src.evaluation import LV3_Evaluator
 from lv3_src.labels import LabelTable
@@ -127,47 +128,51 @@ class LV3_TargetClassifier:
         return np.asarray(likelihoods, dtype=np.float32)
 
 
-# クローン認識器を表現するクラス
-# このサンプルコードでは各クラスラベルごとに単純な 5-nearest neighbor を行うものとする（sklearnを使用）
-# 下記と同型の fit メソッドと predict_proba メソッドが必要
-class LV3_UserDefinedClassifier:
-
-    def __init__(self):
-        global LT
-        self.clfs = []
-        for i in trange(0, LT.N_LABELS()):
-            clf = neighbors.KNeighborsClassifier(n_neighbors=5)
-            self.clfs.append(clf)
-
-    def __mold_features(self, features):
-        temp = []
-        for i in trange(0, len(features)):
-            temp.append(features[i][1])
-            print(features[i][1])
-            print(features[i][1].shape)
-        return np.asarray(temp, dtype=np.float32)
-
-    # クローン認識器の学習
-    #   (features, likelihoods): 訓練データ（特徴量と尤度ベクトルのペアの集合）
-    def fit(self, features, likelihoods):
-        global LT
-        features = self.__mold_features(features)
-        labels = np.int32(likelihoods >= 0.5) # 尤度0.5以上のラベルのみがターゲット認識器の認識結果であると解釈する
-        for i in range(0, LT.N_LABELS()):
-            l = labels[:,i]
-            self.clfs[i].fit(features, l)
-
-    # 未知の特徴量を認識
-    #   features: 認識対象の特徴量の集合
-    def predict_proba(self, features):
-        global LT
-        features = self.__mold_features(features)
-        likelihoods = np.c_[np.zeros(features.shape[0])]
-        for i in range(0, LT.N_LABELS()):
-            p = self.clfs[i].predict_proba(features)
-            likelihoods = np.hstack([likelihoods, np.c_[p[:,1]]])
-        likelihoods = likelihoods[:, 1:]
-        return np.float32(likelihoods)
+# # クローン認識器を表現するクラス
+# # このサンプルコードでは各クラスラベルごとに単純な 5-nearest neighbor を行うものとする（sklearnを使用）
+# # 下記と同型の fit メソッドと predict_proba メソッドが必要
+# class LV3_UserDefinedClassifier:
+#
+#     def __init__(self):
+#         global LT
+#         self.clfs = []
+#         for i in trange(0, LT.N_LABELS()):
+#             clf = neighbors.KNeighborsClassifier(n_neighbors=5)
+#             self.clfs.append(clf)
+#
+#     def __mold_features(self, features):
+#         temp = []
+#         for i in trange(0, len(features)):
+#             temp.append(features[i][1])
+#             print(features[i][1])
+#             print(features[i][1].shape)
+#         return np.asarray(temp, dtype=np.float32)
+#
+#     # クローン認識器の学習
+#     #   (features, likelihoods): 訓練データ（特徴量と尤度ベクトルのペアの集合）
+#     def fit(self, features, likelihoods):
+#         global LT
+#         features = self.__mold_features(features)
+#         labels = np.int32(likelihoods >= 0.5) # 尤度0.5以上のラベルのみがターゲット認識器の認識結果であると解釈する
+#         for i in range(0, LT.N_LABELS()):
+#             print(l)
+#             print(features)
+#             print(l.shape)
+#             print(features.shape)
+#             l = labels[:,i]
+#             self.clfs[i].fit(features, l)
+#
+#     # 未知の特徴量を認識
+#     #   features: 認識対象の特徴量の集合
+#     def predict_proba(self, features):
+#         global LT
+#         features = self.__mold_features(features)
+#         likelihoods = np.c_[np.zeros(features.shape[0])]
+#         for i in range(0, LT.N_LABELS()):
+#             p = self.clfs[i].predict_proba(features)
+#             likelihoods = np.hstack([likelihoods, np.c_[p[:,1]]])
+#         likelihoods = likelihoods[:, 1:]
+#         return np.float32(likelihoods)
 
 
 # ターゲット認識器に入力する画像特徴量をサンプリングする関数
@@ -223,12 +228,12 @@ if __name__ == '__main__':
     # ターゲット認識器への入力として用いる特徴量を用意
     # このサンプルコードではひとまず2,000サンプルを用意することにする
     n = 2000
-    # features = lv3_user_function_sampling_democracy(data_set=train_set,
-    #                                                 extractor=extractor,
-    #                                                 n_samples=n,
-    #                                                 exe_n=n,
-    #                                                 target_model=target, label_table=LT)
-    features = LV3_user_function_sampling(set=train_set, extractor=extractor, n_samples=n)
+    features = lv3_user_function_sampling_democracy(data_set=train_set,
+                                                    extractor=extractor,
+                                                    n_samples=n,
+                                                    exe_n=n,
+                                                    target_model=target, label_table=LT)
+    # features = LV3_user_function_sampling(set=train_set, extractor=extractor, n_samples=n)
     print("\n{0} features were sampled.".format(n))
 
     # ターゲット認識器に用意した入力特徴量を入力し，各々の認識結果（各クラスラベルの尤度を並べたベクトル）を取得
@@ -236,7 +241,7 @@ if __name__ == '__main__':
     print("\nThe sampled features were recognized by the target recognizer.")
 
     # クローン認識器を学習
-    model = LV3_UserDefinedClassifier()
+    model = LV3UserDefinedClassifier(lt=LT)
     model.fit(features, likelihoods)
     print("\nA clone recognizer was trained.")
 
