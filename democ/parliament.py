@@ -5,7 +5,8 @@ import numpy as np
 from democ.distance import find_furthest_place
 from democ.lv1_clf import LV1UserDefinedClassifierMLP1000HiddenLayer
 from democ.lv2_clf import LV2UserDefinedClassifierMLP1000HiddenLayer
-from democ.voter import Lv1Voter, Lv2Voter, Voter
+from democ.lv3_clf import LV3UserDefinedClassifier
+from democ.voter import Lv1Voter, Lv2Voter, Voter, Lv3Voter
 
 
 class Parliament:
@@ -39,12 +40,17 @@ class Parliament:
                   Lv2Voter(model=LV2UserDefinedClassifierMLP1000HiddenLayer(8), label_size=8)]
         return voters
 
-    def __init__(self, dimension, label_size, samplable_features, voter1: Voter, voter2: Voter):
+    @staticmethod
+    def create_lv3_voters(label_table):
+        voters = [Lv3Voter(model=LV3UserDefinedClassifier(lt=label_table)),
+                  Lv3Voter(model=LV3UserDefinedClassifier(lt=label_table))]
+        return voters
+
+    def __init__(self, samplable_features, voter1: Voter, voter2: Voter, samplable_feature_ids):
         self.voter1 = voter1
         self.voter2 = voter2
-        self.dimension = dimension
-        self.label_size = label_size
         self.samplable_features = samplable_features
+        self.samplable_feature_ids = samplable_feature_ids
 
     def get_optimal_solution(self, sampled_features, sampled_likelihoods):
         self.__fit_to_voters(sampled_features=sampled_features, sampled_likelihoods=sampled_likelihoods)  # 投票者を訓練
@@ -64,19 +70,21 @@ class Parliament:
         max_value = np.amax(label_count_arr)
         index_list = np.where(label_count_arr == max_value)[0]
         filtered_samplable_features = self.samplable_features[index_list]
+        filtered_samplable_feature_ids = self.samplable_feature_ids[index_list]
 
-        opt_feature = find_furthest_place(sampled_features=sampled_features,
-                                          filtered_samplable_features=filtered_samplable_features)
+        opt_index = find_furthest_place(sampled_features=sampled_features,
+                                        filtered_samplable_features=filtered_samplable_features)
 
-        self.delete_samplable_features(delete_feature=opt_feature)
+        self.delete_samplable_features(delete_feature=filtered_samplable_features[opt_index])
 
-        return opt_feature
+        return filtered_samplable_features[opt_index], filtered_samplable_feature_ids[opt_index]
 
     def delete_samplable_features(self, delete_feature):
         index_list = np.where(delete_feature == self.samplable_features)[0]
 
         # サンプリング候補から除外
         self.samplable_features = np.delete(self.samplable_features, index_list[0], axis=0)
+        self.samplable_feature_ids = np.delete(self.samplable_feature_ids, index_list[0], axis=0)
 
     def __fit_to_voters(self, sampled_features, sampled_likelihoods):
         self.voter1.sampled_fit(sampled_features=sampled_features, sampled_likelihoods=sampled_likelihoods)

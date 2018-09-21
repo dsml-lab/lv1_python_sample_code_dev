@@ -28,7 +28,7 @@ def find_furthest_place(sampled_features, filtered_samplable_features):
     index_list = np.where(max_value == nearest_arr)[0]
     random.shuffle(index_list)
 
-    return filtered_samplable_features[index_list[0]]
+    return index_list[0]
 
 
 class DistanceTest(unittest.TestCase):
