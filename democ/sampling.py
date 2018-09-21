@@ -114,7 +114,7 @@ def extract_features_from_images(data_set, extractor, all_image_size, dimension_
     # まず，画像データセット中の全画像から特徴量を抽出する
     # 本サンプルコードでは処理時間短縮のため先頭5,000枚のみを対象とする
     # 不要なら行わなくても良い
-    all_features = np.zeros((all_image_size, dimension_size))
+    all_features = np.zeros((all_image_size, dimension_size,))
     all_image_ids = np.zeros(all_image_size)
 
     for i in trange(0, all_image_size):
@@ -131,7 +131,8 @@ def convert_list_from_numpy(features, image_ids):
     feature_list = []
 
     for i in range(len(features)):
-        feature_list.append((image_ids[i], features[i]))
+        f = features[i].reshape(-1, 1)
+        feature_list.append((np.int32(image_ids[i]), f))
 
     return feature_list
 
