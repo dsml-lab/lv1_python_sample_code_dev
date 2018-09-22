@@ -58,7 +58,7 @@ class Parliament:
             self.voter1.get_samplable_likelihoods() - self.voter2.get_samplable_likelihoods())
 
         # 同じ点の値を合計し、1次元行列に変換
-        wrong_ratio_list = samplable_likelihoods_diff.sum(axis=1) / len(sampled_likelihoods[0])
+        wrong_ratio_list = samplable_likelihoods_diff.sum(axis=1) / len(samplable_likelihoods_diff[0])
         predict_result_is_match_list = np.int32(wrong_ratio_list >= 0.8)  # ラベルが80%以上異なっている点をサンプリング対象とする
 
         # # 1になった(間違った)数
