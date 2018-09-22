@@ -167,9 +167,10 @@ def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_
             return new_features, target_likelihoods, parliament
 
     elif n_samples > INITIAL_VALUE:
+        increase_width = 100
 
         old_features, old_target_likelihoods, parliament = lv3_user_function_sampling_democracy(
-            n_samples=n_samples - 1,
+            n_samples=n_samples - increase_width,
             target_model=target_model,
             exe_n=exe_n,
             data_set=data_set,
@@ -182,7 +183,7 @@ def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_
         parliament.fit_and_predict_to_voters(sampled_features=old_features, sampled_likelihoods=old_target_likelihoods)
 
         optimal_features = []
-        increase_width = 100
+
         for _ in range(increase_width):
             opt_feature = parliament.get_optimal_solution(sampled_features=old_features)
             old_features.append(opt_feature)
