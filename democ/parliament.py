@@ -52,6 +52,8 @@ class Parliament:
         self.samplable_features = samplable_features
 
     def get_optimal_solution(self, sampled_features):
+        self.predict_to_voters()
+
         # # すべての投票者の投票結果を集計
         # 識別結果1と2の差分をとる
         samplable_likelihoods_diff = np.absolute(
@@ -61,16 +63,9 @@ class Parliament:
         wrong_ratio_list = samplable_likelihoods_diff.sum(axis=1) / len(samplable_likelihoods_diff[0])
         predict_result_is_match_list = np.int32(wrong_ratio_list >= 0.8)  # ラベルが80%以上異なっている点をサンプリング対象とする
 
-        # # 1になった(間違った)数
-        # wrong_num = len(predict_result_is_match_list[predict_result_is_match_list == 1])
-        #
-        # # すべての数
-        # all_num = len(predict_result_is_match_list)
-        # # 不正解の割合
-        # wrong_ratio = wrong_num / all_num
-
         max_value = np.amax(predict_result_is_match_list)
         index_list = np.where(predict_result_is_match_list == max_value)[0] # 識別見解が一致しない点を抽出
+
         # filtered_samplable_features = self.samplable_features[index_list]
         filtered_samplable_features = []
         for index in index_list:
@@ -90,14 +85,10 @@ class Parliament:
                 del self.samplable_features[i]
                 break
 
-    def fit_and_predict_to_voters(self, sampled_features, sampled_likelihoods):
-        self.__fit_to_voters(sampled_features=sampled_features, sampled_likelihoods=sampled_likelihoods)  # 投票者を訓練
-        self.__predict_to_voters()  # 投票者による予測
-
-    def __fit_to_voters(self, sampled_features, sampled_likelihoods):
+    def fit_to_voters(self, sampled_features, sampled_likelihoods):
         self.voter1.sampled_fit(sampled_features=sampled_features, sampled_likelihoods=sampled_likelihoods)
         self.voter2.sampled_fit(sampled_features=sampled_features, sampled_likelihoods=sampled_likelihoods)
 
-    def __predict_to_voters(self):
+    def predict_to_voters(self):
         self.voter1.samplable_predict(samplable_features=self.samplable_features)
         self.voter2.samplable_predict(samplable_features=self.samplable_features)
