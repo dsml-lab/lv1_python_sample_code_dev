@@ -9,10 +9,10 @@ from tqdm import trange
 
 class LV3UserDefinedClassifier:
 
-    def __init__(self, lt):
-        self.lt = lt
+    def __init__(self, n_labels):
+        self.n_labels = n_labels
         self.clfs = []
-        for i in trange(0, lt.N_LABELS()):
+        for i in trange(0, self.n_labels):
             clf = neighbors.KNeighborsClassifier(n_neighbors=5)
             self.clfs.append(clf)
 
@@ -27,7 +27,7 @@ class LV3UserDefinedClassifier:
     def fit(self, features, likelihoods):
         features = self.__mold_features(features)
         labels = np.int32(likelihoods >= 0.5) # 尤度0.5以上のラベルのみがターゲット認識器の認識結果であると解釈する
-        for i in range(0, self.lt.N_LABELS()):
+        for i in range(0, self.n_labels):
             l = labels[:,i]
             self.clfs[i].fit(features, l)
 
@@ -36,7 +36,7 @@ class LV3UserDefinedClassifier:
     def predict_proba(self, features):
         features = self.__mold_features(features)
         likelihoods = np.c_[np.zeros(features.shape[0])]
-        for i in range(0, self.lt.N_LABELS()):
+        for i in range(0, self.n_labels):
             p = self.clfs[i].predict_proba(features)
             likelihoods = np.hstack([likelihoods, np.c_[p[:,1]]])
         likelihoods = likelihoods[:, 1:]

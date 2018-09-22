@@ -41,16 +41,15 @@ class Parliament:
         return voters
 
     @staticmethod
-    def create_lv3_voters(label_table):
-        voters = [Lv3Voter(model=LV3UserDefinedClassifier(lt=label_table)),
-                  Lv3Voter(model=LV3UserDefinedClassifier(lt=label_table))]
+    def create_lv3_voters(n_labels):
+        voters = [Lv3Voter(model=LV3UserDefinedClassifier(n_labels=n_labels)),
+                  Lv3Voter(model=LV3UserDefinedClassifier(n_labels=n_labels))]
         return voters
 
-    def __init__(self, samplable_features, voter1: Voter, voter2: Voter, samplable_feature_ids):
+    def __init__(self, samplable_features, voter1: Voter, voter2: Voter):
         self.voter1 = voter1
         self.voter2 = voter2
         self.samplable_features = samplable_features
-        self.samplable_feature_ids = samplable_feature_ids
 
     def get_optimal_solution(self, sampled_features, sampled_likelihoods):
         self.__fit_to_voters(sampled_features=sampled_features, sampled_likelihoods=sampled_likelihoods)  # 投票者を訓練
@@ -58,33 +57,32 @@ class Parliament:
 
         # # すべての投票者の投票結果を集計
         # 識別結果1と2の差分をとる
-        label_count_arr = np.absolute(
+        samplable_likelihoods_diff = np.absolute(
             self.voter1.get_samplable_likelihoods() - self.voter2.get_samplable_likelihoods())
 
-        print('label_count_arr')
-        print(label_count_arr)
-
         # 同じ点の値を合計し、1次元行列に変換
-        label_count_arr = label_count_arr.max(axis=1)
+        predict_result_is_match_list = samplable_likelihoods_diff.max(axis=1)
 
-        max_value = np.amax(label_count_arr)
-        index_list = np.where(label_count_arr == max_value)[0]
-        filtered_samplable_features = self.samplable_features[index_list]
-        filtered_samplable_feature_ids = self.samplable_feature_ids[index_list]
+        max_value = np.amax(predict_result_is_match_list)
+        index_list = np.where(predict_result_is_match_list == max_value)[0] # 識別見解が一致しない点を抽出
+        # filtered_samplable_features = self.samplable_features[index_list]
+        filtered_samplable_features = []
+        for index in index_list:
+            filtered_samplable_features.append(self.samplable_features[index])
 
         opt_index = find_furthest_place(sampled_features=sampled_features,
                                         filtered_samplable_features=filtered_samplable_features)
 
         self.delete_samplable_features(delete_feature=filtered_samplable_features[opt_index])
 
-        return filtered_samplable_features[opt_index], filtered_samplable_feature_ids[opt_index]
+        return filtered_samplable_features[opt_index]
 
     def delete_samplable_features(self, delete_feature):
-        index_list = np.where(delete_feature == self.samplable_features)[0]
-
-        # サンプリング候補から除外
-        self.samplable_features = np.delete(self.samplable_features, index_list[0], axis=0)
-        self.samplable_feature_ids = np.delete(self.samplable_feature_ids, index_list[0], axis=0)
+        # # サンプリング候補から除外
+        for i, able_fea in enumerate(self.samplable_features):
+            if able_fea[0] == delete_feature[0]:
+                del self.samplable_features[i]
+                break
 
     def __fit_to_voters(self, sampled_features, sampled_likelihoods):
         self.voter1.sampled_fit(sampled_features=sampled_features, sampled_likelihoods=sampled_likelihoods)
