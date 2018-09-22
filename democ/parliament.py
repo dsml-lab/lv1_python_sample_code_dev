@@ -61,7 +61,16 @@ class Parliament:
             self.voter1.get_samplable_likelihoods() - self.voter2.get_samplable_likelihoods())
 
         # 同じ点の値を合計し、1次元行列に変換
-        predict_result_is_match_list = samplable_likelihoods_diff.sum(axis=1)
+        wrong_ratio_list = samplable_likelihoods_diff.sum(axis=1) / len(sampled_likelihoods[0])
+        predict_result_is_match_list = np.int32(wrong_ratio_list >= 0.8)  # ラベルが80%以上異なっている点をサンプリング対象とする
+
+        # # 1になった(間違った)数
+        # wrong_num = len(predict_result_is_match_list[predict_result_is_match_list == 1])
+        #
+        # # すべての数
+        # all_num = len(predict_result_is_match_list)
+        # # 不正解の割合
+        # wrong_ratio = wrong_num / all_num
 
         max_value = np.amax(predict_result_is_match_list)
         index_list = np.where(predict_result_is_match_list == max_value)[0] # 識別見解が一致しない点を抽出

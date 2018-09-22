@@ -164,7 +164,7 @@ def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_
                 parliament.delete_samplable_features(delete_feature=fe)
             return new_features, target_likelihoods, parliament
 
-    elif n_samples > 1:
+    elif n_samples > 1000:
 
         old_features, old_target_likelihoods, parliament = lv3_user_function_sampling_democracy(
             n_samples=n_samples - 1,
