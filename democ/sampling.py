@@ -172,7 +172,7 @@ def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_
 
     elif n_samples > 1:
 
-        old_features, old_image_ids, old_target_likelihoods, parliament = lv3_user_function_sampling_democracy(
+        old_features, old_target_likelihoods, parliament = lv3_user_function_sampling_democracy(
             n_samples=n_samples - 1,
             target_model=target_model,
             exe_n=exe_n,
@@ -183,16 +183,15 @@ def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_
 
         print('n_samples:' + str(n_samples) + ', ' + 'exe_n:' + str(exe_n))
 
-        optimal_feature, optimal_feature_id = parliament.get_optimal_solution(sampled_features=old_features,
+        optimal_feature = parliament.get_optimal_solution(sampled_features=old_features,
                                                           sampled_likelihoods=old_target_likelihoods)
 
-        new_features = optimal_feature
-        features = np.vstack((old_features, new_features))
+        old_features.append(optimal_feature)
 
-        new_target_likelihoods = target_model.predict_proba(new_features)
+        new_target_likelihoods = target_model.predict_proba([optimal_feature])
         target_likelihoods = np.vstack((old_target_likelihoods, new_target_likelihoods))
 
         if n_samples == exe_n:
-            return features
+            return old_features
         else:
-            return features, target_likelihoods, parliament
+            return old_features, target_likelihoods, parliament
