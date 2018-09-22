@@ -1,7 +1,7 @@
 import math
 
 import numpy as np
-from tqdm import trange
+from tqdm import trange, tqdm
 
 from democ.parliament import Parliament
 
@@ -166,9 +166,12 @@ def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_
             return new_features
         else:
             voters = Parliament.create_lv3_voters(n_labels=n_labels)
-            return new_features, target_likelihoods, Parliament(
+            parliament = Parliament(
                 samplable_features=all_features,
                 voter1=voters[0], voter2=voters[1])
+            for fe in tqdm(new_features):
+                parliament.delete_samplable_features(delete_feature=fe)
+            return new_features, target_likelihoods, parliament
 
     elif n_samples > 1:
 

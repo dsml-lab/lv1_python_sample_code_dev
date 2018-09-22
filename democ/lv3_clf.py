@@ -41,3 +41,39 @@ class LV3UserDefinedClassifier:
             likelihoods = np.hstack([likelihoods, np.c_[p[:,1]]])
         likelihoods = likelihoods[:, 1:]
         return np.float32(likelihoods)
+
+
+class LV3UserDefinedClassifierKNN7:
+
+    def __init__(self, n_labels):
+        self.n_labels = n_labels
+        self.clfs = []
+        for i in trange(0, self.n_labels):
+            clf = neighbors.KNeighborsClassifier(n_neighbors=7)
+            self.clfs.append(clf)
+
+    def __mold_features(self, features):
+        temp = []
+        for i in trange(0, len(features)):
+            temp.append(features[i][1])
+        return np.asarray(temp, dtype=np.float32)
+
+    # クローン認識器の学習
+    #   (features, likelihoods): 訓練データ（特徴量と尤度ベクトルのペアの集合）
+    def fit(self, features, likelihoods):
+        features = self.__mold_features(features)
+        labels = np.int32(likelihoods >= 0.5) # 尤度0.5以上のラベルのみがターゲット認識器の認識結果であると解釈する
+        for i in range(0, self.n_labels):
+            l = labels[:,i]
+            self.clfs[i].fit(features, l)
+
+    # 未知の特徴量を認識
+    #   features: 認識対象の特徴量の集合
+    def predict_proba(self, features):
+        features = self.__mold_features(features)
+        likelihoods = np.c_[np.zeros(features.shape[0])]
+        for i in range(0, self.n_labels):
+            p = self.clfs[i].predict_proba(features)
+            likelihoods = np.hstack([likelihoods, np.c_[p[:,1]]])
+        likelihoods = likelihoods[:, 1:]
+        return np.float32(likelihoods)
