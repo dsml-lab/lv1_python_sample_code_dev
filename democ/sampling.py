@@ -132,17 +132,19 @@ def convert_list_from_numpy(features, image_ids):
     return feature_list
 
 
+INITIAL_VALUE = 1000
+
+
 def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_model, exe_n, n_labels):
     if n_samples <= 0:
         raise ValueError
 
-    elif n_samples <= 1000:
+    elif n_samples <= INITIAL_VALUE:
         all_image_count = 5000
-        dimension_size = 256
 
         all_features = extract_features_from_images(data_set=data_set, extractor=extractor,
-                                                                   all_image_count=all_image_count
-                                                                   )
+                                                    all_image_count=all_image_count
+                                                    )
 
         print('n_samples:' + str(n_samples) + ', ' + 'exe_n:' + str(exe_n))
 
@@ -164,7 +166,7 @@ def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_
                 parliament.delete_samplable_features(delete_feature=fe)
             return new_features, target_likelihoods, parliament
 
-    elif n_samples > 1:
+    elif n_samples > INITIAL_VALUE:
 
         old_features, old_target_likelihoods, parliament = lv3_user_function_sampling_democracy(
             n_samples=n_samples - 1,
@@ -177,12 +179,16 @@ def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_
 
         print('n_samples:' + str(n_samples) + ', ' + 'exe_n:' + str(exe_n))
 
-        optimal_feature = parliament.get_optimal_solution(sampled_features=old_features,
-                                                          sampled_likelihoods=old_target_likelihoods)
+        parliament.fit_and_predict_to_voters(sampled_features=old_features, sampled_likelihoods=old_target_likelihoods)
 
-        old_features.append(optimal_feature)
+        optimal_features = []
+        increase_width = 100
+        for _ in range(increase_width):
+            opt_feature = parliament.get_optimal_solution(sampled_features=old_features)
+            old_features.append(opt_feature)
+            optimal_features.append(opt_feature)
 
-        new_target_likelihoods = target_model.predict_proba([optimal_feature])
+        new_target_likelihoods = target_model.predict_proba(optimal_features)
         target_likelihoods = np.vstack((old_target_likelihoods, new_target_likelihoods))
 
         if n_samples == exe_n:

@@ -51,10 +51,7 @@ class Parliament:
         self.voter2 = voter2
         self.samplable_features = samplable_features
 
-    def get_optimal_solution(self, sampled_features, sampled_likelihoods):
-        self.__fit_to_voters(sampled_features=sampled_features, sampled_likelihoods=sampled_likelihoods)  # 投票者を訓練
-        self.__predict_to_voters()  # 投票者による予測
-
+    def get_optimal_solution(self, sampled_features):
         # # すべての投票者の投票結果を集計
         # 識別結果1と2の差分をとる
         samplable_likelihoods_diff = np.absolute(
@@ -83,6 +80,10 @@ class Parliament:
             if able_fea[0] == delete_feature[0]:
                 del self.samplable_features[i]
                 break
+
+    def fit_and_predict_to_voters(self, sampled_features, sampled_likelihoods):
+        self.__fit_to_voters(sampled_features=sampled_features, sampled_likelihoods=sampled_likelihoods)  # 投票者を訓練
+        self.__predict_to_voters()  # 投票者による予測
 
     def __fit_to_voters(self, sampled_features, sampled_likelihoods):
         self.voter1.sampled_fit(sampled_features=sampled_features, sampled_likelihoods=sampled_likelihoods)
