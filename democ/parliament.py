@@ -61,7 +61,7 @@ class Parliament:
             self.voter1.get_samplable_likelihoods() - self.voter2.get_samplable_likelihoods())
 
         # 同じ点の値を合計し、1次元行列に変換
-        predict_result_is_match_list = samplable_likelihoods_diff.max(axis=1)
+        predict_result_is_match_list = samplable_likelihoods_diff.sum(axis=1)
 
         max_value = np.amax(predict_result_is_match_list)
         index_list = np.where(predict_result_is_match_list == max_value)[0] # 識別見解が一致しない点を抽出
