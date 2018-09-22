@@ -132,15 +132,6 @@ def convert_list_from_numpy(features, image_ids):
     return feature_list
 
 
-# def convert_numpy_from_list(features_list):
-#     features = np.zeros((len(features_list), len(features_list[0])))
-#
-#     for i in trange(0, len(features_list)):
-#         features[i] = features_list[i][1]
-#
-#     return features
-
-
 def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_model, exe_n, n_labels):
     if n_samples <= 0:
         raise ValueError
