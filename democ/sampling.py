@@ -185,7 +185,7 @@ def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_
         optimal_features = []
 
         for _ in range(increase_width):
-            opt_feature = parliament.get_optimal_solution(sampled_features=old_features)
+            opt_feature = parliament.get_optimal_solution(sampled_features=old_features, n_labels=n_labels)
             old_features.append(opt_feature)
             optimal_features.append(opt_feature)
 
