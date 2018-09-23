@@ -162,8 +162,8 @@ def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_
             parliament = Parliament(
                 samplable_features=all_features,
                 voter1=voters[0], voter2=voters[1])
-            for fe in tqdm(new_features):
-                parliament.delete_samplable_features(delete_feature=fe)
+
+            parliament.delete_samplable_features(delete_features=new_features)
             return new_features, target_likelihoods, parliament
 
     elif n_samples > INITIAL_VALUE:
@@ -181,18 +181,13 @@ def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_
         print('n_samples:' + str(n_samples) + ', ' + 'exe_n:' + str(exe_n))
 
         parliament.fit_to_voters(sampled_features=old_features, sampled_likelihoods=old_target_likelihoods)
-
-        optimal_features = []
-
-        for _ in range(increase_width):
-            opt_feature = parliament.get_optimal_solution(sampled_features=old_features)
-            old_features.append(opt_feature)
-            optimal_features.append(opt_feature)
+        optimal_features = parliament.get_optimal_solution(sampled_features=old_features, number_of_return=increase_width)
+        features = old_features + optimal_features
 
         new_target_likelihoods = target_model.predict_proba(optimal_features)
         target_likelihoods = np.vstack((old_target_likelihoods, new_target_likelihoods))
 
         if n_samples == exe_n:
-            return old_features
+            return features
         else:
-            return old_features, target_likelihoods, parliament
+            return features, target_likelihoods, parliament
