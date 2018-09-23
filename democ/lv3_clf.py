@@ -4,6 +4,7 @@ import numpy as np
 # このサンプルコードでは各クラスラベルごとに単純な 5-nearest neighbor を行うものとする（sklearnを使用）
 # 下記と同型の fit メソッドと predict_proba メソッドが必要
 from keras import Input, Model, Sequential
+from keras.callbacks import EarlyStopping
 from keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense
 from keras.optimizers import adam
 from keras.utils import plot_model
@@ -11,8 +12,6 @@ from keras_applications.vgg16 import VGG16
 from sklearn import neighbors, svm
 from sklearn.neural_network import MLPClassifier
 from tqdm import trange
-
-from lv3_src.extractor import BINS_SIZE
 
 
 class LV3UserDefinedClassifier:
@@ -34,9 +33,9 @@ class LV3UserDefinedClassifier:
     #   (features, likelihoods): 訓練データ（特徴量と尤度ベクトルのペアの集合）
     def fit(self, features, likelihoods):
         features = self.__mold_features(features)
-        labels = np.int32(likelihoods >= 0.5) # 尤度0.5以上のラベルのみがターゲット認識器の認識結果であると解釈する
+        labels = np.int32(likelihoods >= 0.5)  # 尤度0.5以上のラベルのみがターゲット認識器の認識結果であると解釈する
         for i in range(0, self.n_labels):
-            l = labels[:,i]
+            l = labels[:, i]
             self.clfs[i].fit(features, l)
 
     # 未知の特徴量を認識
@@ -46,7 +45,7 @@ class LV3UserDefinedClassifier:
         likelihoods = np.c_[np.zeros(features.shape[0])]
         for i in range(0, self.n_labels):
             p = self.clfs[i].predict_proba(features)
-            likelihoods = np.hstack([likelihoods, np.c_[p[:,1]]])
+            likelihoods = np.hstack([likelihoods, np.c_[p[:, 1]]])
         likelihoods = likelihoods[:, 1:]
         return np.float32(likelihoods)
 
@@ -70,9 +69,9 @@ class LV3UserDefinedClassifierKNN3:
     #   (features, likelihoods): 訓練データ（特徴量と尤度ベクトルのペアの集合）
     def fit(self, features, likelihoods):
         features = self.__mold_features(features)
-        labels = np.int32(likelihoods >= 0.5) # 尤度0.5以上のラベルのみがターゲット認識器の認識結果であると解釈する
+        labels = np.int32(likelihoods >= 0.5)  # 尤度0.5以上のラベルのみがターゲット認識器の認識結果であると解釈する
         for i in range(0, self.n_labels):
-            l = labels[:,i]
+            l = labels[:, i]
             self.clfs[i].fit(features, l)
 
     # 未知の特徴量を認識
@@ -82,12 +81,12 @@ class LV3UserDefinedClassifierKNN3:
         likelihoods = np.c_[np.zeros(features.shape[0])]
         for i in range(0, self.n_labels):
             p = self.clfs[i].predict_proba(features)
-            likelihoods = np.hstack([likelihoods, np.c_[p[:,1]]])
+            likelihoods = np.hstack([likelihoods, np.c_[p[:, 1]]])
         likelihoods = likelihoods[:, 1:]
         return np.float32(likelihoods)
 
 
-class LV3UserDefinedClassifierCNN:
+class LV3UserDefinedClassifierVGG16:
 
     @staticmethod
     def build_model(n_labels):
@@ -102,41 +101,42 @@ class LV3UserDefinedClassifierCNN:
         top_model.add(Dense(n_labels, activation='sigmoid'))
 
         model = Model(input=vgg16_model.input, output=top_model(vgg16_model.output))
+        model.compile(optimizer='rmsprop', loss='binary_crossentropy')
         model.summary()
+
+        return model
 
     def __init__(self, n_labels):
         self.n_labels = n_labels
-        self.clfs = []
-        for i in trange(0, self.n_labels):
-            clf = neighbors.KNeighborsClassifier(n_neighbors=3)
-            self.clfs.append(clf)
+        self.clf = self.build_model(n_labels)
 
     def __mold_features(self, features):
         temp = []
         for i in trange(0, len(features)):
-            temp.append(features[i][1])
+            temp.append(np.reshape(features[i][1], (48, 48, 3)))
         return np.asarray(temp, dtype=np.float32)
 
     # クローン認識器の学習
     #   (features, likelihoods): 訓練データ（特徴量と尤度ベクトルのペアの集合）
     def fit(self, features, likelihoods):
+        batch_size = 20
         features = self.__mold_features(features)
-        labels = np.int32(likelihoods >= 0.5) # 尤度0.5以上のラベルのみがターゲット認識器の認識結果であると解釈する
-        for i in range(0, self.n_labels):
-            l = labels[:,i]
-            self.clfs[i].fit(features, l)
+        labels = np.int32(likelihoods >= 0.5)  # 尤度0.5以上のラベルのみがターゲット認識器の認識結果であると解釈する
+        es_cb = EarlyStopping(monitor='val_loss', min_delta=0, patience=5, mode='auto')
+        self.clf.fit(features, labels,
+                     batch_size=batch_size,
+                     epochs=10,
+                     verbose=1,
+                     callbacks = [es_cb]
+                     )
 
     # 未知の特徴量を認識
     #   features: 認識対象の特徴量の集合
     def predict_proba(self, features):
         features = self.__mold_features(features)
-        likelihoods = np.c_[np.zeros(features.shape[0])]
-        for i in range(0, self.n_labels):
-            p = self.clfs[i].predict_proba(features)
-            likelihoods = np.hstack([likelihoods, np.c_[p[:,1]]])
-        likelihoods = likelihoods[:, 1:]
+        likelihoods = self.clf.predict(features, verbose=1)
         return np.float32(likelihoods)
 
 
 if __name__ == '__main__':
-    LV3UserDefinedClassifierCNN.build_model(10)
+    LV3UserDefinedClassifierVGG16.build_model(244)

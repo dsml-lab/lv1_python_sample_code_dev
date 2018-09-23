@@ -10,7 +10,9 @@ from PIL import Image
 
 # ラベルリストのファイルパス
 # ダウンロード先に応じて適宜変更してください
-from democ.lv3_clf import LV3UserDefinedClassifier
+from tqdm import trange
+
+from democ.lv3_clf import LV3UserDefinedClassifier, LV3UserDefinedClassifierVGG16
 from democ.sampling import lv3_user_function_sampling_democracy
 from lv3_src.evaluation import LV3_Evaluator
 from lv3_src.extractor import LV3FeatureExtractor
@@ -60,14 +62,14 @@ class LV3_ImageSet:
             img = Image.open(self.imgfiles[n]).convert("L")
         else:
             img = Image.open(self.imgfiles[n]).convert("RGB")
-        img = img.resize((128, 128), Image.BILINEAR)  # 処理時間短縮のため画像サイズを128x128に縮小
+        img = img.resize((48, 48), Image.BILINEAR)  # 処理時間短縮のため画像サイズを128x128に縮小
         return np.asarray(img, dtype=np.uint8)
 
     # n番目の画像の特徴量を取得
     #   extractor: LV3_FeatureExtractorクラスのインスタンス
     def get_feature(self, n, extractor):
-        img = self.get_image(n, as_gray=True)
-        return extractor.extract(img)
+        img = self.get_image(n, as_gray=False)
+        return extractor.extract_raw_img48(img)
 
 
 # ターゲット認識器を表現するクラス
@@ -127,15 +129,14 @@ def LV3_user_function_sampling(set, extractor, n_samples=1):
     # 本サンプルコードでは処理時間短縮のため先頭5,000枚のみを対象とする
     # 不要なら行わなくても良い
     all_features = []
-    for i in range(0, all_image_size):
+    for i in trange(0, all_image_size, desc='5000 load'):
         f = set.get_feature(i, extractor)
         all_features.append((i, f))  # 画像番号と特徴量の組を保存
-        print(f.shape)
 
     # 特徴量の集合からn_samples個をランダムに抽出する
     perm = np.random.permutation(all_image_size)
     features = []
-    for i in range(0, n_samples):
+    for i in trange(0, n_samples, desc='2000 select'):
         features.append(all_features[perm[i]])
 
     return features
@@ -167,14 +168,14 @@ if __name__ == '__main__':
     # ターゲット認識器への入力として用いる特徴量を用意
     # このサンプルコードではひとまず2,000サンプルを用意することにする
     n = 2000
-    features = lv3_user_function_sampling_democracy(data_set=train_set,
-                                                    extractor=extractor,
-                                                    n_samples=n,
-                                                    exe_n=n,
-                                                    target_model=target,
-                                                    n_labels=LT.N_LABELS()
-                                                    )
-    # features = LV3_user_function_sampling(set=train_set, extractor=extractor, n_samples=n)
+    # features = lv3_user_function_sampling_democracy(data_set=train_set,
+    #                                                 extractor=extractor,
+    #                                                 n_samples=n,
+    #                                                 exe_n=n,
+    #                                                 target_model=target,
+    #                                                 n_labels=LT.N_LABELS()
+    #                                                 )
+    features = LV3_user_function_sampling(set=train_set, extractor=extractor, n_samples=n)
     print("\n{0} features were sampled.".format(n))
 
     # ターゲット認識器に用意した入力特徴量を入力し，各々の認識結果（各クラスラベルの尤度を並べたベクトル）を取得
@@ -182,7 +183,7 @@ if __name__ == '__main__':
     print("\nThe sampled features were recognized by the target recognizer.")
 
     # クローン認識器を学習
-    model = LV3UserDefinedClassifier(n_labels=LT.N_LABELS())
+    model = LV3UserDefinedClassifierVGG16(n_labels=LT.N_LABELS())
     model.fit(features, likelihoods)
     print("\nA clone recognizer was trained.")
 

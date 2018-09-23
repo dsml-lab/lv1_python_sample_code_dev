@@ -1,3 +1,4 @@
+from PIL import Image
 from skimage.feature import local_binary_pattern
 import numpy as np
 
@@ -12,3 +13,7 @@ class LV3FeatureExtractor:
         lbp = local_binary_pattern(img, 8, 1, method="uniform")  # local binary pattern
         f, bins = np.histogram(lbp, bins=BINS_SIZE, range=(0, BINS_SIZE-1), density=True)
         return np.asarray(f, dtype=np.float32)
+
+    @staticmethod
+    def extract_raw_img48(img):
+        return img.flatten()
