@@ -59,15 +59,22 @@ class Parliament:
         furthest_rate_arr = get_furthest_rate_arr(sampled_features=sampled_features,
                                                   samplable_features=self.samplable_features)
 
-        effective_distribution = discrepancy_rate_arr + furthest_rate_arr
+        effective_distribution = (discrepancy_rate_arr + furthest_rate_arr) / 2
 
-        arg_sort_list = np.argsort(-effective_distribution) # 降順
+        print('discrepancy_rate_arr:')
+        print(np.unique(discrepancy_rate_arr))
+        print('furthest_rate_arr')
+        print(np.unique(furthest_rate_arr))
+        print('effective_distribution')
+        print(np.unique(effective_distribution))
+
+        arg_sort_list = np.argsort(-effective_distribution)  # 降順
 
         index_list = np.where(number_of_return > arg_sort_list)[0]
 
         optimal_features = []
         for r in range(number_of_return):
-            opt_feature = effective_distribution[index_list[r]]
+            opt_feature = self.samplable_features[index_list[r]]
             optimal_features.append(opt_feature)
 
         self.delete_samplable_features(delete_features=optimal_features)
@@ -80,6 +87,10 @@ class Parliament:
         for i, able_fea in enumerate(self.samplable_features):
             stay_flag = True
             for delete_feature in delete_features:
+                # print('able')
+                # print(able_fea)
+                # print('delete')
+                # print(delete_feature)
                 if able_fea[0] == delete_feature[0]:
                     stay_flag = False
 

@@ -3,7 +3,6 @@
 import csv
 import numpy as np
 from PIL import Image
-from tqdm import trange, tqdm
 
 # ラベルリストのファイルパス
 # ダウンロード先に応じて適宜変更してください
@@ -40,7 +39,7 @@ class LV3_ImageSet:
     def __init__(self, image_dir):
         self.imgfiles = []
         f = open(image_dir + "image_list.csv", "r")
-        for line in tqdm(f):
+        for line in f:
             filename = line.rstrip() # 改行文字を削除
             self.imgfiles.append(image_dir + filename)
         f.close()
@@ -106,7 +105,7 @@ class LV3_TargetClassifier:
     #   features: 関数LV3_user_function_sampling()でサンプリングした特徴量
     def predict_proba(self, features):
         likelihoods = []
-        for i in trange(0, len(features)):
+        for i in range(0, len(features)):
             l = self.predict_once(features[i])
             likelihoods.append(l)
         return np.asarray(likelihoods, dtype=np.float32)
@@ -124,7 +123,7 @@ def LV3_user_function_sampling(set, extractor, n_samples=1):
     # 本サンプルコードでは処理時間短縮のため先頭5,000枚のみを対象とする
     # 不要なら行わなくても良い
     all_features = []
-    for i in trange(0, all_image_size):
+    for i in range(0, all_image_size):
         f = set.get_feature(i, extractor)
         all_features.append((i, f)) # 画像番号と特徴量の組を保存
         print(f.shape)

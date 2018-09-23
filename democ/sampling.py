@@ -1,7 +1,6 @@
 import math
 
 import numpy as np
-from tqdm import trange, tqdm
 
 from democ.parliament import Parliament
 
@@ -115,7 +114,7 @@ def extract_features_from_images(data_set, extractor, all_image_count):
     # 本サンプルコードでは処理時間短縮のため先頭all_image_count枚のみを対象とする
     all_features = []
 
-    for i in trange(0, all_image_count):
+    for i in range(0, all_image_count):
         f = data_set.get_feature(i, extractor)
         all_features.append((i, f))  # 画像番号と特徴量の組を保存
 
