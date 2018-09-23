@@ -10,18 +10,8 @@ def calc_distance(feature1, feature2):
     return np.sum(feature_square)
 
 
-def find_furthest_place(sampled_features, filtered_samplable_features):
-    # サンプリング対象点のすべてに関して、各サンプリング済み点との距離を記録するための行列
-    distance_arr = np.zeros((len(filtered_samplable_features), len(sampled_features)))
-
-    for i, filtered_feature in enumerate(filtered_samplable_features):
-        for j, sampled_feature in enumerate(sampled_features):
-            distance_arr[i][j] = calc_distance(feature1=filtered_feature[1], feature2=sampled_feature[1])
-
-    # サンプリング対象点のすべてに関して、最近傍のサンプリング済み点との距離を記録する行列
-    nearest_arr = np.zeros((len(filtered_samplable_features)))
-    for i, filtered_feature in enumerate(filtered_samplable_features):
-        nearest_arr[i] = np.min(distance_arr[i])
+def find_furthest_place(sampled_features, samplable_features):
+    nearest_arr = get_furthest_rate_arr(sampled_features=sampled_features, samplable_features=samplable_features)
 
     max_value = np.amax(nearest_arr)
 
@@ -31,6 +21,22 @@ def find_furthest_place(sampled_features, filtered_samplable_features):
     random.shuffle(index_list)
 
     return index_list[0]
+
+
+def get_furthest_rate_arr(sampled_features, samplable_features):
+    # サンプリング対象点のすべてに関して、各サンプリング済み点との距離を記録するための行列
+    distance_arr = np.zeros((len(samplable_features), len(sampled_features)))
+
+    for i, filtered_feature in enumerate(samplable_features):
+        for j, sampled_feature in enumerate(sampled_features):
+            distance_arr[i][j] = calc_distance(feature1=filtered_feature[1], feature2=sampled_feature[1])
+
+    # サンプリング対象点のすべてに関して、最近傍のサンプリング済み点との距離を記録する行列
+    nearest_arr = np.zeros((len(samplable_features)))
+    for i, filtered_feature in enumerate(samplable_features):
+        nearest_arr[i] = np.min(distance_arr[i])
+
+    return nearest_arr / np.amax(nearest_arr)
 
 
 class DistanceTest(unittest.TestCase):

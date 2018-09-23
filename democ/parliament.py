@@ -57,7 +57,7 @@ class Parliament:
         filtered_samplable_features = self.calc_filtered_samplable_features(n_labels)
 
         opt_index = find_furthest_place(sampled_features=sampled_features,
-                                        filtered_samplable_features=filtered_samplable_features)
+                                        samplable_features=filtered_samplable_features)
 
         self.delete_samplable_features(delete_feature=filtered_samplable_features[opt_index])
 
