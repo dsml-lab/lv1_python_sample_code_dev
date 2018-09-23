@@ -1,4 +1,5 @@
 import math
+import random
 
 import numpy as np
 
@@ -51,7 +52,7 @@ class Parliament:
         self.voter2 = voter2
         self.samplable_features = samplable_features
 
-    def get_optimal_solution(self, sampled_features):
+    def get_optimal_solution(self, sampled_features, number_of_return):
         self.predict_to_voters()
 
         discrepancy_rate_arr = self.get_discrepancy_rate_arr()
@@ -59,18 +60,33 @@ class Parliament:
                                                   samplable_features=self.samplable_features)
 
         effective_distribution = discrepancy_rate_arr + furthest_rate_arr
-        optimal_feature = np.amax(effective_distribution)
 
-        self.delete_samplable_features(delete_feature=optimal_feature)
+        arg_sort_list = np.argsort(-effective_distribution) # 降順
 
-        return optimal_feature
+        index_list = np.where(number_of_return > arg_sort_list)[0]
 
-    def delete_samplable_features(self, delete_feature):
+        optimal_features = []
+        for r in range(number_of_return):
+            opt_feature = effective_distribution[index_list[r]]
+            optimal_features.append(opt_feature)
+
+        self.delete_samplable_features(delete_features=optimal_features)
+
+        return optimal_features
+
+    def delete_samplable_features(self, delete_features):
+        temp_list = []
         # # サンプリング候補から除外
         for i, able_fea in enumerate(self.samplable_features):
-            if able_fea[0] == delete_feature[0]:
-                del self.samplable_features[i]
-                break
+            stay_flag = True
+            for delete_feature in delete_features:
+                if able_fea[0] == delete_feature[0]:
+                    stay_flag = False
+
+            if stay_flag:
+                temp_list.append(self.samplable_features[i])
+
+        self.samplable_features = temp_list
 
     def fit_to_voters(self, sampled_features, sampled_likelihoods):
         self.voter1.sampled_fit(sampled_features=sampled_features, sampled_likelihoods=sampled_likelihoods)
