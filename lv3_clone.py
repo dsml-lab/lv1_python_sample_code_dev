@@ -1,6 +1,10 @@
 # coding: UTF-8
 
 import csv
+import os
+from datetime import datetime
+import pandas as pd
+
 import numpy as np
 from PIL import Image
 
@@ -191,3 +195,13 @@ if __name__ == '__main__':
     print("\nrecall: {0}".format(recall))
     print("precision: {0}".format(precision))
     print("F-score: {0}".format(f_score))
+
+    now = datetime.now().strftime('%Y%m%d%H%M%S')
+    save_dir = 'output_lv3/' + now
+    os.makedirs(save_dir)
+
+    df = pd.DataFrame({'recall': recall,
+                       'precision': precision,
+                       'F-score': f_score})
+    df.to_csv(os.path.join(save_dir, 'f_value.csv'))
+

@@ -56,25 +56,26 @@ class Parliament:
         self.predict_to_voters()
 
         discrepancy_rate_arr = self.get_discrepancy_rate_arr()
-        furthest_rate_arr = get_furthest_rate_arr(sampled_features=sampled_features,
-                                                  samplable_features=self.samplable_features)
 
-        effective_distribution = (discrepancy_rate_arr + furthest_rate_arr) / 2
-
-        print('discrepancy_rate_arr:')
-        print(np.unique(discrepancy_rate_arr))
-        print('furthest_rate_arr')
-        print(np.unique(furthest_rate_arr))
-        print('effective_distribution')
-        print(np.unique(effective_distribution))
-
-        arg_sort_list = np.argsort(-effective_distribution)  # 降順
-
-        index_list = np.where(number_of_return > arg_sort_list)[0]
+        # print('discrepancy_rate_arr:')
+        # print(np.unique(discrepancy_rate_arr))
+        # print('furthest_rate_arr')
+        # print(np.unique(furthest_rate_arr))
+        # print('effective_distribution')
+        # print(np.unique(effective_distribution))
 
         optimal_features = []
-        for r in range(number_of_return):
-            opt_feature = self.samplable_features[index_list[r]]
+        for i in range(number_of_return):
+            furthest_rate_arr = get_furthest_rate_arr(sampled_features=sampled_features + optimal_features,
+                                                      samplable_features=self.samplable_features)
+            effective_distribution = (discrepancy_rate_arr + furthest_rate_arr) / 2
+
+            max_value = np.amax(effective_distribution)
+            index_list = np.where(max_value == effective_distribution)[0]
+
+            random.shuffle(index_list)
+
+            opt_feature = self.samplable_features[index_list[0]]
             optimal_features.append(opt_feature)
 
         self.delete_samplable_features(delete_features=optimal_features)
