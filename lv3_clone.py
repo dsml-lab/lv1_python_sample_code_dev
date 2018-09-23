@@ -1,15 +1,9 @@
 # coding: UTF-8
 
-import sys
 import csv
 import numpy as np
-import skimage
 from PIL import Image
-from skimage.feature import local_binary_pattern
-from sklearn import neighbors
 from tqdm import trange, tqdm
-
-
 
 # ラベルリストのファイルパス
 # ダウンロード先に応じて適宜変更してください

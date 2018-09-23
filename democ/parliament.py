@@ -5,7 +5,7 @@ import numpy as np
 from democ.distance import find_furthest_place
 from democ.lv1_clf import LV1UserDefinedClassifierMLP1000HiddenLayer
 from democ.lv2_clf import LV2UserDefinedClassifierMLP1000HiddenLayer
-from democ.lv3_clf import LV3UserDefinedClassifier, LV3UserDefinedClassifierKNN7
+from democ.lv3_clf import LV3UserDefinedClassifier, LV3UserDefinedClassifierKNN3
 from democ.voter import Lv1Voter, Lv2Voter, Voter, Lv3Voter
 
 
@@ -43,7 +43,7 @@ class Parliament:
     @staticmethod
     def create_lv3_voters(n_labels):
         voters = [Lv3Voter(model=LV3UserDefinedClassifier(n_labels=n_labels)),
-                  Lv3Voter(model=LV3UserDefinedClassifierKNN7(n_labels=n_labels))]
+                  Lv3Voter(model=LV3UserDefinedClassifierKNN3(n_labels=n_labels))]
         return voters
 
     def __init__(self, samplable_features, voter1: Voter, voter2: Voter):
@@ -85,14 +85,21 @@ class Parliament:
             self.voter1.get_samplable_likelihoods() - self.voter2.get_samplable_likelihoods())
 
         # 同じ点の値を合計し、1次元行列に変換
-        wrong_ratio_list = samplable_likelihoods_diff.sum(axis=1) / n_labels
-        predict_result_is_match_list = np.int32(wrong_ratio_list >= 0.8)  # ラベルが80%以上異なっている点をサンプリング対象とする
+        sum_list = samplable_likelihoods_diff.sum(axis=1)
+        wrong_ratio_list = sum_list / n_labels
+        predict_result_is_match_list = np.int32(wrong_ratio_list >= 0.2)  # ラベルが10%以上異なっている点をサンプリング対象とする
 
         max_value = np.amax(predict_result_is_match_list)
         index_list = np.where(predict_result_is_match_list == max_value)[0]  # 識別見解が一致しない点を抽出
 
+        print('n_labels:')
+        print(n_labels)
+
         print('samplable_likelihoods_diff:')
         print(np.unique(samplable_likelihoods_diff))
+
+        print('sum_list:')
+        print(np.unique(sum_list))
 
         print('wrong_ratio_list:')
         print(np.unique(wrong_ratio_list))
