@@ -17,6 +17,7 @@ from lv3_src.extractor import LV3FeatureExtractor
 from lv3_src.labels import LabelTable
 
 import sys
+
 sys.setrecursionlimit(10000)
 
 LABEL_LIST = "lv3_src/lv3_label_list.csv"
@@ -44,7 +45,7 @@ class LV3_ImageSet:
         self.imgfiles = []
         f = open(image_dir + "image_list.csv", "r")
         for line in f:
-            filename = line.rstrip() # 改行文字を削除
+            filename = line.rstrip()  # 改行文字を削除
             self.imgfiles.append(image_dir + filename)
         f.close()
 
@@ -59,7 +60,7 @@ class LV3_ImageSet:
             img = Image.open(self.imgfiles[n]).convert("L")
         else:
             img = Image.open(self.imgfiles[n]).convert("RGB")
-        img = img.resize((128, 128), Image.BILINEAR) # 処理時間短縮のため画像サイズを128x128に縮小
+        img = img.resize((128, 128), Image.BILINEAR)  # 処理時間短縮のため画像サイズを128x128に縮小
         return np.asarray(img, dtype=np.uint8)
 
     # n番目の画像の特徴量を取得
@@ -120,7 +121,6 @@ class LV3_TargetClassifier:
 #   extractor: LV3_FeatureExtractorクラスのインスタンス
 #   n_samples: サンプリングする特徴量の数
 def LV3_user_function_sampling(set, extractor, n_samples=1):
-
     all_image_size = 5000
 
     # まず，画像データセット中の全画像から特徴量を抽出する
@@ -129,7 +129,7 @@ def LV3_user_function_sampling(set, extractor, n_samples=1):
     all_features = []
     for i in range(0, all_image_size):
         f = set.get_feature(i, extractor)
-        all_features.append((i, f)) # 画像番号と特徴量の組を保存
+        all_features.append((i, f))  # 画像番号と特徴量の組を保存
         print(f.shape)
 
     # 特徴量の集合からn_samples個をランダムに抽出する
@@ -144,7 +144,6 @@ def LV3_user_function_sampling(set, extractor, n_samples=1):
 # クローン処理の実行
 # 第一引数でターゲット認識器を表す画像ファイルが格納されているディレクトリを指定するものとする
 if __name__ == '__main__':
-
     # if len(sys.argv) < 2:
     #     print("usage: clone.py /target/classifier/path")
     #     exit(0)
@@ -162,7 +161,7 @@ if __name__ == '__main__':
     if target_dir[-1] != "/" and target_dir[-1] != "\\":
         target_dir = target_dir + "/"
     target = LV3_TargetClassifier()
-    target.load(target_dir + "train.csv") # ターゲット認識器をロード
+    target.load(target_dir + "train.csv")  # ターゲット認識器をロード
     # print("\nA target recognizer was loaded from {0} .".format(sys.argv[1]))
 
     # ターゲット認識器への入力として用いる特徴量を用意
@@ -188,7 +187,7 @@ if __name__ == '__main__':
     print("\nA clone recognizer was trained.")
 
     # 学習したクローン認識器の精度を評価
-    valid_set = LV3_ImageSet(VALID_IMAGE_DIR) # 評価用画像データセットをロード
+    valid_set = LV3_ImageSet(VALID_IMAGE_DIR)  # 評価用画像データセットをロード
     evaluator = LV3_Evaluator(valid_set, extractor)
     target.load(target_dir + "valid.csv")
     recall, precision, f_score = evaluator.calc_accuracy(target, model)
@@ -200,8 +199,8 @@ if __name__ == '__main__':
     save_dir = 'output_lv3/' + now
     os.makedirs(save_dir)
 
-    df = pd.DataFrame({'recall': recall,
-                       'precision': precision,
-                       'F-score': f_score})
+    dic = {'recall': recall,
+           'precision': precision,
+           'F-score': f_score}
+    df = pd.DataFrame(dic, index=['i', ])
     df.to_csv(os.path.join(save_dir, 'f_value.csv'))
-
