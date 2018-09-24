@@ -4,12 +4,14 @@ import csv
 import os
 from datetime import datetime
 import pandas as pd
+import git
 
 import numpy as np
 from PIL import Image
 
 # ラベルリストのファイルパス
 # ダウンロード先に応じて適宜変更してください
+
 from tqdm import trange
 
 from democ.lv3_clf import LV3UserDefinedClassifier, LV3UserDefinedClassifierVGG16
@@ -167,7 +169,7 @@ if __name__ == '__main__':
 
     # ターゲット認識器への入力として用いる特徴量を用意
     # このサンプルコードではひとまず2,000サンプルを用意することにする
-    n = 2000
+    n = 20
     # features = lv3_user_function_sampling_democracy(data_set=train_set,
     #                                                 extractor=extractor,
     #                                                 n_samples=n,
@@ -200,7 +202,13 @@ if __name__ == '__main__':
     save_dir = 'output_lv3/' + now
     os.makedirs(save_dir)
 
-    dic = {'recall': recall,
+    repo = git.Repo(search_parent_directories=True)
+    sha = repo.head.object.hexsha
+    commit_hash = repo.git.rev_parse(sha)
+
+    dic = {'n': n,
+           'commit_hash': commit_hash,
+           'recall': recall,
            'precision': precision,
            'F-score': f_score}
     df = pd.DataFrame(dic, index=['i', ])
