@@ -21,22 +21,24 @@ class LV3_Evaluator:
     def calc_accuracy(self, target, model):
         self.target_likelihoods = target.predict_proba(self.samples)
         self.clone_likelihoods = model.predict_proba(self.samples)
-        a = self.target_likelihoods >= 0.5
-        b = self.clone_likelihoods >= 0.5
-        c = np.logical_and(a, b)
+        target_labels = self.target_likelihoods >= 0.5
+        clone_labels = self.clone_likelihoods >= 0.5
+        logical_and_labels = np.logical_and(target_labels, clone_labels)
         r_avg = 0
         p_avg = 0
         f_avg = 0
         for j in range(0, self.size):
-            an = np.sum(a[j])
-            bn = np.sum(b[j])
-            cn = np.sum(c[j])
-            if an != 0:
-                r = cn / an
+            target_labels_sum = np.sum(target_labels[j])
+            clone_labels_sum = np.sum(clone_labels[j])
+            logical_and_labels = np.sum(logical_and_labels[j])
+            if target_labels_sum != 0:
+                r = logical_and_labels / target_labels_sum
                 r_avg += r
-            if bn != 0:
-                p = cn / bn
+            if clone_labels_sum != 0:
+                p = logical_and_labels / clone_labels_sum
                 p_avg += p
+            r = logical_and_labels / target_labels_sum
+            p = logical_and_labels / clone_labels_sum
             if r != 0 or p != 0:
                 f = 2 * r * p / (r + p)
                 f_avg += f

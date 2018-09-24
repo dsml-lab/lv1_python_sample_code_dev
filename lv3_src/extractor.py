@@ -2,7 +2,7 @@ from PIL import Image
 from skimage.feature import local_binary_pattern
 import numpy as np
 
-BINS_SIZE = 256
+BINS_SIZE = 48
 
 # 画像特徴抽出器に相当するクラス
 # このサンプルコードでは Local Binary Patterns を抽出することにする（skimageを使用）
@@ -15,5 +15,5 @@ class LV3FeatureExtractor:
         return np.asarray(f, dtype=np.float32)
 
     @staticmethod
-    def extract_raw_img48(img):
+    def extract_flatten(img):
         return img.flatten()

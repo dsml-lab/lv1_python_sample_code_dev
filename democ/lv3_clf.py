@@ -96,8 +96,7 @@ class LV3UserDefinedClassifierVGG16:
 
         top_model = Sequential()
         top_model.add(Flatten(input_shape=vgg16_model.output_shape[1:]))
-        top_model.add(Dense(256, activation='relu'))
-        top_model.add(Dense(256, activation='relu'))
+        top_model.add(Dense(8, activation='relu'))
         top_model.add(Dense(n_labels, activation='sigmoid'))
 
         model = Model(input=vgg16_model.input, output=top_model(vgg16_model.output))
