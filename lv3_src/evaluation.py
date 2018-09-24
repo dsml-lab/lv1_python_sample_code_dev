@@ -24,21 +24,27 @@ class LV3_Evaluator:
         target_labels = self.target_likelihoods >= 0.5
         clone_labels = self.clone_likelihoods >= 0.5
         logical_and_labels = np.logical_and(target_labels, clone_labels)
+
+        print('target likelihoods')
+        print(np.unique(self.target_likelihoods))
+        print('clone likelihoods')
+        print(self.clone_likelihoods)
+
         r_avg = 0
         p_avg = 0
         f_avg = 0
         for j in range(0, self.size):
             target_labels_sum = np.sum(target_labels[j])
             clone_labels_sum = np.sum(clone_labels[j])
-            logical_and_labels = np.sum(logical_and_labels[j])
+            logical_and_labels_sum = np.sum(logical_and_labels[j])
             if target_labels_sum != 0:
-                r = logical_and_labels / target_labels_sum
+                r = logical_and_labels_sum / target_labels_sum
                 r_avg += r
             if clone_labels_sum != 0:
-                p = logical_and_labels / clone_labels_sum
+                p = logical_and_labels_sum / clone_labels_sum
                 p_avg += p
-            r = logical_and_labels / target_labels_sum
-            p = logical_and_labels / clone_labels_sum
+            r = logical_and_labels_sum / target_labels_sum
+            p = logical_and_labels_sum / clone_labels_sum
             if r != 0 or p != 0:
                 f = 2 * r * p / (r + p)
                 f_avg += f
