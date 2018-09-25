@@ -9,6 +9,7 @@ from keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense
 from keras.optimizers import adam
 from keras.utils import plot_model
 from keras_applications.vgg16 import VGG16
+from keras_applications.vgg19 import VGG19
 from sklearn import neighbors, svm
 from sklearn.neural_network import MLPClassifier
 from tqdm import trange
@@ -92,6 +93,59 @@ class LV3UserDefinedClassifierVGG16:
     def build_model(n_labels):
         # input_tensor = Input(shape=(48, 48, 1))
         vgg16_model = VGG16(weights='imagenet', include_top=False, input_shape=(48, 48, 3))
+        vgg16_model.summary()
+
+        top_model = Sequential()
+        top_model.add(Flatten(input_shape=vgg16_model.output_shape[1:]))
+        top_model.add(Dense(16, activation='relu'))
+        top_model.add(Dense(8, activation='relu'))
+        top_model.add(Dense(8, activation='relu'))
+        top_model.add(Dense(n_labels, activation='sigmoid'))
+
+        model = Model(input=vgg16_model.input, output=top_model(vgg16_model.output))
+        model.compile(optimizer='rmsprop', loss='binary_crossentropy')
+        model.summary()
+
+        return model
+
+    def __init__(self, n_labels):
+        self.n_labels = n_labels
+        self.clf = self.build_model(n_labels)
+
+    def __mold_features(self, features):
+        temp = []
+        for i in trange(0, len(features)):
+            temp.append(np.reshape(features[i][1], (48, 48, 3)))
+        return np.asarray(temp, dtype=np.float32)
+
+    # クローン認識器の学習
+    #   (features, likelihoods): 訓練データ（特徴量と尤度ベクトルのペアの集合）
+    def fit(self, features, likelihoods):
+        batch_size = 20
+        features = self.__mold_features(features)
+        labels = np.int32(likelihoods >= 0.5)  # 尤度0.5以上のラベルのみがターゲット認識器の認識結果であると解釈する
+        es_cb = EarlyStopping(monitor='val_loss', min_delta=0, patience=5, mode='auto')
+        self.clf.fit(features, labels,
+                     batch_size=batch_size,
+                     epochs=10,
+                     verbose=1,
+                     callbacks = [es_cb]
+                     )
+
+    # 未知の特徴量を認識
+    #   features: 認識対象の特徴量の集合
+    def predict_proba(self, features):
+        features = self.__mold_features(features)
+        likelihoods = self.clf.predict(features, verbose=1)
+        return np.float32(likelihoods)
+
+
+class LV3UserDefinedClassifierVGG19:
+
+    @staticmethod
+    def build_model(n_labels):
+        # input_tensor = Input(shape=(48, 48, 1))
+        vgg16_model = VGG19(weights='imagenet', include_top=False, input_shape=(48, 48, 3))
         vgg16_model.summary()
 
         top_model = Sequential()
