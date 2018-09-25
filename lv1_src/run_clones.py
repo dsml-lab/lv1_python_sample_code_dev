@@ -6,6 +6,17 @@ from lv1_src.caluculator import calc_area, save_area_text, area_statistics
 from lv1_src.evaluation_lv1 import LV1Evaluator
 from lv1_src.lv1_defined import LV1TargetClassifier
 from lv1_src.path_manage import create_dir, load_directories, get_root_dir
+import numpy as np
+
+# ターゲット認識器に入力する二次元特徴量をサンプリングする関数
+#   n_samples: サンプリングする特徴量の数
+def LV1_user_function_sampling(n_samples=1):
+    features = np.zeros((n_samples, 2))
+    for i in range(0, n_samples):
+        # このサンプルコードでは[-1, 1]の区間をランダムサンプリングするものとする
+        features[i][0] = 2 * np.random.rand() - 1
+        features[i][1] = 2 * np.random.rand() - 1
+    return np.float32(features)
 
 
 def run_clone(target_path, n, visualize_directory):
@@ -15,14 +26,16 @@ def run_clone(target_path, n, visualize_directory):
 
     # ターゲット認識器への入力として用いる二次元特徴量を用意
     # このサンプルコードではひとまず1000サンプルを用意することにする
-    features, likelihoods = lv1_user_function_sampling_democracy(n_samples=n, exe_n=n, target_model=target)
+    features = LV1_user_function_sampling(n_samples=n)
+    labels = target.predict(features)
+
     print("\n{0} features were sampled.".format(n))
 
     print("\nThe sampled features were recognized by the target recognizer.")
 
     # クローン認識器を学習
     model = LV1UserDefinedClassifierMLP1000HiddenLayer()
-    model.fit(features, likelihoods)
+    model.fit(features, labels)
     print("\nA clone recognizer was trained.")
 
     create_dir(visualize_directory)
