@@ -54,7 +54,22 @@ class Parliament:
         self.voter2 = voter2
         self.samplable_features = samplable_features
 
-    def get_optimal_solution(self, sampled_features, number_of_return):
+    def get_optimal_solution_lv2(self, sampled_features):
+        self.predict_to_voters()
+
+        discrepancy_rate_arr = self.get_discrepancy_rate_arr()
+        furthest_rate_arr = get_furthest_rate_arr(sampled_features=sampled_features,
+                                                  samplable_features=self.samplable_features)
+        effective_distribution = (discrepancy_rate_arr + furthest_rate_arr) / 2
+
+        opt_index = effective_distribution.argmax()
+        opt_feature = self.samplable_features[opt_index]
+        self.delete_samplable_feature_lv2(delete_samplable_index=opt_index)
+
+        return opt_feature
+
+
+    def get_optimal_solution_lv3(self, sampled_features, number_of_return):
         self.predict_to_voters()
 
         discrepancy_rate_arr = self.get_discrepancy_rate_arr()
@@ -69,7 +84,6 @@ class Parliament:
         # print('effective_distribution')
         # print(np.unique(effective_distribution))
 
-        optimal_features = []
         # for i in trange(number_of_return, desc='number_of_return'):
         #     furthest_rate_arr = get_furthest_rate_arr(sampled_features=sampled_features + optimal_features,
         #                                               samplable_features=self.samplable_features)
@@ -95,11 +109,15 @@ class Parliament:
         else:
             raise ValueError
 
-        self.delete_samplable_features(delete_features=optimal_features)
+        self.delete_samplable_features_lv3(delete_features=optimal_features)
 
         return optimal_features
 
-    def delete_samplable_features(self, delete_features):
+    def delete_samplable_feature_lv2(self, delete_samplable_index):
+        # サンプリング候補から除外
+        self.samplable_features = np.delete(self.samplable_features, delete_samplable_index, axis=0)
+
+    def delete_samplable_features_lv3(self, delete_features):
         temp_list = []
         # # サンプリング候補から除外
         for i, able_fea in enumerate(self.samplable_features):
