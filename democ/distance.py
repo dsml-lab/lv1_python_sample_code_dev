@@ -23,7 +23,23 @@ def find_furthest_place(sampled_features, samplable_features):
     return index_list[0]
 
 
-def get_furthest_rate_arr(sampled_features, samplable_features):
+def get_furthest_rate_arr_lv2(sampled_features, samplable_features):
+    # サンプリング対象点のすべてに関して、各サンプリング済み点との距離を記録するための行列
+    distance_arr = np.zeros((len(samplable_features), len(sampled_features)))
+
+    for i, able_feature in enumerate(samplable_features):
+        for j, sampled_feature in enumerate(sampled_features):
+            distance_arr[i][j] = calc_distance(feature1=able_feature, feature2=sampled_feature)
+
+    # サンプリング対象点のすべてに関して、最近傍のサンプリング済み点との距離を記録する行列
+    nearest_arr = np.zeros((len(samplable_features)))
+    for i in range(len(samplable_features)):
+        nearest_arr[i] = np.min(distance_arr[i])
+
+    return nearest_arr / np.amax(nearest_arr)
+
+
+def get_furthest_rate_arr_lv3(sampled_features, samplable_features):
     # サンプリング対象点のすべてに関して、各サンプリング済み点との距離を記録するための行列
     distance_arr = np.zeros((len(samplable_features), len(sampled_features)))
 

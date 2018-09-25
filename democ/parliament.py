@@ -4,7 +4,7 @@ import random
 import numpy as np
 from tqdm import trange
 
-from democ.distance import find_furthest_place, get_furthest_rate_arr
+from democ.distance import find_furthest_place, get_furthest_rate_arr, get_furthest_rate_arr_lv2
 from democ.lv1_clf import LV1UserDefinedClassifierMLP1000HiddenLayer
 from democ.lv2_clf import LV2UserDefinedClassifierMLP1000HiddenLayer
 from democ.lv3_clf import LV3UserDefinedClassifier, LV3UserDefinedClassifierKNN3, LV3UserDefinedClassifierVGG16, \
@@ -58,8 +58,8 @@ class Parliament:
         self.predict_to_voters()
 
         discrepancy_rate_arr = self.get_discrepancy_rate_arr()
-        furthest_rate_arr = get_furthest_rate_arr(sampled_features=sampled_features,
-                                                  samplable_features=self.samplable_features)
+        furthest_rate_arr = get_furthest_rate_arr_lv2(sampled_features=sampled_features,
+                                                      samplable_features=self.samplable_features)
         effective_distribution = (discrepancy_rate_arr + furthest_rate_arr) / 2
 
         opt_index = effective_distribution.argmax()
