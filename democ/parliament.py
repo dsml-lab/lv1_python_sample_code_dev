@@ -4,7 +4,7 @@ import random
 import numpy as np
 from tqdm import trange
 
-from democ.distance import find_furthest_place, get_furthest_rate_arr, get_furthest_rate_arr_lv2
+from democ.distance import find_furthest_place, get_furthest_rate_arr_lv2
 from democ.lv1_clf import LV1UserDefinedClassifierMLP1000HiddenLayer
 from democ.lv2_clf import LV2UserDefinedClassifierMLP1000HiddenLayer
 from democ.lv3_clf import LV3UserDefinedClassifier, LV3UserDefinedClassifierKNN3, LV3UserDefinedClassifierVGG16, \
