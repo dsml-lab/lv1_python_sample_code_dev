@@ -50,8 +50,10 @@ class LV2UserDefinedClassifierKerasMLP:
 
         model = Sequential()
         # top_model.add(Flatten(input_shape=vgg16_model.output_shape[1:]))
-        model.add(Dense(1000, activation='relu', input_shape=(2,)))
-        model.add(Dense(8, activation='relu'))
+        model.add(Dense(100, activation='relu', input_shape=(2,)))
+        # model.add(Dense(16, activation='relu'))
+        # model.add(Dense(1000, activation='sigmoid'))
+        # model.add(Dense(100, activation='sigmoid'))
         model.add(Dense(n_labels, activation='sigmoid'))
 
         # model = Model(input=vgg16_model.input, output=top_model(vgg16_model.output))
