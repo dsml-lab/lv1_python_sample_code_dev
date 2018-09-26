@@ -148,7 +148,7 @@ class LV3UserDefinedClassifierVGG16Func:
 
     @staticmethod
     def build_model(n_labels):
-        base_model = VGG16(weights='imagenet', include_top=False,
+        base_model = VGG16(weights=None, include_top=False,
                            input_tensor=Input(shape=vgg_input_shape))
 
         x = base_model.output
@@ -158,8 +158,8 @@ class LV3UserDefinedClassifierVGG16Func:
         model = Model(inputs=base_model.input, outputs=prediction)
 
         # fix weights before VGG16 14layers
-        for layer in base_model.layers[:15]:
-            layer.trainable = False
+        # for layer in base_model.layers[:15]:
+        #     layer.trainable = False
 
         model.compile(optimizer=SGD(lr=0.0001, momentum=0.9),
                       loss='binary_crossentropy',

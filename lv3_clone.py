@@ -16,7 +16,6 @@ from tqdm import trange
 
 from democ.lv3_clf import LV3UserDefinedClassifier, LV3UserDefinedClassifierVGG16, LV3UserDefinedClassifierVGG16Func, \
     vgg_input_value
-from democ.sampling import lv3_user_function_sampling_democracy
 from lv3_src.evaluation import LV3_Evaluator
 from lv3_src.extractor import LV3FeatureExtractor
 from lv3_src.labels import LabelTable
