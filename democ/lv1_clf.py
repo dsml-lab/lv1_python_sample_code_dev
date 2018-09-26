@@ -156,6 +156,34 @@ class LV1UserDefinedClassifierMLP1000HiddenLayer:
         return np.int32(labels)
 
 
+class LV1UserDefinedClassifierMLP1000HiddenLayerCorrectLabels:
+    def __init__(self):
+        self.clf = MLPClassifier(solver="lbfgs", hidden_layer_sizes=1000)
+        self.sampled_features = None
+        self.sampled_labels = None
+
+    # クローン認識器の学習
+    #   (features, labels): 訓練データ（特徴量とラベルのペアの集合）
+    def fit(self, features, labels):
+        self.sampled_features = features
+        self.sampled_labels = labels
+        self.clf.fit(features, labels)
+
+    # 未知の二次元特徴量を認識
+    #   features: 認識対象の二次元特徴量の集合
+    def predict(self, features):
+        labels = self.clf.predict(features)
+        return np.int32(self.correct_labels(features=features, labels=labels))
+
+    def correct_labels(self, features, labels):
+        for i, feature in enumerate(features):
+            for j, sampled in enumerate(self.sampled_features):
+                if feature == sampled:
+                    labels[i] = self.sampled_labels[i]
+
+        return labels
+
+
 class LV1UserDefinedClassifierTree1000MaxDepth:
     def __init__(self):
         self.clf = tree.DecisionTreeClassifier(max_depth=1000)
