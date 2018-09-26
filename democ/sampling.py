@@ -162,7 +162,7 @@ def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_
                 samplable_features=all_features,
                 voter1=voters[0], voter2=voters[1])
 
-            parliament.delete_samplable_features(delete_features=new_features)
+            parliament.delete_samplable_features_lv3(delete_features=new_features)
             return new_features, target_likelihoods, parliament
 
     elif n_samples > INITIAL_VALUE:
