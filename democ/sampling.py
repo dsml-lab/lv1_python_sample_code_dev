@@ -180,7 +180,7 @@ def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_
         print('n_samples:' + str(n_samples) + ', ' + 'exe_n:' + str(exe_n))
 
         parliament.fit_to_voters(sampled_features=old_features, sampled_likelihoods=old_target_likelihoods)
-        optimal_features = parliament.get_optimal_solution(sampled_features=old_features, number_of_return=increase_width)
+        optimal_features = parliament.get_optimal_solution_lv3(sampled_features=old_features, number_of_return=increase_width)
         features = old_features + optimal_features
 
         new_target_likelihoods = target_model.predict_proba(optimal_features)

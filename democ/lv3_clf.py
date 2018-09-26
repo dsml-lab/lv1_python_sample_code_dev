@@ -5,8 +5,8 @@ import numpy as np
 # 下記と同型の fit メソッドと predict_proba メソッドが必要
 from keras import Input, Model, Sequential
 from keras.callbacks import EarlyStopping
-from keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense
-from keras.optimizers import adam
+from keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense, GlobalAveragePooling2D
+from keras.optimizers import adam, SGD
 from keras.utils import plot_model
 from keras_applications.vgg16 import VGG16
 from keras_applications.vgg19 import VGG19
@@ -140,23 +140,30 @@ class LV3UserDefinedClassifierVGG16:
         return np.float32(likelihoods)
 
 
-class LV3UserDefinedClassifierVGG19:
+vgg_input_value = 224
+vgg_input_shape = (224, 224, 3)
+
+
+class LV3UserDefinedClassifierVGG16Func:
 
     @staticmethod
     def build_model(n_labels):
-        # input_tensor = Input(shape=(48, 48, 1))
-        vgg16_model = VGG19(weights='imagenet', include_top=False, input_shape=(48, 48, 3))
-        vgg16_model.summary()
+        base_model = VGG16(weights='imagenet', include_top=False,
+                           input_tensor=Input(shape=vgg_input_shape))
 
-        top_model = Sequential()
-        top_model.add(Flatten(input_shape=vgg16_model.output_shape[1:]))
-        top_model.add(Dense(16, activation='relu'))
-        top_model.add(Dense(8, activation='relu'))
-        top_model.add(Dense(8, activation='relu'))
-        top_model.add(Dense(n_labels, activation='sigmoid'))
+        x = base_model.output
+        x = GlobalAveragePooling2D()(x)
+        x = Dense(1024, activation='relu')(x)
+        prediction = Dense(n_labels, activation='sigmoid')(x)
+        model = Model(inputs=base_model.input, outputs=prediction)
 
-        model = Model(input=vgg16_model.input, output=top_model(vgg16_model.output))
-        model.compile(optimizer='rmsprop', loss='binary_crossentropy')
+        # fix weights before VGG16 14layers
+        for layer in base_model.layers[:15]:
+            layer.trainable = False
+
+        model.compile(optimizer=SGD(lr=0.0001, momentum=0.9),
+                      loss='binary_crossentropy',
+                      metrics=['accuracy'])
         model.summary()
 
         return model
@@ -168,7 +175,7 @@ class LV3UserDefinedClassifierVGG19:
     def __mold_features(self, features):
         temp = []
         for i in trange(0, len(features)):
-            temp.append(np.reshape(features[i][1], (48, 48, 3)))
+            temp.append(np.reshape(features[i][1], vgg_input_shape))
         return np.asarray(temp, dtype=np.float32)
 
     # クローン認識器の学習
@@ -194,4 +201,4 @@ class LV3UserDefinedClassifierVGG19:
 
 
 if __name__ == '__main__':
-    LV3UserDefinedClassifierVGG16.build_model(244)
+    LV3UserDefinedClassifierVGG16Func.build_model(244)
