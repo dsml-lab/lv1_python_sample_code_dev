@@ -14,8 +14,7 @@ from PIL import Image
 
 from tqdm import trange
 
-from democ.lv3_clf import LV3UserDefinedClassifier, LV3UserDefinedClassifierVGG16, LV3UserDefinedClassifierVGG16Func, \
-    vgg_input_value
+from democ.lv3_clf import LV3UserDefinedClassifier, vgg_input_value, LV3UserDefinedClassifierCNN
 from lv3_src.evaluation import LV3_Evaluator
 from lv3_src.extractor import LV3FeatureExtractor
 from lv3_src.labels import LabelTable
@@ -185,7 +184,7 @@ if __name__ == '__main__':
     print("\nThe sampled features were recognized by the target recognizer.")
 
     # クローン認識器を学習
-    model = LV3UserDefinedClassifierVGG16Func(n_labels=LT.N_LABELS())
+    model = LV3UserDefinedClassifierCNN(n_labels=LT.N_LABELS())
     model.fit(features, likelihoods)
     print("\nA clone recognizer was trained.")
 
