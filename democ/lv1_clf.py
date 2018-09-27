@@ -3,6 +3,7 @@ from sklearn import svm, neighbors, tree
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.grid_search import GridSearchCV
 from sklearn.neural_network import MLPClassifier
+from tqdm import tqdm
 
 
 class LV1UserDefinedClassifierSVM10C10Gamma:
@@ -175,11 +176,30 @@ class LV1UserDefinedClassifierMLP1000HiddenLayerCorrectLabels:
         labels = self.clf.predict(features)
         return np.int32(self.correct_labels(features=features, labels=labels))
 
+    @staticmethod
+    def convert_to_px_arr(arr):
+        image_size = 512
+        return np.int32((arr + 1.0) * 0.5 * image_size)
+
     def correct_labels(self, features, labels):
-        for i, feature in enumerate(features):
-            for j, sampled in enumerate(self.sampled_features):
-                if feature == sampled:
-                    labels[i] = self.sampled_labels[i]
+        # for i, feature in enumerate(tqdm(features)):
+        #     for j, sampled in enumerate(self.sampled_features):
+        #         if np.allclose(feature, sampled):
+        #             labels[i] = self.sampled_labels[i]
+
+        features_px = self.convert_to_px_arr(features)
+        sampled_features_px = self.convert_to_px_arr(self.sampled_features)
+
+        match_count = 0
+        for i, sampled in enumerate(tqdm(sampled_features_px)):
+            index_list = np.where(sampled == features_px)[0]
+            # print(sampled)
+            if len(index_list) != 0:
+                print('一致')
+                match_count += 1
+                labels[index_list[0]] = self.sampled_labels[i]
+
+        print('一致数: ' + str(match_count))
 
         return labels
 
