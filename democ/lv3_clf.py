@@ -233,7 +233,7 @@ class LV3UserDefinedClassifierDivide:
         self.labels_all = np.array(labels_all)
         self.clfs = []
 
-        self.divide_label_num = 124
+        self.divide_label_num = 62
         for i in range(len(self.labels_all) // self.divide_label_num):
             # マスクする
             fragment_labels = np.zeros(self.labels_all.shape)
