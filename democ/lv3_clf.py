@@ -149,12 +149,12 @@ class VGG16KerasModel:
     @staticmethod
     def build_model(n_labels):
         # input_tensor = Input(shape=(48, 48, 1))
-        vgg16_model = VGG16(weights='imagenet', include_top=False,
+        vgg16_model = VGG16(weights=None, include_top=False,
                            input_tensor=Input(shape=vgg_input_shape))
 
         top_model = Sequential()
         top_model.add(Flatten(input_shape=vgg16_model.output_shape[1:]))
-        top_model.add(Dense(256, activation='relu'))
+        top_model.add(Dense(32, activation='relu'))
         top_model.add(Dense(n_labels, activation='sigmoid'))
 
         model = Model(input=vgg16_model.input, output=top_model(vgg16_model.output))
