@@ -1,6 +1,7 @@
 import os
 
-from democ.lv1_clf import LV1UserDefinedClassifierMLP1000HiddenLayer
+from democ.lv1_clf import LV1UserDefinedClassifierMLP1000HiddenLayer, \
+    LV1UserDefinedClassifierMLP1000HiddenLayerGridSearch
 from democ.sampling import lv1_user_function_sampling_democracy
 from lv1_src.caluculator import calc_area, save_area_text, area_statistics
 from lv1_src.evaluation_lv1 import LV1Evaluator
@@ -19,6 +20,32 @@ def LV1_user_function_sampling(n_samples=1):
     return np.float32(features)
 
 
+# ターゲット認識器に入力する二次元特徴量をサンプリングする関数(格子上)
+#   n_samples: サンプリングする特徴量の数
+def lv1_user_function_sampling_grid(n_samples):
+    features = np.zeros((n_samples, 2))
+    # n_samples=10 なら 3
+    # n_samples=100 なら 10
+    n_samples_sqrt = int(np.sqrt(n_samples))
+    n_samples_sq = n_samples_sqrt * n_samples_sqrt
+    # 格子ひとつ分の幅
+    fragment_size = 2 / (n_samples_sqrt + 1)
+
+    # 格子状に値を入れる
+    count = 0
+    for j in range(1, n_samples_sqrt + 1):
+        for k in range(1, n_samples_sqrt + 1):
+            features[count][0] = j * fragment_size - 1
+            features[count][1] = k * fragment_size - 1
+            count = count + 1
+
+    # 残りはランダムに
+    for i in range(n_samples_sq, n_samples):
+        features[i][0] = 2 * np.random.rand() - 1
+        features[i][1] = 2 * np.random.rand() - 1
+    return np.float32(features)
+
+
 def run_clone(target_path, n, visualize_directory):
     # ターゲット認識器を用意
     target = LV1TargetClassifier()
@@ -26,7 +53,7 @@ def run_clone(target_path, n, visualize_directory):
 
     # ターゲット認識器への入力として用いる二次元特徴量を用意
     # このサンプルコードではひとまず1000サンプルを用意することにする
-    features = LV1_user_function_sampling(n_samples=n)
+    features = lv1_user_function_sampling_grid(n_samples=n)
     labels = target.predict(features)
 
     print("\n{0} features were sampled.".format(n))
@@ -34,22 +61,12 @@ def run_clone(target_path, n, visualize_directory):
     print("\nThe sampled features were recognized by the target recognizer.")
 
     # クローン認識器を学習
-    model = LV1UserDefinedClassifierMLP1000HiddenLayer()
+    model = LV1UserDefinedClassifierMLP1000HiddenLayerGridSearch()
     model.fit(features, labels)
-    print("\nA clone recognizer was trained.")
 
-    create_dir(visualize_directory)
 
-    # 学習したクローン認識器を可視化し，精度を評価
-    evaluator = LV1Evaluator()
-    # evaluator.visualize(model, visualize_directory)
-    evaluator.visualize_missing(model=model, target=target, filename=os.path.join(visualize_directory, 'missing.png'),
-                                features=features)
-    print('visualized')
-    accuracy = evaluator.calc_accuracy(target, model)
-    print("Accuracy: {0}".format(accuracy))
-
-    return accuracy
+def run_clone_one():
+    run_clone(target_path='lv1_targets/classifier_07.png', n=100, visualize_directory=get_root_dir())
 
 
 def run_clone_area(target_path, save_area_path, n_list):

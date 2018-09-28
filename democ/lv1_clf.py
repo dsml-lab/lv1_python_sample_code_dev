@@ -156,6 +156,43 @@ class LV1UserDefinedClassifierMLP1000HiddenLayer:
         return np.int32(labels)
 
 
+class LV1UserDefinedClassifierMLP1000HiddenLayerGridSearch:
+    def __init__(self):
+        parameters1 = {
+            'learning_rate': ["constant", "invscaling", "adaptive"],
+            'hidden_layer_sizes': [1000, (100, 3), (1000, 3), 700, 800, 900, 1100, 1200, ],
+            'alpha': [10.0 ** -np.arange(1, 7)],
+            'activation': ["logistic", "relu", "tanh"]
+        }
+        parameters2 = {
+            'learning_rate': ["constant", "invscaling", "adaptive"],
+            'hidden_layer_sizes': [1000, (100, 3), (1000, 3), 700, 800, 900, 1100, 1200, ],
+            # 'alpha': [10.0 ** -np.arange(1, 7)],
+            'activation': ["logistic", "relu", "tanh"]
+        }
+
+        self.clf = MLPClassifier()
+
+        self.grid_search = GridSearchCV(self.clf,  # 分類器を渡す
+                                   param_grid=parameters2,  # 試行してほしいパラメータを渡す
+                                   cv=10,  # 10-Fold CV で汎化性能を調べる
+                                   )
+
+    # クローン認識器の学習
+    #   (features, labels): 訓練データ（特徴量とラベルのペアの集合）
+    def fit(self, features, labels):
+        self.grid_search.fit(features, labels)
+
+        print(self.grid_search.best_score_)  # 最も良かったスコア
+        print(self.grid_search.best_params_)  # 上記を記録したパラメータの組み合わせ
+
+    # 未知の二次元特徴量を認識
+    #   features: 認識対象の二次元特徴量の集合
+    def predict(self, features):
+        labels = self.clf.predict(features)
+        return np.int32(labels)
+
+
 class LV1UserDefinedClassifierTree1000MaxDepth:
     def __init__(self):
         self.clf = tree.DecisionTreeClassifier(max_depth=1000)
