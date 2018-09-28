@@ -28,7 +28,8 @@ LABEL_LIST = "lv3_src/lv3_label_list.csv"
 
 # データセットが存在するディレクトリのパス
 # ダウンロード・解凍先に応じて適宜変更してください
-DATASET_PATH = "/media/kiyo/SDPX-USC/lv3_dataset/"
+# DATASET_PATH = "/media/kiyo/SDPX-USC/lv3_dataset/"
+DATASET_PATH = "../../lv3_dataset/"
 
 # クローン認識器訓練用画像が存在するディレクトリのパス
 TRAIN_IMAGE_DIR = DATASET_PATH + "train/"
