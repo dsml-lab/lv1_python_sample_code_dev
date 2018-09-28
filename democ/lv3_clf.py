@@ -233,7 +233,7 @@ class LV3UserDefinedClassifierDivide:
         self.labels_all = np.array(labels_all)
         self.clfs = []
 
-        self.divide_label_num = 31
+        self.divide_label_num = 124
         for i in range(len(self.labels_all) // self.divide_label_num):
             # マスクする
             fragment_labels = np.zeros(self.labels_all.shape)
@@ -291,12 +291,12 @@ class LV3UserDefinedClassifierDivide:
             line_likelihoods = []
             for divide_likelihoods in divide_likelihoods_list:
                 line_likelihoods = line_likelihoods + list(divide_likelihoods[i])
-            print(line_likelihoods)
 
             line_likelihoods = np.array(line_likelihoods)
-            print(line_likelihoods.shape)
 
             likelihoods[i] = line_likelihoods
+
+        print(line_likelihoods)
 
         return np.float32(likelihoods)
 
