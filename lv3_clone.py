@@ -14,7 +14,7 @@ from PIL import Image
 
 from tqdm import trange
 
-from democ.lv3_clf import LV3UserDefinedClassifier, vgg_input_value, LV3UserDefinedClassifierCNN
+from democ.lv3_clf import LV3UserDefinedClassifier, vgg_input_value, LV3UserDefinedClassifierDivide
 from lv3_src.evaluation import LV3_Evaluator
 from lv3_src.extractor import LV3FeatureExtractor
 from lv3_src.labels import LabelTable
@@ -124,7 +124,7 @@ class LV3_TargetClassifier:
 #   extractor: LV3_FeatureExtractorクラスのインスタンス
 #   n_samples: サンプリングする特徴量の数
 def LV3_user_function_sampling(set, extractor, n_samples=1):
-    all_image_size = 5000
+    all_image_size = 50
 
     # まず，画像データセット中の全画像から特徴量を抽出する
     # 本サンプルコードでは処理時間短縮のため先頭5,000枚のみを対象とする
@@ -146,6 +146,8 @@ def LV3_user_function_sampling(set, extractor, n_samples=1):
 # クローン処理の実行
 # 第一引数でターゲット認識器を表す画像ファイルが格納されているディレクトリを指定するものとする
 if __name__ == '__main__':
+    print(LT.labels)
+    print(LT.N_LABELS())
     # if len(sys.argv) < 2:
     #     print("usage: clone.py /target/classifier/path")
     #     exit(0)
@@ -168,7 +170,7 @@ if __name__ == '__main__':
 
     # ターゲット認識器への入力として用いる特徴量を用意
     # このサンプルコードではひとまず2,000サンプルを用意することにする
-    n = 2000
+    n = 20
     # features = lv3_user_function_sampling_democracy(data_set=train_set,
     #                                                 extractor=extractor,
     #                                                 n_samples=n,
@@ -184,7 +186,7 @@ if __name__ == '__main__':
     print("\nThe sampled features were recognized by the target recognizer.")
 
     # クローン認識器を学習
-    model = LV3UserDefinedClassifierCNN(n_labels=LT.N_LABELS())
+    model = LV3UserDefinedClassifierDivide(labels_all=LT.labels)
     model.fit(features, likelihoods)
     print("\nA clone recognizer was trained.")
 

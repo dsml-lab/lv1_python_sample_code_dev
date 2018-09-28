@@ -147,14 +147,14 @@ vgg_input_shape = (224, 224, 3)
 class VGG16KerasModel:
 
     @staticmethod
-    def build_model():
+    def build_model(n_labels):
         base_model = VGG16(weights='imagenet', include_top=False,
                            input_tensor=Input(shape=vgg_input_shape))
 
         x = base_model.output
         x = GlobalAveragePooling2D()(x)
         x = Dense(1024, activation='relu')(x)
-        prediction = Dense(1, activation='sigmoid')(x)
+        prediction = Dense(n_labels, activation='sigmoid')(x)
         model = Model(inputs=base_model.input, outputs=prediction)
 
         # fix weights before VGG16 14layers
@@ -168,8 +168,9 @@ class VGG16KerasModel:
 
         return model
 
-    def __init__(self):
-        self.clf = self.build_model()
+    def __init__(self, mask):
+        self.mask = mask
+        self.clf = self.build_model(n_labels=np.sum(mask))
 
     @staticmethod
     def __mold_features(features):
@@ -200,37 +201,51 @@ class VGG16KerasModel:
         return np.float32(likelihoods)
 
 
-class LV3UserDefinedClassifierCNN:
+class LV3UserDefinedClassifierDivide:
 
-    def __init__(self, n_labels):
-        self.n_labels = n_labels
+    def __init__(self, labels_all):
+        self.labels_all = np.array(labels_all)
         self.clfs = []
-        for i in trange(0, self.n_labels):
-            clf = VGG16KerasModel()
+
+        self.divide_label_num = 31
+        for i in range(len(self.labels_all) // self.divide_label_num):
+            # マスクする
+            fragment_labels = np.zeros(self.labels_all.shape)
+            fragment_labels[i*self.divide_label_num:(i+1)*self.divide_label_num] = 1
+            fragment_labels = fragment_labels == 1
+
+            clf = VGG16KerasModel(mask=fragment_labels)
             self.clfs.append(clf)
 
-    @staticmethod
-    def __mold_features(features):
-        temp = []
-        for i in trange(0, len(features)):
-            temp.append(features[i][1])
-        return np.asarray(temp, dtype=np.float32)
+
+    # @staticmethod
+    # def __mold_features(features):
+    #     temp = []
+    #     for i in trange(0, len(features)):
+    #         temp.append(features[i][1])
+    #     return np.asarray(temp, dtype=np.float32)
 
     # クローン認識器の学習
     #   (features, likelihoods): 訓練データ（特徴量と尤度ベクトルのペアの集合）
     def fit(self, features, likelihoods):
-        features = self.__mold_features(features)
+        # features = self.__mold_features(features)
         labels = np.int32(likelihoods >= 0.5)  # 尤度0.5以上のラベルのみがターゲット認識器の認識結果であると解釈する
-        for i in range(0, self.n_labels):
-            l = labels[:, i]
-            self.clfs[i].fit(features, l)
+
+        print(labels.shape)
+
+        for i in range(len(self.labels_all) // self.divide_label_num):
+            fragment_labels = np.zeros(labels.shape)
+            fragment_labels[i * self.divide_label_num:(i + 1) * self.divide_label_num] = 1
+            fragment_labels = fragment_labels == 1
+
+            self.clfs[i].fit(features=features, likelihoods=labels[fragment_labels])
 
     # 未知の特徴量を認識
     #   features: 認識対象の特徴量の集合
     def predict_proba(self, features):
-        features = self.__mold_features(features)
+        # features = self.__mold_features(features)
         likelihoods = np.c_[np.zeros(features.shape[0])]
-        for i in range(0, self.n_labels):
+        for i in range(len(self.labels_all) // self.divide_label_num):
             p = self.clfs[i].predict_proba(features)
             likelihoods = np.hstack([likelihoods, np.c_[p[:, 1]]])
         likelihoods = likelihoods[:, 1:]
@@ -238,4 +253,4 @@ class LV3UserDefinedClassifierCNN:
 
 
 if __name__ == '__main__':
-    VGG16KerasModel.build_model()
+    model = LV3UserDefinedClassifierDivide(labels=np.zeros(248))
