@@ -156,6 +156,7 @@ class VGG16KerasModel:
         top_model.add(Flatten(input_shape=vgg16_model.output_shape[1:]))
         top_model.add(Dense(32, activation='relu'))
         top_model.add(Dense(16, activation='relu'))
+        top_model.add(Dense(8, activation='relu'))
         top_model.add(Dense(n_labels, activation='sigmoid'))
 
         model = Model(input=vgg16_model.input, output=top_model(vgg16_model.output))
@@ -296,8 +297,6 @@ class LV3UserDefinedClassifierDivide:
             line_likelihoods = np.array(line_likelihoods)
 
             likelihoods[i] = line_likelihoods
-
-        print(line_likelihoods)
 
         return np.float32(likelihoods)
 

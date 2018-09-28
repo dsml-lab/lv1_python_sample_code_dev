@@ -28,7 +28,7 @@ LABEL_LIST = "lv3_src/lv3_label_list.csv"
 
 # データセットが存在するディレクトリのパス
 # ダウンロード・解凍先に応じて適宜変更してください
-DATASET_PATH = "../../lv3_dataset/"
+DATASET_PATH = "/media/kiyo/SDPX-USC/lv3_dataset/"
 
 # クローン認識器訓練用画像が存在するディレクトリのパス
 TRAIN_IMAGE_DIR = DATASET_PATH + "train/"
@@ -172,15 +172,15 @@ if __name__ == '__main__':
     # ターゲット認識器への入力として用いる特徴量を用意
     # このサンプルコードではひとまず2,000サンプルを用意することにする
     n = 10000
-    features = lv3_user_function_sampling_democracy(data_set=train_set,
-                                                    extractor=extractor,
-                                                    n_samples=n,
-                                                    exe_n=n,
-                                                    target_model=target,
-                                                    labels_all=LT.labels,
-                                                    all_image_num=300000
-                                                    )
-    # features = LV3_user_function_sampling(set=train_set, extractor=extractor, n_samples=n)
+    # features = lv3_user_function_sampling_democracy(data_set=train_set,
+    #                                                 extractor=extractor,
+    #                                                 n_samples=n,
+    #                                                 exe_n=n,
+    #                                                 target_model=target,
+    #                                                 labels_all=LT.labels,
+    #                                                 all_image_num=300000
+    #                                                 )
+    features = LV3_user_function_sampling(set=train_set, extractor=extractor, n_samples=n)
     print("\n{0} features were sampled.".format(n))
 
     # ターゲット認識器に用意した入力特徴量を入力し，各々の認識結果（各クラスラベルの尤度を並べたベクトル）を取得
