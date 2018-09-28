@@ -172,7 +172,7 @@ if __name__ == '__main__':
 
     # ターゲット認識器への入力として用いる特徴量を用意
     # このサンプルコードではひとまず2,000サンプルを用意することにする
-    n = 10000
+    n = 2000
     # features = lv3_user_function_sampling_democracy(data_set=train_set,
     #                                                 extractor=extractor,
     #                                                 n_samples=n,
