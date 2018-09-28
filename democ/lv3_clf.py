@@ -154,7 +154,7 @@ class VGG16KerasModel:
 
         top_model = Sequential()
         top_model.add(Flatten(input_shape=vgg16_model.output_shape[1:]))
-        top_model.add(Dense(32, activation='relu'))
+        # top_model.add(Dense(32, activation='relu'))
         top_model.add(Dense(n_labels, activation='sigmoid'))
 
         model = Model(input=vgg16_model.input, output=top_model(vgg16_model.output))
@@ -233,7 +233,7 @@ class LV3UserDefinedClassifierDivide:
         self.labels_all = np.array(labels_all)
         self.clfs = []
 
-        self.divide_label_num = 62
+        self.divide_label_num = 124
         for i in range(len(self.labels_all) // self.divide_label_num):
             # マスクする
             fragment_labels = np.zeros(self.labels_all.shape)
