@@ -148,6 +148,23 @@ class VGG16KerasModel:
 
     @staticmethod
     def build_model(n_labels):
+        # input_tensor = Input(shape=(48, 48, 1))
+        vgg16_model = VGG16(weights='imagenet', include_top=False,
+                           input_tensor=Input(shape=vgg_input_shape))
+
+        top_model = Sequential()
+        top_model.add(Flatten(input_shape=vgg16_model.output_shape[1:]))
+        top_model.add(Dense(256, activation='relu'))
+        top_model.add(Dense(n_labels, activation='sigmoid'))
+
+        model = Model(input=vgg16_model.input, output=top_model(vgg16_model.output))
+        model.compile(optimizer='rmsprop', loss='binary_crossentropy')
+        model.summary()
+
+        return model
+
+    @staticmethod
+    def build_model_func(n_labels):
         base_model = VGG16(weights='imagenet', include_top=False,
                            input_tensor=Input(shape=vgg_input_shape))
 
@@ -181,10 +198,19 @@ class VGG16KerasModel:
 
     # クローン認識器の学習
     #   (features, likelihoods): 訓練データ（特徴量と尤度ベクトルのペアの集合）
-    def fit(self, features, likelihoods):
+    def fit(self, features, labels):
+
         batch_size = 20
         features = self.__mold_features(features)
-        labels = np.int32(likelihoods >= 0.5)  # 尤度0.5以上のラベルのみがターゲット認識器の認識結果であると解釈する
+
+        print('features')
+        print(features)
+        print(features.shape)
+
+        print('labels')
+        print(labels)
+        print(labels.shape)
+
         es_cb = EarlyStopping(monitor='val_loss', min_delta=0, patience=5, mode='auto')
         self.clf.fit(features, labels,
                      batch_size=batch_size,
@@ -228,27 +254,50 @@ class LV3UserDefinedClassifierDivide:
     # クローン認識器の学習
     #   (features, likelihoods): 訓練データ（特徴量と尤度ベクトルのペアの集合）
     def fit(self, features, likelihoods):
-        # features = self.__mold_features(features)
         labels = np.int32(likelihoods >= 0.5)  # 尤度0.5以上のラベルのみがターゲット認識器の認識結果であると解釈する
 
         print(labels.shape)
 
         for i in range(len(self.labels_all) // self.divide_label_num):
-            fragment_labels = np.zeros(labels.shape)
-            fragment_labels[i * self.divide_label_num:(i + 1) * self.divide_label_num] = 1
-            fragment_labels = fragment_labels == 1
+            masked_labels = []
+            for j in range(len(labels)):
+                masked_labels.append(labels[j][self.clfs[i].mask])
 
-            self.clfs[i].fit(features=features, likelihoods=labels[fragment_labels])
+            masked_labels = np.array(masked_labels)
+
+            print(masked_labels.shape)
+            print(masked_labels)
+
+            self.clfs[i].fit(features=features, labels=masked_labels)
 
     # 未知の特徴量を認識
     #   features: 認識対象の特徴量の集合
     def predict_proba(self, features):
-        # features = self.__mold_features(features)
-        likelihoods = np.c_[np.zeros(features.shape[0])]
+        # # features = self.__mold_features(features)
+        # likelihoods = np.c_[np.zeros(len(features))]
+        # for i in range(len(self.labels_all) // self.divide_label_num):
+        #     p = self.clfs[i].predict_proba(features)
+        #     likelihoods = np.hstack([likelihoods, np.c_[p[:, 1]]])
+        # likelihoods = likelihoods[:, 1:]
+        likelihoods = np.zeros((len(features), self.labels_all.shape[0]))
+        print(likelihoods.shape)
+
+        divide_likelihoods_list = []
         for i in range(len(self.labels_all) // self.divide_label_num):
-            p = self.clfs[i].predict_proba(features)
-            likelihoods = np.hstack([likelihoods, np.c_[p[:, 1]]])
-        likelihoods = likelihoods[:, 1:]
+            divide_likelihoods = self.clfs[i].predict_proba(features=features)
+            divide_likelihoods_list.append(divide_likelihoods)
+
+        for i in range(len(likelihoods)):
+            line_likelihoods = []
+            for divide_likelihoods in divide_likelihoods_list:
+                line_likelihoods = line_likelihoods + list(divide_likelihoods[i])
+            print(line_likelihoods)
+
+            line_likelihoods = np.array(line_likelihoods)
+            print(line_likelihoods.shape)
+
+            likelihoods[i] = line_likelihoods
+
         return np.float32(likelihoods)
 
 
