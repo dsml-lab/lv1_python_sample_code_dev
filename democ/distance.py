@@ -7,7 +7,7 @@ import random
 def calc_distance(feature1, feature2):
     feature_diff = feature1 - feature2
     feature_square = feature_diff**2
-    return np.sum(feature_square)
+    return np.sqrt(np.sum(feature_square))
 
 
 def find_furthest_place(sampled_features, samplable_features):
