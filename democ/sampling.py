@@ -134,7 +134,7 @@ def convert_list_from_numpy(features, image_ids):
 INITIAL_VALUE = 1000
 
 
-def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_model, exe_n, n_labels):
+def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_model, exe_n, labels_all):
     if n_samples <= 0:
         raise ValueError
 
@@ -157,7 +157,7 @@ def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_
         if n_samples == exe_n:
             return new_features
         else:
-            voters = Parliament.create_lv3_voters(n_labels=n_labels)
+            voters = Parliament.create_lv3_voters(labels_all=labels_all)
             parliament = Parliament(
                 samplable_features=all_features,
                 voter1=voters[0], voter2=voters[1])
@@ -174,7 +174,7 @@ def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_
             exe_n=exe_n,
             data_set=data_set,
             extractor=extractor,
-            n_labels=n_labels
+            labels_all=labels_all
         )
 
         print('n_samples:' + str(n_samples) + ', ' + 'exe_n:' + str(exe_n))
