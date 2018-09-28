@@ -134,20 +134,19 @@ def convert_list_from_numpy(features, image_ids):
 INITIAL_VALUE = 1000
 
 
-def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_model, exe_n, labels_all):
+def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_model, exe_n, labels_all, all_image_num):
     if n_samples <= 0:
         raise ValueError
 
     elif n_samples <= INITIAL_VALUE:
-        all_image_count = 5000
 
         all_features = extract_features_from_images(data_set=data_set, extractor=extractor,
-                                                    all_image_count=all_image_count
+                                                    all_image_count=all_image_num
                                                     )
 
         print('n_samples:' + str(n_samples) + ', ' + 'exe_n:' + str(exe_n))
 
-        perm = np.random.permutation(all_image_count)
+        perm = np.random.permutation(all_image_num)
         new_features = []
         for i in range(0, n_samples):
             new_features.append(all_features[perm[i]])
@@ -174,7 +173,8 @@ def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_
             exe_n=exe_n,
             data_set=data_set,
             extractor=extractor,
-            labels_all=labels_all
+            labels_all=labels_all,
+            all_image_num=all_image_num
         )
 
         print('n_samples:' + str(n_samples) + ', ' + 'exe_n:' + str(exe_n))
