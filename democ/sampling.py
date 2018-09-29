@@ -79,8 +79,6 @@ def lv2_user_function_sampling_democracy(n_samples, target_model, exe_n):
         else:
             vtrs = Parliament.create_lv2_voters()
             return np.float32(new_features), target_likelihoods, Parliament(
-                # dimension=2,
-                # label_size=8,
                 samplable_features=Parliament.get_samplable_features_2_dimension(
                     image_size=Parliament.get_image_size(exe_n=exe_n)),
                 voter1=vtrs[0], voter2=vtrs[1]),
@@ -130,9 +128,6 @@ def convert_list_from_numpy(features, image_ids):
         feature_list.append((np.int32(image_ids[i]), f))
 
     return feature_list
-
-
-
 
 
 def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_model, exe_n, labels_all):
@@ -195,61 +190,67 @@ def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_
             return features, target_likelihoods, parliament
 
 
-def lv3_user_function_sampling_democracy_ecorogy(data_set, extractor, n_samples, target_model, exe_n, labels_all):
-    initial_value = int(exe_n * 0.2)
-    all_image_num = exe_n * 10
+def lv3_user_function_sampling_democracy_ecology(data_set, extractor, n_samples, target_model, labels_all,
+                                                 all_image_num):
 
-    if n_samples <= 0:
-        raise ValueError
+    init_n_samples = n_samples // 2
 
-    elif n_samples <= initial_value:
-        all_features = extract_features_from_images(data_set=data_set, extractor=extractor,
-                                                    all_image_count=all_image_num
-                                                    )
 
-        print('n_samples:' + str(n_samples) + ', ' + 'exe_n:' + str(exe_n))
 
-        perm = np.random.permutation(all_image_num)
-        new_features = []
-        for i in range(0, n_samples):
-            new_features.append(all_features[perm[i]])
 
-        target_likelihoods = target_model.predict_proba(new_features)
 
-        if n_samples == exe_n:
-            return new_features
-        else:
-            voters = Parliament.create_lv3_voters(labels_all=labels_all)
-            parliament = ParliamentEcology(
-                samplable_features=all_features,
-                latest_voter=voters[0], old_voter=voters[1])
-
-            parliament.delete_samplable_features_lv3(delete_features=new_features)
-            return new_features, target_likelihoods, parliament
-
-    elif n_samples > initial_value:
-        increase_width = int(exe_n * 0.1)
-
-        old_features, old_target_likelihoods, parliament = lv3_user_function_sampling_democracy(
-            n_samples=max(n_samples - increase_width, initial_value),
-            target_model=target_model,
-            exe_n=exe_n,
-            data_set=data_set,
-            extractor=extractor,
-            labels_all=labels_all,
-        )
-
-        print('n_samples:' + str(n_samples) + ', ' + 'exe_n:' + str(exe_n))
-
-        parliament.fit_to_voters(sampled_features=old_features, sampled_likelihoods=old_target_likelihoods)
-        optimal_features = parliament.get_optimal_solution_multi(number_of_return=increase_width)
-        features = old_features + optimal_features
-
-        new_target_likelihoods = target_model.predict_proba(optimal_features)
-        target_likelihoods = np.vstack((old_target_likelihoods, new_target_likelihoods))
-
-        if n_samples == exe_n:
-            return features
-        else:
-            return features, target_likelihoods, parliament
-
+    # initial_value = 1000
+    #
+    # if n_samples <= 0:
+    #     raise ValueError
+    #
+    # elif n_samples <= initial_value:
+    #     all_features = extract_features_from_images(data_set=data_set, extractor=extractor,
+    #                                                 all_image_count=all_image_num
+    #                                                 )
+    #
+    #     print('n_samples:' + str(n_samples) + ', ' + 'exe_n:' + str(exe_n))
+    #
+    #     perm = np.random.permutation(all_image_num)
+    #     new_features = []
+    #     for i in range(0, n_samples):
+    #         new_features.append(all_features[perm[i]])
+    #
+    #     target_likelihoods = target_model.predict_proba(new_features)
+    #
+    #     if n_samples == exe_n:
+    #         return new_features
+    #     else:
+    #         voters = Parliament.create_lv3_voters(labels_all=labels_all)
+    #         parliament = ParliamentEcology(
+    #             samplable_features=all_features,
+    #             latest_voter=voters[0], old_voter=voters[1])
+    #
+    #         parliament.delete_samplable_features_lv3(delete_features=new_features)
+    #         return new_features, target_likelihoods, parliament
+    #
+    # elif n_samples > initial_value:
+    #     increase_width = int(exe_n * 0.1)
+    #
+    #     old_features, old_target_likelihoods, parliament = lv3_user_function_sampling_democracy(
+    #         n_samples=n_samples - increase_width,
+    #         target_model=target_model,
+    #         exe_n=exe_n,
+    #         data_set=data_set,
+    #         extractor=extractor,
+    #         labels_all=labels_all,
+    #     )
+    #
+    #     print('n_samples:' + str(n_samples) + ', ' + 'exe_n:' + str(exe_n))
+    #
+    #     parliament.fit_to_voters(sampled_features=old_features, sampled_likelihoods=old_target_likelihoods)
+    #     optimal_features = parliament.get_optimal_solution_multi(number_of_return=increase_width)
+    #     features = old_features + optimal_features
+    #
+    #     new_target_likelihoods = target_model.predict_proba(optimal_features)
+    #     target_likelihoods = np.vstack((old_target_likelihoods, new_target_likelihoods))
+    #
+    #     if n_samples == exe_n:
+    #         return features
+    #     else:
+    #         return features, target_likelihoods, parliament

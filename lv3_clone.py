@@ -15,7 +15,7 @@ from PIL import Image
 from tqdm import trange
 
 from democ.lv3_clf import LV3UserDefinedClassifier, vgg_input_value, LV3UserDefinedClassifierDivide
-from democ.sampling import lv3_user_function_sampling_democracy
+from democ.sampling import lv3_user_function_sampling_democracy, lv3_user_function_sampling_democracy_ecology
 from lv3_src.evaluation import LV3_Evaluator
 from lv3_src.extractor import LV3FeatureExtractor
 from lv3_src.labels import LabelTable
@@ -126,7 +126,7 @@ class LV3_TargetClassifier:
 #   extractor: LV3_FeatureExtractorクラスのインスタンス
 #   n_samples: サンプリングする特徴量の数
 def LV3_user_function_sampling(set, extractor, n_samples=1):
-    all_image_num = 10000
+    all_image_num = 5000
 
     # まず，画像データセット中の全画像から特徴量を抽出する
     # 本サンプルコードでは処理時間短縮のため先頭5,000枚のみを対象とする
@@ -172,15 +172,15 @@ if __name__ == '__main__':
 
     # ターゲット認識器への入力として用いる特徴量を用意
     # このサンプルコードではひとまず2,000サンプルを用意することにする
-    n = 10000
-    features = lv3_user_function_sampling_democracy(data_set=train_set,
-                                                    extractor=extractor,
-                                                    n_samples=n,
-                                                    exe_n=n,
-                                                    target_model=target,
-                                                    labels_all=LT.labels,
-                                                    )
-    # features = LV3_user_function_sampling(set=train_set, extractor=extractor, n_samples=n)
+    n = 2000
+    # features = lv3_user_function_sampling_democracy_ecology(data_set=train_set,
+    #                                                         extractor=extractor,
+    #                                                         n_samples=n,
+    #                                                         exe_n=n,
+    #                                                         target_model=target,
+    #                                                         labels_all=LT.labels,
+    #                                                         )
+    features = LV3_user_function_sampling(set=train_set, extractor=extractor, n_samples=n)
     print("\n{0} features were sampled.".format(n))
 
     # ターゲット認識器に用意した入力特徴量を入力し，各々の認識結果（各クラスラベルの尤度を並べたベクトル）を取得
