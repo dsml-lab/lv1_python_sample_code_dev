@@ -18,7 +18,8 @@ def run_clone(target_path, n, visualize_directory):
 
     # ターゲット認識器への入力として用いる二次元特徴量を用意
     # このサンプルコードではひとまず1000サンプルを用意することにする
-    features, likelihoods = lv2_user_function_sampling_democracy(n_samples=n, exe_n=n, target_model=target)
+    features = lv2_user_function_sampling_democracy(n_samples=n, exe_n=n, target_model=target)
+    likelihoods = target.predict_proba(features)
     print("\n{0} features were sampled.".format(n))
 
     print("\nThe sampled features were recognized by the target recognizer.")
