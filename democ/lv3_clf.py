@@ -49,6 +49,7 @@ class LV3UserDefinedClassifier:
             p = self.clfs[i].predict_proba(features)
             likelihoods = np.hstack([likelihoods, np.c_[p[:, 1]]])
         likelihoods = likelihoods[:, 1:]
+        likelihoods = (likelihoods + 0.3) / 1.3
         return np.float32(likelihoods)
 
 
@@ -167,12 +168,16 @@ class VGG16KerasModel:
 
     @staticmethod
     def build_model_func(n_labels):
-        base_model = VGG16(weights='imagenet', include_top=False,
+        base_model = VGG19(weights='imagenet', include_top=False,
                            input_tensor=Input(shape=vgg_input_shape))
 
         x = base_model.output
         x = GlobalAveragePooling2D()(x)
         x = Dense(1024, activation='relu')(x)
+        x = Dense(512, activation='relu')(x)
+        x = Dense(256, activation='relu')(x)
+        x = Dense(128, activation='relu')(x)
+        x = Dense(32, activation='relu')(x)
         prediction = Dense(n_labels, activation='sigmoid')(x)
         model = Model(inputs=base_model.input, outputs=prediction)
 
@@ -189,7 +194,7 @@ class VGG16KerasModel:
 
     def __init__(self, mask):
         self.mask = mask
-        self.clf = self.build_model(n_labels=np.sum(mask))
+        self.clf = self.build_model_func(n_labels=np.sum(mask))
 
     @staticmethod
     def __mold_features(features):
@@ -226,7 +231,7 @@ class VGG16KerasModel:
     def predict_proba(self, features):
         features = self.__mold_features(features)
         likelihoods = self.clf.predict(features, verbose=1)
-        likelihoods = (likelihoods + 0.5) / 1.5
+        likelihoods = (likelihoods + 0.7) / 1.7
         return np.float32(likelihoods)
 
 
@@ -299,13 +304,15 @@ class DenseModel:
         print(zero_num)
         print('-----------')
 
+        likelihoods = (likelihoods + 0.3) / 1.3
+
         return np.float32(likelihoods)
 
 
 class LV3UserDefinedClassifierDivide:
 
     def __init__(self, labels_all):
-        self.divide_label_num = 248
+        self.divide_label_num = len(labels_all)
         self.labels_all = np.array(labels_all)
         self.clfs = []
 
@@ -315,8 +322,8 @@ class LV3UserDefinedClassifierDivide:
             fragment_labels[i*self.divide_label_num:(i+1)*self.divide_label_num] = 1
             fragment_labels = fragment_labels == 1
 
-            clf = VGG16KerasModel(mask=fragment_labels)
-            # clf = DenseModel(mask=fragment_labels)
+            # clf = VGG16KerasModel(mask=fragment_labels)
+            clf = DenseModel(mask=fragment_labels)
             self.clfs.append(clf)
 
 
@@ -372,6 +379,23 @@ class LV3UserDefinedClassifierDivide:
 
             likelihoods[i] = line_likelihoods
 
+        return np.float32(likelihoods)
+
+
+class LV3UserDefinedClassifierAllOne:
+
+    def __init__(self, labels_all):
+        self.labels_all = np.array(labels_all)
+
+    # クローン認識器の学習
+    #   (features, likelihoods): 訓練データ（特徴量と尤度ベクトルのペアの集合）
+    def fit(self, features, likelihoods):
+        pass
+
+    # 未知の特徴量を認識
+    #   features: 認識対象の特徴量の集合
+    def predict_proba(self, features):
+        likelihoods = np.ones((len(features), self.labels_all.shape[0]))
         return np.float32(likelihoods)
 
 

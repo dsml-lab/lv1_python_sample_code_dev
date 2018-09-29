@@ -14,7 +14,8 @@ from PIL import Image
 
 from tqdm import trange
 
-from democ.lv3_clf import LV3UserDefinedClassifier, vgg_input_value, LV3UserDefinedClassifierDivide
+from democ.lv3_clf import LV3UserDefinedClassifier, vgg_input_value, LV3UserDefinedClassifierDivide, \
+    LV3UserDefinedClassifierAllOne
 from democ.sampling import lv3_user_function_sampling_democracy, lv3_user_function_sampling_democracy_ecology
 from lv3_src.evaluation import LV3_Evaluator
 from lv3_src.extractor import LV3FeatureExtractor
@@ -71,8 +72,14 @@ class LV3_ImageSet:
     # n番目の画像の特徴量を取得
     #   extractor: LV3_FeatureExtractorクラスのインスタンス
     def get_feature(self, n, extractor):
-        img = self.get_image(n, as_gray=False)
-        return extractor.extract_flatten(img=img)
+        img = self.get_image(n, as_gray=True)
+        return extractor.extract(img=img)
+
+    # n番目の画像の特徴量を取得
+    #   extractor: LV3_FeatureExtractorクラスのインスタンス
+    def get_feature_lbp(self, n, extractor):
+        img = self.get_image(n, as_gray=True)
+        return extractor.extract(img=img)
 
 
 # ターゲット認識器を表現するクラス
@@ -126,7 +133,7 @@ class LV3_TargetClassifier:
 #   extractor: LV3_FeatureExtractorクラスのインスタンス
 #   n_samples: サンプリングする特徴量の数
 def LV3_user_function_sampling(set, extractor, n_samples=1):
-    all_image_num = 5000
+    all_image_num = 50000
 
     # まず，画像データセット中の全画像から特徴量を抽出する
     # 本サンプルコードでは処理時間短縮のため先頭5,000枚のみを対象とする
@@ -172,13 +179,13 @@ if __name__ == '__main__':
 
     # ターゲット認識器への入力として用いる特徴量を用意
     # このサンプルコードではひとまず2,000サンプルを用意することにする
-    n = 2000
+    n = 50000
     # features = lv3_user_function_sampling_democracy_ecology(data_set=train_set,
     #                                                         extractor=extractor,
     #                                                         n_samples=n,
-    #                                                         exe_n=n,
     #                                                         target_model=target,
     #                                                         labels_all=LT.labels,
+    #                                                         all_image_num=5000
     #                                                         )
     features = LV3_user_function_sampling(set=train_set, extractor=extractor, n_samples=n)
     print("\n{0} features were sampled.".format(n))
@@ -189,6 +196,7 @@ if __name__ == '__main__':
 
     # クローン認識器を学習
     model = LV3UserDefinedClassifierDivide(labels_all=LT.labels)
+    # model = LV3UserDefinedClassifier(n_labels=LT.N_LABELS())
     model.fit(features, likelihoods)
     print("\nA clone recognizer was trained.")
 

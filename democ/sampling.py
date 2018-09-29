@@ -192,11 +192,37 @@ def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_
 
 def lv3_user_function_sampling_democracy_ecology(data_set, extractor, n_samples, target_model, labels_all,
                                                  all_image_num):
-
     init_n_samples = n_samples // 2
+    remaining_n_samples = n_samples - init_n_samples
 
+    all_features = extract_features_from_images(data_set=data_set, extractor=extractor,
+                                                all_image_count=all_image_num)
 
+    print('random sampling')
+    init_features = []
+    for n in range(1, init_n_samples + 1):
+        perm = np.random.permutation(all_image_num)
+        init_features.append(all_features[perm[n]])
 
+    target_likelihoods = target_model.predict_proba(init_features)
+
+    print('create Parliament')
+    voters = Parliament.create_lv3_voters(labels_all=labels_all)
+    parliament = Parliament(
+        samplable_features=all_features,
+        voter1=voters[0], voter2=voters[1])
+
+    parliament.delete_samplable_features_lv3(delete_features=init_features)
+
+    print('fit voters')
+    parliament.fit_to_voters(sampled_features=init_features, sampled_likelihoods=target_likelihoods)
+    print('get optimal solution')
+    optimal_features = parliament.get_optimal_solution_lv3(sampled_features=init_features,
+                                                           number_of_return=remaining_n_samples)
+
+    features = init_features + optimal_features
+
+    return features
 
     # initial_value = 1000
     #
