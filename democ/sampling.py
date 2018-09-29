@@ -130,14 +130,12 @@ def convert_list_from_numpy(features, image_ids):
     return feature_list
 
 
-def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_model, exe_n, labels_all):
-    INITIAL_VALUE = 200
-    all_image_num = exe_n * 10
+def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_model, exe_n, labels_all, all_image_num):
 
     if n_samples <= 0:
         raise ValueError
 
-    elif n_samples <= INITIAL_VALUE:
+    elif n_samples == 1:
         all_features = extract_features_from_images(data_set=data_set, extractor=extractor,
                                                     all_image_count=all_image_num
                                                     )
@@ -145,10 +143,12 @@ def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_
         print('n_samples:' + str(n_samples) + ', ' + 'exe_n:' + str(exe_n))
 
         perm = np.random.permutation(all_image_num)
+        # 最初のランダムな配置
         new_features = []
         for i in range(0, n_samples):
             new_features.append(all_features[perm[i]])
 
+        # ターゲットラベルを取得
         target_likelihoods = target_model.predict_proba(new_features)
 
         if n_samples == exe_n:
@@ -162,23 +162,22 @@ def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_
             parliament.delete_samplable_features_lv3(delete_features=new_features)
             return new_features, target_likelihoods, parliament
 
-    elif n_samples > INITIAL_VALUE:
-        increase_width = 100
-
+    elif n_samples > 1:
         old_features, old_target_likelihoods, parliament = lv3_user_function_sampling_democracy(
-            n_samples=n_samples - increase_width,
+            n_samples=n_samples - 1,
             target_model=target_model,
             exe_n=exe_n,
             data_set=data_set,
             extractor=extractor,
             labels_all=labels_all,
+            all_image_num=all_image_num
         )
 
         print('n_samples:' + str(n_samples) + ', ' + 'exe_n:' + str(exe_n))
 
         parliament.fit_to_voters(sampled_features=old_features, sampled_likelihoods=old_target_likelihoods)
         optimal_features = parliament.get_optimal_solution_lv3(sampled_features=old_features,
-                                                               number_of_return=increase_width)
+                                                               number_of_return=1)
         features = old_features + optimal_features
 
         new_target_likelihoods = target_model.predict_proba(optimal_features)
