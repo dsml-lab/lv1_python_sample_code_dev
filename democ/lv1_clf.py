@@ -166,9 +166,9 @@ class LV1UserDefinedClassifierMLP1000HiddenLayerGridSearch:
         }
         parameters2 = {
             'learning_rate': ["constant", "invscaling", "adaptive"],
-            'hidden_layer_sizes': [1000, (100, 3), (1000, 3), 700, 800, 900, 1100, 1200, ],
+            'hidden_layer_sizes': [900, 1000, 1100, 1200, 1300, 1400, 1500, 1700, 1800, 2000, 2200, 2500, 3000],
             # 'alpha': [10.0 ** -np.arange(1, 7)],
-            'activation': ["logistic", "relu", "tanh"]
+            'activation': ["relu"]
         }
 
         self.clf = MLPClassifier()
@@ -183,7 +183,9 @@ class LV1UserDefinedClassifierMLP1000HiddenLayerGridSearch:
     def fit(self, features, labels):
         self.grid_search.fit(features, labels)
 
+        print('最大スコア')
         print(self.grid_search.best_score_)  # 最も良かったスコア
+        print('最適パラメタ')
         print(self.grid_search.best_params_)  # 上記を記録したパラメータの組み合わせ
 
     # 未知の二次元特徴量を認識
