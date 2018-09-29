@@ -7,8 +7,8 @@ from tqdm import trange
 from democ.distance import find_furthest_place, get_furthest_rate_arr_lv2, get_furthest_rate_arr_lv3
 from democ.lv1_clf import LV1UserDefinedClassifierMLP1000HiddenLayer
 from democ.lv2_clf import LV2UserDefinedClassifierMLP1000HiddenLayer
-from democ.lv3_clf import LV3UserDefinedClassifier, LV3UserDefinedClassifierKNN3,\
-    LV3UserDefinedClassifierDivide
+from democ.lv3_clf import LV3UserDefinedClassifier, LV3UserDefinedClassifierKNN3, \
+    LV3UserDefinedClassifierDivide, LV3UserDefinedClassifierEnsemble
 from democ.voter import Lv1Voter, Lv2Voter, Voter, Lv3Voter
 
 
@@ -45,8 +45,8 @@ class Parliament:
 
     @staticmethod
     def create_lv3_voters(labels_all):
-        voters = [Lv3Voter(model=LV3UserDefinedClassifierDivide(labels_all=labels_all)),
-                  Lv3Voter(model=LV3UserDefinedClassifierDivide(labels_all=labels_all))]
+        voters = [Lv3Voter(model=LV3UserDefinedClassifierEnsemble(labels_all=labels_all)),
+                  Lv3Voter(model=LV3UserDefinedClassifierEnsemble(labels_all=labels_all))]
         return voters
 
     def __init__(self, samplable_features, voter1: Voter, voter2: Voter):

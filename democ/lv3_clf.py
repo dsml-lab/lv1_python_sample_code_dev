@@ -239,10 +239,6 @@ class DenseModel:
 
     @staticmethod
     def build_model(n_labels):
-        # input_tensor = Input(shape=(48, 48, 1))
-        # vgg16_model = VGG16(weights=None, include_top=False,
-        #                    input_tensor=Input(shape=vgg_input_shape))
-
         top_model = Sequential()
         top_model.add(Dense(256, activation='relu', input_shape=(256,)))
         top_model.add(Dense(1024, activation='relu'))
@@ -299,7 +295,7 @@ class DenseModel:
         print('1の要素数')
         print(one_num)
 
-        zero_num = len(np.where(labels == 1)[0])
+        zero_num = len(np.where(labels == 0)[0])
         print('0の要素数')
         print(zero_num)
         print('-----------')
@@ -310,6 +306,79 @@ class DenseModel:
 
 
 class LV3UserDefinedClassifierDivide:
+
+    def __init__(self, labels_all):
+        self.divide_label_num = len(labels_all)
+        self.labels_all = np.array(labels_all)
+        self.clfs = []
+
+        for i in range(len(self.labels_all) // self.divide_label_num):
+            # マスクする
+            fragment_labels = np.zeros(self.labels_all.shape)
+            fragment_labels[i*self.divide_label_num:(i+1)*self.divide_label_num] = 1
+            fragment_labels = fragment_labels == 1
+
+            # clf = VGG16KerasModel(mask=fragment_labels)
+            clf = DenseModel(mask=fragment_labels)
+            self.clfs.append(clf)
+
+
+    # @staticmethod
+    # def __mold_features(features):
+    #     temp = []
+    #     for i in trange(0, len(features)):
+    #         temp.append(features[i][1])
+    #     return np.asarray(temp, dtype=np.float32)
+
+    # クローン認識器の学習
+    #   (features, likelihoods): 訓練データ（特徴量と尤度ベクトルのペアの集合）
+    def fit(self, features, likelihoods):
+        labels = np.int32(likelihoods >= 0.5)  # 尤度0.5以上のラベルのみがターゲット認識器の認識結果であると解釈する
+
+        print(labels.shape)
+
+        for i in range(len(self.labels_all) // self.divide_label_num):
+            masked_labels = []
+            for j in range(len(labels)):
+                masked_labels.append(labels[j][self.clfs[i].mask])
+
+            masked_labels = np.array(masked_labels)
+
+            print(masked_labels.shape)
+            print(masked_labels)
+
+            self.clfs[i].fit(features=features, labels=masked_labels)
+
+    # 未知の特徴量を認識
+    #   features: 認識対象の特徴量の集合
+    def predict_proba(self, features):
+        # # features = self.__mold_features(features)
+        # likelihoods = np.c_[np.zeros(len(features))]
+        # for i in range(len(self.labels_all) // self.divide_label_num):
+        #     p = self.clfs[i].predict_proba(features)
+        #     likelihoods = np.hstack([likelihoods, np.c_[p[:, 1]]])
+        # likelihoods = likelihoods[:, 1:]
+        likelihoods = np.zeros((len(features), self.labels_all.shape[0]))
+        print(likelihoods.shape)
+
+        divide_likelihoods_list = []
+        for i in range(len(self.labels_all) // self.divide_label_num):
+            divide_likelihoods = self.clfs[i].predict_proba(features=features)
+            divide_likelihoods_list.append(divide_likelihoods)
+
+        for i in range(len(likelihoods)):
+            line_likelihoods = []
+            for divide_likelihoods in divide_likelihoods_list:
+                line_likelihoods = line_likelihoods + list(divide_likelihoods[i])
+
+            line_likelihoods = np.array(line_likelihoods)
+
+            likelihoods[i] = line_likelihoods
+
+        return np.float32(likelihoods)
+
+
+class LV3UserDefinedClassifierEnsemble:
 
     def __init__(self, labels_all):
         self.divide_label_num = len(labels_all)

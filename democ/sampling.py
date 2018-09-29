@@ -6,6 +6,8 @@ from democ.parliament import Parliament
 from democ.parliament_ecology import ParliamentEcology
 
 
+
+
 def lv1_user_function_sampling_democracy(n_samples, target_model, exe_n):
     if n_samples < 0:
         raise ValueError
@@ -131,7 +133,6 @@ def convert_list_from_numpy(features, image_ids):
 
 
 def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_model, exe_n, labels_all, all_image_num):
-
     if n_samples <= 0:
         raise ValueError
 

@@ -23,7 +23,9 @@ from lv3_src.labels import LabelTable
 
 import sys
 
-sys.setrecursionlimit(10000)
+import sys
+# 再帰上限の変更　nの最大数に応じて変更する
+sys.setrecursionlimit(100000)
 
 LABEL_LIST = "lv3_src/lv3_label_list.csv"
 
@@ -179,13 +181,14 @@ if __name__ == '__main__':
 
     # ターゲット認識器への入力として用いる特徴量を用意
     # このサンプルコードではひとまず2,000サンプルを用意することにする
-    n = 10000
+    n = 2000
     features = lv3_user_function_sampling_democracy(data_set=train_set,
                                                             extractor=extractor,
                                                             n_samples=n,
                                                             target_model=target,
                                                             labels_all=LT.labels,
-                                                            all_image_num=100000
+                                                            all_image_num=10000,
+                                                            exe_n=n
                                                             )
     # features = LV3_user_function_sampling(set=train_set, extractor=extractor, n_samples=n)
     print("\n{0} features were sampled.".format(n))
