@@ -150,14 +150,13 @@ class VGG16KerasModel:
     @staticmethod
     def build_model(n_labels):
         # input_tensor = Input(shape=(48, 48, 1))
-        vgg16_model = VGG16(weights=None, include_top=False,
+        vgg16_model = VGG16(weights="imagenet", include_top=False,
                            input_tensor=Input(shape=vgg_input_shape))
 
         top_model = Sequential()
         top_model.add(Flatten(input_shape=vgg16_model.output_shape[1:]))
-        top_model.add(Dense(64, activation='relu'))
+        top_model.add(Dense(256, activation='relu'))
         top_model.add(Dense(32, activation='relu'))
-        top_model.add(Dense(16, activation='relu'))
         top_model.add(Dense(n_labels, activation='sigmoid'))
 
         model = Model(input=vgg16_model.input, output=top_model(vgg16_model.output))
@@ -287,13 +286,26 @@ class DenseModel:
     def predict_proba(self, features):
         features = self.__mold_features(features)
         likelihoods = self.clf.predict(features, verbose=1)
+
+        labels = np.int32(likelihoods >= 0.5)
+
+        print('-----------')
+        one_num = len(np.where(labels == 1)[0])
+        print('1の要素数')
+        print(one_num)
+
+        zero_num = len(np.where(labels == 1)[0])
+        print('0の要素数')
+        print(zero_num)
+        print('-----------')
+
         return np.float32(likelihoods)
 
 
 class LV3UserDefinedClassifierDivide:
 
     def __init__(self, labels_all):
-        self.divide_label_num = len(labels_all)
+        self.divide_label_num = 248
         self.labels_all = np.array(labels_all)
         self.clfs = []
 

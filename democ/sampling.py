@@ -198,7 +198,6 @@ def lv3_user_function_sampling_democracy_ecology(data_set, extractor, n_samples,
 
 
 
-
     # initial_value = 1000
     #
     # if n_samples <= 0:
