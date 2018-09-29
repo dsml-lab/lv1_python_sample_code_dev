@@ -72,29 +72,10 @@ class Parliament:
         self.predict_to_voters()
 
         discrepancy_rate_arr = self.get_discrepancy_rate_arr()
-        furthest_rate_arr = get_furthest_rate_arr_lv3(sampled_features=sampled_features,
-                                                  samplable_features=self.samplable_features)
-        effective_distribution = (discrepancy_rate_arr + furthest_rate_arr) / 2
-
-        # print('discrepancy_rate_arr:')
-        # print(np.unique(discrepancy_rate_arr))
-        # print('furthest_rate_arr')
-        # print(np.unique(furthest_rate_arr))
-        # print('effective_distribution')
-        # print(np.unique(effective_distribution))
-
-        # for i in trange(number_of_return, desc='number_of_return'):
-        #     furthest_rate_arr = get_furthest_rate_arr(sampled_features=sampled_features + optimal_features,
+        # furthest_rate_arr = get_furthest_rate_arr_lv3(sampled_features=sampled_features,
         #                                               samplable_features=self.samplable_features)
-        #     effective_distribution = (discrepancy_rate_arr + furthest_rate_arr) / 2
-        #
-        #     max_value = np.amax(effective_distribution)
-        #     index_list = np.where(max_value == effective_distribution)[0]
-        #
-        #     random.shuffle(index_list)
-        #
-        #     opt_feature = self.samplable_features[index_list[0]]
-        #     optimal_features.append(opt_feature)
+        # effective_distribution = (discrepancy_rate_arr + furthest_rate_arr) / 2
+        effective_distribution = discrepancy_rate_arr
 
         arg_sort_list = np.argsort(-effective_distribution)  # 降順
 
@@ -119,14 +100,10 @@ class Parliament:
     def delete_samplable_features_lv3(self, delete_features):
         temp_list = []
         # # サンプリング候補から除外
-        for i, able_fea in enumerate(self.samplable_features):
+        for i, able_feature in enumerate(self.samplable_features):
             stay_flag = True
             for delete_feature in delete_features:
-                # print('able')
-                # print(able_fea)
-                # print('delete')
-                # print(delete_feature)
-                if able_fea[0] == delete_feature[0]:
+                if able_feature[0] == delete_feature[0]:
                     stay_flag = False
 
             if stay_flag:

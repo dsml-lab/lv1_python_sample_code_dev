@@ -134,12 +134,13 @@ def convert_list_from_numpy(features, image_ids):
 INITIAL_VALUE = 1000
 
 
-def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_model, exe_n, labels_all, all_image_num):
+def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_model, exe_n, labels_all):
+    all_image_num = exe_n * 10
+
     if n_samples <= 0:
         raise ValueError
 
     elif n_samples <= INITIAL_VALUE:
-
         all_features = extract_features_from_images(data_set=data_set, extractor=extractor,
                                                     all_image_count=all_image_num
                                                     )
@@ -174,13 +175,13 @@ def lv3_user_function_sampling_democracy(data_set, extractor, n_samples, target_
             data_set=data_set,
             extractor=extractor,
             labels_all=labels_all,
-            all_image_num=all_image_num
         )
 
         print('n_samples:' + str(n_samples) + ', ' + 'exe_n:' + str(exe_n))
 
         parliament.fit_to_voters(sampled_features=old_features, sampled_likelihoods=old_target_likelihoods)
-        optimal_features = parliament.get_optimal_solution_lv3(sampled_features=old_features, number_of_return=increase_width)
+        optimal_features = parliament.get_optimal_solution_lv3(sampled_features=old_features,
+                                                               number_of_return=increase_width)
         features = old_features + optimal_features
 
         new_target_likelihoods = target_model.predict_proba(optimal_features)
