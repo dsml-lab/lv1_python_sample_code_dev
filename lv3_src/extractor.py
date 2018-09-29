@@ -2,7 +2,7 @@ from PIL import Image
 from skimage.feature import local_binary_pattern
 import numpy as np
 
-BINS_SIZE = 48
+BINS_SIZE = 256
 
 # 画像特徴抽出器に相当するクラス
 # このサンプルコードでは Local Binary Patterns を抽出することにする（skimageを使用）

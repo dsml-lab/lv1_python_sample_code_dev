@@ -72,7 +72,7 @@ class LV3_ImageSet:
     #   extractor: LV3_FeatureExtractorクラスのインスタンス
     def get_feature(self, n, extractor):
         img = self.get_image(n, as_gray=False)
-        return extractor.extract_flatten(img)
+        return extractor.extract_flatten(img=img)
 
 
 # ターゲット認識器を表現するクラス
@@ -179,7 +179,7 @@ if __name__ == '__main__':
     #                                                 exe_n=n,
     #                                                 target_model=target,
     #                                                 labels_all=LT.labels,
-    #                                                 all_image_num=300000
+    #                                                 all_image_num=5000
     #                                                 )
     features = LV3_user_function_sampling(set=train_set, extractor=extractor, n_samples=n)
     print("\n{0} features were sampled.".format(n))
