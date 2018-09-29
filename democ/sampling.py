@@ -4,7 +4,9 @@ import numpy as np
 
 from democ.parliament import Parliament
 
-
+import sys
+# 再帰上限の変更　nの最大数に応じて変更する
+sys.setrecursionlimit(100000)
 
 def lv1_user_function_sampling_democracy(n_samples, target_model, exe_n):
     if n_samples < 0:

@@ -158,12 +158,6 @@ class LV1UserDefinedClassifierMLP1000HiddenLayer:
 
 class LV1UserDefinedClassifierMLP1000HiddenLayerGridSearch:
     def __init__(self):
-        parameters1 = {
-            'learning_rate': ["constant", "invscaling", "adaptive"],
-            'hidden_layer_sizes': [1000, (100, 3), (1000, 3), 700, 800, 900, 1100, 1200, ],
-            'alpha': [10.0 ** -np.arange(1, 7)],
-            'activation': ["logistic", "relu", "tanh"]
-        }
         parameters2 = {
             'learning_rate': ["constant", "invscaling", "adaptive"],
             'hidden_layer_sizes': [900, 1000, 1100, 1200, 1300, 1400, 1500, 1700, 1800, 2000, 2200, 2500, 3000],

@@ -65,4 +65,3 @@ class Lv2Voter(Voter):
     def get_samplable_likelihoods(self):
         labels = np.int32(self.samplable_likelihoods >= 0.5)  # 尤度0.5以上のラベルのみがターゲット認識器の認識結果であると解釈する
         return labels
-        # return self.samplable_likelihoods

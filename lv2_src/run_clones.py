@@ -1,6 +1,7 @@
 import os
 
-from democ.lv2_clf import LV2UserDefinedClassifierMLP1000HiddenLayer
+from democ.lv2_clf import LV2UserDefinedClassifierMLP1000HiddenLayer, \
+    LV2UserDefinedClassifierMLP1000HiddenLayerGridSearch
 from democ.sampling import lv2_user_function_sampling_democracy
 from lv2_src.caluculator import calc_area, area_statistics, save_area_text
 from lv2_src.evaluation_lv2 import LV2Evaluator
@@ -9,6 +10,34 @@ from lv2_src.lv2_defined import LV2TargetClassifier
 # ターゲット認識器を表現するクラス
 # ターゲット認識器は8枚の2次元パターン（512x512の画像）で与えられるものとする
 from lv2_src.path_manage import load_directories, get_root_dir, create_dir
+import numpy as np
+
+
+# ターゲット認識器に入力する二次元特徴量をサンプリングする関数(格子上)
+#   n_samples: サンプリングする特徴量の数
+def lv1_user_function_sampling_grid(n_samples):
+    features = np.zeros((n_samples, 2))
+    # n_samples=10 なら 3
+    # n_samples=100 なら 10
+    n_samples_sqrt = int(np.sqrt(n_samples))
+    n_samples_sq = n_samples_sqrt * n_samples_sqrt
+    # 格子ひとつ分の幅
+    fragment_size = 2 / (n_samples_sqrt + 1)
+
+    # 格子状に値を入れる
+    count = 0
+    for j in range(1, n_samples_sqrt + 1):
+        for k in range(1, n_samples_sqrt + 1):
+            features[count][0] = j * fragment_size - 1
+            features[count][1] = k * fragment_size - 1
+            count = count + 1
+
+    # 残りはランダムに
+    for i in range(n_samples_sq, n_samples):
+        features[i][0] = 2 * np.random.rand() - 1
+        features[i][1] = 2 * np.random.rand() - 1
+    return np.float32(features)
+
 
 
 def run_clone(target_path, n, visualize_directory):
@@ -18,13 +47,16 @@ def run_clone(target_path, n, visualize_directory):
 
     # ターゲット認識器への入力として用いる二次元特徴量を用意
     # このサンプルコードではひとまず1000サンプルを用意することにする
-    features, likelihoods = lv2_user_function_sampling_democracy(n_samples=n, exe_n=n, target_model=target)
+    # features, likelihoods = lv2_user_function_sampling_democracy(n_samples=n, exe_n=n, target_model=target)
+    features = lv1_user_function_sampling_grid(n_samples=n)
+    likelihoods = target.predict_proba(features)
+
     print("\n{0} features were sampled.".format(n))
 
     print("\nThe sampled features were recognized by the target recognizer.")
 
     # クローン認識器を学習
-    model = LV2UserDefinedClassifierMLP1000HiddenLayer(n_labels=N_LABELS)
+    model = LV2UserDefinedClassifierMLP1000HiddenLayerGridSearch(n_labels=N_LABELS)
     model.fit(features, likelihoods)
     print("\nA clone recognizer was trained.")
 
@@ -41,6 +73,11 @@ def run_clone(target_path, n, visualize_directory):
     print("F-score: {0}".format(f_score))
 
     return recall, precision, f_score
+
+
+def run_clone_one():
+    run_clone(target_path='lv2_targets/classifier_01', n=1000, visualize_directory=get_root_dir())
+
 
 
 def run_clone_area(target_path, save_area_path, n_list):
